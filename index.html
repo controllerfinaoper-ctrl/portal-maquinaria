@@ -18,7 +18,6 @@
     const SHEET_ID = "1YNdMgaPXapO-b7OGYNNVcZb34suJzoYM1Y8liSa8bmY";
     const NOMBRE_HOJA = "Hoja 1";
     // Único uso de Apps Script: guardar/leer la bitácora de comentarios y notas de voz por pedido.
-    // ⚠️ Debe apuntar a tu Codigo.gs desplegado como Web App (/exec).
     const COMENTARIOS_API_URL = "https://script.google.com/macros/s/AKfycbz8Y1pFuPL4z5kM3L96ohYUX34FigXZB2vmb2mctoVGszM3sjLHcByILNJUt_-YiDvh/exec";
   </script>
 
@@ -69,21 +68,9 @@
     @keyframes fadeIn {
       from { opacity: 0; } to { opacity: 1; }
     }
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(.94) translateY(10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    @keyframes shimmer {
-      0% { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
     @keyframes floatGlow {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
-    }
-    @keyframes countTick {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -91,8 +78,6 @@
       body { animation: none; }
     }
 
-    /* Mientras el video de intro está activo, se congelan las animaciones ambientales
-       (no el video) para no competir por el hilo principal / compositor del navegador. */
     body.intro-activa *:not(.intro-overlay):not(.intro-overlay *) { animation-play-state: paused !important; }
 
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
@@ -177,12 +162,11 @@
       opacity: 0; transform: translateY(-6px) scale(.98); transition: opacity .16s var(--ease), transform .16s var(--ease);
     }
     .combo-panel.show { display: block; opacity: 1; transform: translateY(0) scale(1); }
-    .combo-item-multi { transition: background .15s, color .15s; }
     .combo-search { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; margin-bottom: 8px; outline: none; background: #f8fafc; }
     .combo-actions { display: flex; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
     .combo-actions button { flex: 1; border: none; background: #f1f5f9; color: var(--ink); font-size: 11px; font-weight: 700; padding: 5px; border-radius: 6px; cursor: pointer; }
     .combo-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
-    .combo-item-multi { display: flex; align-items: center; gap: 10px; padding: 7px 10px; font-size: 12.5px; border-radius: 8px; cursor: pointer; }
+    .combo-item-multi { display: flex; align-items: center; gap: 10px; padding: 7px 10px; font-size: 12.5px; border-radius: 8px; cursor: pointer; transition: background .15s, color .15s; }
     .combo-item-multi:hover { background: var(--cl-verde-light); color: var(--cl-verde-hover); }
 
     .btn-clear {
@@ -196,7 +180,7 @@
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
-    /* Dock de Módulos (estilo macOS, horizontal, en el flujo entre filtros e indicadores) */
+    /* Dock de Módulos (estilo macOS) */
     .dock-wrap {
       position: relative; margin-top: 18px; z-index: 60;
       animation: fadeInUp .6s var(--ease) .14s both;
@@ -223,7 +207,7 @@
     .dock-label {
       position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%) translateY(-4px);
       background: var(--cl-azul-dark); color: #fff; font-size: 11.5px; font-weight: 700; letter-spacing: .2px;
-      padding: 5px 12px; border-radius: 9px; white-space: nowrap; opacity: 0; pointer-events: none;
+      padding: 5px 12px; border-radius: 999px; white-space: nowrap; opacity: 0; pointer-events: none;
       transition: opacity .15s var(--ease), transform .15s var(--ease); box-shadow: 0 6px 14px rgba(0,0,0,0.2);
     }
     .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label, .dock-item.active .dock-label {
@@ -231,7 +215,26 @@
     }
     .dock-item.active .dock-label { background: var(--cl-verde); color: #0a3356; }
 
-    .hint-bar { display: flex; justify-content: space-between; align-items: center; margin: 14px 4px 6px; font-size: 12px; color: #64748b; font-weight: 500; }
+    /* Contenedor de Tarjetas por Acción */
+    .acciones-summary-wrap {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;
+      margin-top: 18px; z-index: 5;
+    }
+    .card-accion-kpi {
+      background: #ffffff; border-radius: 16px; padding: 14px 18px; border: 1px solid var(--line);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04); display: flex; flex-direction: column; gap: 4px;
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .2s;
+      cursor: pointer; position: relative; overflow: hidden;
+    }
+    .card-accion-kpi:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1); border-color: var(--cl-azul); }
+    .card-accion-kpi::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent-color, var(--cl-azul));
+    }
+    .card-accion-title { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; display: flex; align-items: center; justify-content: space-between; }
+    .card-accion-val { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 26px; color: var(--ink); line-height: 1.1; margin-top: 2px; }
+    .card-accion-sub { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+    .hint-bar { display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 6px; font-size: 12px; color: #64748b; font-weight: 500; }
 
     /* Grid de Métricas */
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; align-items: start; }
@@ -307,7 +310,7 @@
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
     .tag-dias.ok { background: #dcfce7; color: #15803d; } .tag-dias.warn { background: #fef3c7; color: #b45309; } .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
 
-    /* Bitácora de Seguimiento (texto + nota de voz real) */
+    /* Bitácora de Seguimiento */
     .comments-section { margin-top: 14px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; }
     .comments-title { font-size: 12.5px; font-weight: 800; color: var(--cl-azul-dark); margin-bottom: 8px; }
     .voice-input-wrap { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -422,9 +425,13 @@
       </div>
     </div>
 
+    <!-- Dock de Módulos (Navegación macOS) -->
     <div class="dock-wrap">
       <nav class="dock-bar" id="dockBar" role="toolbar" aria-label="Módulos del panel"></nav>
     </div>
+
+    <!-- Tarjetas de Resumen de Pedidos Únicos desglosadas por cada Acción -->
+    <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
 
     <div class="hint-bar">
       <span>✨ Clic en cualquier tarjeta o barra interactiva para explorar el desglose por pedido</span>
@@ -461,6 +468,21 @@
       recogidas:     { label: 'Recogidas y Cierres',         icono: '🚚', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato', 'Terminacion Contrato'] },
       accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] }
     };
+
+    // Paleta de colores e íconos identificadores para las tarjetas KPI de cada Acción
+    const CONFIG_ACCIONES = {
+      'Iniciacion':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
+      'Iniciación':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
+      'MantenimientoCorrectivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos Correctivos' },
+      'Mantenimiento Correctivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos Correctivos' },
+      'Recogida':              { icono: '🚚', color: '#eab308', label: 'Recogidas' },
+      'TerminacionContrato':   { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
+      'Terminación Contrato':  { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
+      'CambioAccesorio':       { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
+      'Cambio Accesorio':      { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
+      'Adicional':             { icono: '➕', color: '#06b6d4', label: 'Adicionales' }
+    };
+
     const PALABRAS_FALLA_CRITICA = ['EN CORTO', 'NO PRENDE', 'CORTOCIRCUITO', 'FALLA ESTRUCTURAL', 'NO ENCIENDE', 'NO FUNCIONA'];
 
     function normTexto(s) {
@@ -475,9 +497,6 @@
       inicializarIntro();
     });
 
-    // El dashboard (fetch + render de gráficos) no arranca hasta que la intro
-    // termina o se salta: hacerlo en paralelo con el video saturaba el hilo
-    // principal del navegador y provocaba que el video se congelara.
     let DATOS_INICIADOS = false;
 
     function inicializarIntro() {
@@ -486,7 +505,6 @@
       document.body.classList.add('intro-activa');
       video.addEventListener('ended', saltarIntro);
       video.play().catch(() => {
-        // Autoplay con sonido bloqueado por el navegador: reintenta silenciado.
         video.muted = true;
         video.play().catch(() => {});
       });
@@ -521,13 +539,6 @@
       if (btn) { btn.disabled = false; setTimeout(() => btn.classList.remove('spinning'), 700); }
     }
 
-    /**
-     * Carga el JSON de Google Visualization (gviz) vía JSONP (etiqueta <script>).
-     * Abrir el portal como archivo local (file://) hace que un fetch() normal sea
-     * bloqueado por CORS ("Access-Control-Allow-Origin: null" en la respuesta de
-     * Google). Un <script src="..."> no pasa por CORS, así que este es el único
-     * método que funciona tanto en file:// como en un servidor real.
-     */
     function cargarJsonp(url) {
       return new Promise((resolve, reject) => {
         const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
@@ -543,11 +554,6 @@
       });
     }
 
-    /**
-     * Lee la hoja directamente desde el endpoint público de Google Visualization (gviz),
-     * sin ningún backend intermedio. Mapea columnas por nombre de encabezado (no por
-     * posición), así que es inmune a que se reordenen o inserten columnas en la hoja.
-     */
     async function obtenerDatosDesdeSheet() {
       const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(NOMBRE_HOJA)}&_=${Date.now()}`;
       const json = await cargarJsonp(url);
@@ -667,7 +673,7 @@
     }
 
     function animarContadores(root) {
-      const nodos = (root || document).querySelectorAll('.big[data-target]');
+      const nodos = (root || document).querySelectorAll('.big[data-target], .card-accion-val[data-target]');
       nodos.forEach(el => {
         const target = parseFloat(el.dataset.target) || 0;
         const duracion = 700;
@@ -848,6 +854,47 @@
       return Object.keys(vistos).length;
     }
 
+    /* Renders the top summary cards (Unique Orders grouped by Action) */
+    function renderTarjetasAcciones(evs) {
+      const wrap = document.getElementById('accionesSummaryWrap');
+      if (!wrap) return;
+
+      // Group unique orders and items count per Action
+      const conteoAcciones = {};
+      evs.forEach(e => {
+        const acc = e.accion || 'Sin especificación';
+        if (!conteoAcciones[acc]) {
+          conteoAcciones[acc] = { pedidos: {}, totalItems: 0 };
+        }
+        if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true;
+        conteoAcciones[acc].totalItems++;
+      });
+
+      const listaAcciones = Object.keys(conteoAcciones).sort((a, b) => {
+        return Object.keys(conteoAcciones[b].pedidos).length - Object.keys(conteoAcciones[a].pedidos).length;
+      });
+
+      if (!listaAcciones.length) {
+        wrap.innerHTML = '';
+        return;
+      }
+
+      wrap.innerHTML = listaAcciones.map(acc => {
+        const numPedidos = Object.keys(conteoAcciones[acc].pedidos).length;
+        const totalItems = conteoAcciones[acc].totalItems;
+        const conf = CONFIG_ACCIONES[acc] || { icono: '⚡', color: '#0082c8', label: acc };
+
+        return `<div class="card-accion-kpi" style="--accent-color:${conf.color}" onclick="abrirDetalleBarra('Acción', 'accion', '${acc.replace(/'/g, "\\'")}')">
+          <div class="card-accion-title">
+            <span>${conf.label}</span>
+            <span>${conf.icono}</span>
+          </div>
+          <div class="card-accion-val" data-target="${numPedidos}">0</div>
+          <div class="card-accion-sub">Pedidos únicos (${totalItems} ítems)</div>
+        </div>`;
+      }).join('');
+    }
+
     function render() {
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
       CHART_INSTANCES = {};
@@ -855,6 +902,9 @@
       const evs = filtrarEventos();
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
       document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
+
+      // Render action cards summary
+      renderTarjetasAcciones(evs);
 
       const grid = document.getElementById('grid');
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan.</div>'; return; }
@@ -868,7 +918,7 @@
       else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
 
       grid.innerHTML = html;
-      animarContadores(grid);
+      animarContadores(document.body);
       setTimeout(() => renderizarGraficosApex(evs), 50);
     }
 
@@ -876,9 +926,9 @@
       const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
       const criticos = evs.filter(e => e.diasProceso >= 3);
       return `<div class="col">
-        ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems', 'general')}
+        ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
         ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
-        ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems retraso', 'sla')}
+        ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
         ${cardChartBox('Tendencia de Pedidos (Mes a Mes)', 'chartTendencia')}
@@ -893,8 +943,8 @@
     function renderMantenimiento(evs) {
       const fallasCrit = evs.filter(e => e.esFallaCritica);
       return `<div class="col">
-        ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías', 'general')}
-        ${cardKPI('Fallas Críticas ("En Corto")', contarPedidosUnicos(fallasCrit), 'órdenes', 'rojo', fallasCrit.length + ' casos', 'criticas')}
+        ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')}
+        ${cardKPI('Fallas Críticas ("En Corto")', contarPedidosUnicos(fallasCrit), 'órdenes', 'rojo', fallasCrit.length + ' casos críticos', 'criticas')}
       </div>
       <div class="col">${cardChartBox('Principales Fallas Reportadas', 'chartFallas')}</div>
       <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos')}</div>`;
@@ -908,12 +958,12 @@
 
     function renderRecogidas(evs) {
       return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
-      <div class="col">${cardChartBox('Motivo de Retiro', 'chartAcciones')}</div>
+      <div class="col">${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones')}</div>
       <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes')}</div>`;
     }
 
     function renderAccesorios(evs) {
-      return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos', 'general')}</div>
+      return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
       <div class="col">${cardChartBox('Accesorios Más Pedidos', 'chartEquipos')}</div>
       <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
     }
@@ -1037,7 +1087,7 @@
     }
 
     /* ============================================================================
-     * MODAL DETALLADO Y DICTADO NATIVO DIRECTO EN PANTALLA (SIN BLOQUEOS)
+     * MODAL DETALLADO Y DICTADO NATIVO DIRECTO EN PANTALLA
      * ==========================================================================*/
     function mostrarModalConsolidado(titulo, eventosList) {
       document.getElementById('modalTitulo').textContent = titulo + ' (' + contarPedidosUnicos(eventosList) + ' Pedidos / ' + eventosList.length + ' Equipos)';
