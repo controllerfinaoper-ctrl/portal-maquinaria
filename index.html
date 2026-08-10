@@ -40,14 +40,12 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; }
     html { scroll-behavior: smooth; }
 
-    /* Bloqueo inicial de scroll mientras el video está activo */
-    body.no-scroll {
-      overflow: hidden !important;
-      height: 100vh;
-    }
+    /* Ocultar barras de desplazamiento por completo */
+    ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    html, body { -ms-overflow-style: none; scrollbar-width: none; }
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -56,34 +54,31 @@
       min-height: 100vh;
     }
 
-    /* CAPA DE VIDEO EN PANTALLA COMPLETA ABSOLUTA SIN FRANJAS NEGRAS */
-    .video-intro-overlay {
-      position: fixed; inset: 0; width: 100vw; height: 100vh;
+    /* Video Pantalla Completa Real sin BORDES NI FRANJAS */
+    .video-fullscreen-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       z-index: 999999; background: #000000; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      transition: opacity .4s ease, visibility .4s ease;
+      transition: opacity .3s ease, visibility .3s ease;
     }
-    .video-intro-overlay.hidden {
-      opacity: 0; visibility: hidden; pointer-events: none;
+    .video-fullscreen-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .video-fullscreen-overlay video {
+      width: 100vw; height: 100vh; object-fit: cover; display: block; border: none;
     }
 
-    .video-intro-overlay video {
-      width: 100vw; height: 100vh; object-fit: cover; background: #000000; display: block;
-    }
-
-    /* BOTÓN SALTAR VIDEO EN LA ESQUINA SUPERIOR DERECHA */
-    .btn-skip-intro {
-      position: absolute; top: 24px; right: 28px; z-index: 1000000;
+    .btn-skip-video {
+      position: absolute; top: 24px; right: 28px; z-index: 100000;
       appearance: none; border: 1px solid rgba(255, 255, 255, 0.3);
       background: rgba(10, 51, 86, 0.85); color: #ffffff;
-      padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 800;
+      padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 800;
       cursor: pointer; display: flex; align-items: center; gap: 8px;
       backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);
       transition: all .2s ease;
     }
-    .btn-skip-intro:hover {
+    .btn-skip-video:hover {
       background: var(--cl-verde); border-color: var(--cl-verde);
-      transform: translateY(-2px) scale(1.04);
+      transform: translateY(-2px) scale(1.03);
     }
 
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
@@ -223,7 +218,9 @@
     .u { font-size: 14px; color: var(--muted); font-weight: 700; }
     .card-foot { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 
+    /* CURSOR POINTER PARA LOS GRÁFICOS DE APEXCHARTS */
     .chart-container { margin-top: 10px; min-height: 250px; }
+    .apexcharts-bar-area, .apexcharts-series path, .apexcharts-marker { cursor: pointer !important; }
     .clickable { cursor: pointer; }
 
     /* Modal */
@@ -782,7 +779,7 @@
       return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
     }
 
-    // FORMATEA FORMATO "YYYY-MM" (e.g., 2026-01) A "Ene 26"
+    // FORMATEA FORMATO "YYYY-MM" A "Ene 26"
     function formatearPeriodoTexto(p) {
       if (!p || p === 'Sin fecha') return 'Sin fecha';
       const partes = p.split('-');
@@ -813,9 +810,11 @@
         renderGraficoLinea('chartTendencia', datosTendencia, '#0082c8');
       }
 
+      // ASIGNACIÓN DE EVENTO ONCLICK A LAS BARRAS EN LOS GRÁFICOS
       if (document.getElementById('chartFallas')) renderBarraHorizontal('chartFallas', agrupar(evs, 'observacionDetalle', 5), 'observacionDetalle', '#0082c8');
       if (document.getElementById('chartEquipos')) renderBarraHorizontal('chartEquipos', agrupar(evs, 'maquinaria', 5), 'maquinaria', '#7ab833');
       if (document.getElementById('chartClientes')) renderBarraHorizontal('chartClientes', agrupar(evs, 'cliente', 5), 'cliente', '#0a3356');
+      if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
     }
 
     function renderGraficoLinea(elId, datos, colorHex) {
@@ -843,15 +842,28 @@
 
     function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
       const container = document.getElementById(elId); if (!container) return;
+      
       const options = {
         series: [{ name: 'Cantidad', data: datos.map(d => d.val) }],
-        chart: { type: 'bar', height: 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false } },
+        chart: { 
+          type: 'bar', height: 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false },
+          events: {
+            // EVENTO CLICK: ABRE EL MODAL DETALLADO CON EL VALOR SELECCIONADO
+            dataPointSelection: function(event, chartContext, config) {
+              const valorClickeado = datos[config.dataPointIndex].label;
+              const tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1);
+              abrirDetalleBarra(tituloModal, campoFiltro, valorClickeado);
+            }
+          }
+        },
         plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
         colors: [colorHex],
         dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700 } },
         xaxis: { categories: datos.map(d => d.label) }
       };
-      CHART_INSTANCES[elId] = new ApexCharts(container, options); CHART_INSTANCES[elId].render();
+      
+      CHART_INSTANCES[elId] = new ApexCharts(container, options); 
+      CHART_INSTANCES[elId].render();
     }
 
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
