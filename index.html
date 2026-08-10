@@ -50,9 +50,7 @@
       min-height: 100vh;
     }
 
-    .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
-
-    /* Overlay Video Pantalla Completa */
+    /* Estilos del Video Pantalla Completa */
     .video-fullscreen-overlay {
       position: fixed; inset: 0; z-index: 99999; background: #000000;
       display: flex; align-items: center; justify-content: center;
@@ -81,6 +79,8 @@
       background: var(--cl-verde); border-color: var(--cl-verde);
       transform: translateY(-2px) scale(1.03);
     }
+
+    .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
 
     /* Header Corporativo Casalimpia */
     header {
@@ -251,6 +251,12 @@
     .voice-input-wrap { display: flex; gap: 10px; margin-bottom: 10px; }
     .comment-textarea { flex: 1; height: 54px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 12px; font-family: inherit; font-size: 12px; outline: none; resize: none; background: #ffffff; }
 
+    .btn-record {
+      appearance: none; border: none; background: var(--cl-azul); color: #ffffff; font-weight: 800; font-size: 12px;
+      padding: 0 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; height: 54px;
+    }
+    .btn-record.recording { background: var(--rojo-crit) !important; }
+
     .btn-save-comment { border: none; background: var(--cl-verde); color: #ffffff; font-weight: 700; font-size: 12px; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
     .comments-history { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
     .comment-item { background: #ffffff; border: 1px solid var(--line); padding: 10px 12px; border-radius: 10px; font-size: 12px; }
@@ -399,6 +405,7 @@
       document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); });
       document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); });
       
+      // Estrategia Cache-First: Cargar datos guardados previamente para respuesta instantánea
       const cacheGuardada = localStorage.getItem('cmi_cache_datos');
       if (cacheGuardada) {
         try {
@@ -787,6 +794,7 @@
     }
 
     function renderizarGraficosApex(evs) {
+      // Dibujar Gráfico de Tendencia
       if (document.getElementById('chartTendencia')) {
         const datosTendencia = agruparPorPeriodo(evs);
         renderGraficoLinea('chartTendencia', datosTendencia, '#0082c8');
@@ -858,6 +866,7 @@
         agrupadosPorPedido[p].items.push(e);
       });
 
+      // Paginación eficiente para dibujar en lotes si hay muchos ítems
       const pedidosKeys = Object.keys(agrupadosPorPedido);
       
       body.innerHTML = '<div class="consolidado-container">' + pedidosKeys.slice(0, 50).map(numPed => {
