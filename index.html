@@ -56,10 +56,10 @@
       min-height: 100vh;
     }
 
-    /* CAPA DE VIDEO EN PANTALLA COMPLETA ABSOLUTA */
+    /* CAPA DE VIDEO EN PANTALLA COMPLETA ABSOLUTA SIN FRANJAS NEGRAS */
     .video-intro-overlay {
       position: fixed; inset: 0; width: 100vw; height: 100vh;
-      z-index: 999999; background: #000000;
+      z-index: 999999; background: #000000; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       transition: opacity .4s ease, visibility .4s ease;
     }
@@ -68,7 +68,7 @@
     }
 
     .video-intro-overlay video {
-      width: 100vw; height: 100vh; object-fit: contain; background: #000000; display: block;
+      width: 100vw; height: 100vh; object-fit: cover; background: #000000; display: block;
     }
 
     /* BOTÓN SALTAR VIDEO EN LA ESQUINA SUPERIOR DERECHA */
@@ -280,7 +280,7 @@
 </head>
 <body class="no-scroll">
 
-  <!-- VIDEO EN PANTALLA COMPLETA AL ABRIR LA PÁGINA -->
+  <!-- VIDEO EN PANTALLA COMPLETA AL ABRIR LA PÁGINA (OBJECT-FIT: COVER APLICA PANTALLA COMPLETA REAL) -->
   <div id="videoIntroOverlay" class="video-intro-overlay">
     <button class="btn-skip-intro" onclick="cerrarVideoIntro()">
       Saltar Video <span>⏭️</span>
@@ -782,6 +782,21 @@
       return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
     }
 
+    // FORMATEA FORMATO "YYYY-MM" (e.g., 2026-01) A "Ene 26"
+    function formatearPeriodoTexto(p) {
+      if (!p || p === 'Sin fecha') return 'Sin fecha';
+      const partes = p.split('-');
+      if (partes.length === 2) {
+        const ano = partes[0].slice(-2);
+        const mesNum = parseInt(partes[1], 10);
+        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        if (mesNum >= 1 && mesNum <= 12) {
+          return meses[mesNum - 1] + ' ' + ano;
+        }
+      }
+      return p;
+    }
+
     function agruparPorPeriodo(evs) {
       const conteo = {};
       evs.forEach(e => {
@@ -789,7 +804,7 @@
         conteo[p] = (conteo[p] || 0) + 1;
       });
       const periodos = Object.keys(conteo).sort();
-      return periodos.map(p => ({ label: p, val: conteo[p] }));
+      return periodos.map(p => ({ label: formatearPeriodoTexto(p), val: conteo[p] }));
     }
 
     function renderizarGraficosApex(evs) {
