@@ -40,14 +40,45 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; }
     html { scroll-behavior: smooth; }
+
+    /* Ocultar barras de desplazamiento por completo */
+    ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    html, body { -ms-overflow-style: none; scrollbar-width: none; }
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       color: var(--ink);
       background: #f8fafc;
       min-height: 100vh;
+    }
+
+    /* Video Pantalla Completa Real sin BORDES NI FRANJAS */
+    .video-fullscreen-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 99999; background: #000000; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .3s ease, visibility .3s ease;
+    }
+    .video-fullscreen-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .video-fullscreen-overlay video {
+      width: 100vw; height: 100vh; object-fit: cover; display: block; border: none;
+    }
+
+    .btn-skip-video {
+      position: absolute; top: 24px; right: 28px; z-index: 100000;
+      appearance: none; border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(10, 51, 86, 0.85); color: #ffffff;
+      padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      transition: all .2s ease;
+    }
+    .btn-skip-video:hover {
+      background: var(--cl-verde); border-color: var(--cl-verde);
+      transform: translateY(-2px) scale(1.03);
     }
 
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
@@ -83,22 +114,6 @@
       box-shadow: 0 4px 14px rgba(122, 184, 51, 0.4);
     }
     .btn-refresh:hover { background: var(--cl-verde-hover); transform: translateY(-2px); }
-
-    /* Contenedor Integrado del Video Sin Barras Blancas ni Negras */
-    .video-inline-card {
-      background: #ffffff; border-radius: 20px; padding: 18px 22px; margin-top: 18px;
-      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line);
-    }
-    .video-inline-title {
-      font-weight: 800; font-size: 14px; color: var(--cl-azul-dark); margin-bottom: 12px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .video-inline-wrapper {
-      width: 100%; border-radius: 14px; overflow: hidden; background: #000000;
-    }
-    .video-inline-wrapper video {
-      width: 100%; height: auto; max-height: 500px; display: block; object-fit: cover; border-radius: 14px;
-    }
 
     /* Filtros Rápidos */
     .controls-glass {
@@ -237,12 +252,6 @@
     .voice-input-wrap { display: flex; gap: 10px; margin-bottom: 10px; }
     .comment-textarea { flex: 1; height: 54px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 12px; font-family: inherit; font-size: 12px; outline: none; resize: none; background: #ffffff; }
 
-    .btn-record {
-      appearance: none; border: none; background: var(--cl-azul); color: #ffffff; font-weight: 800; font-size: 12px;
-      padding: 0 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; height: 54px;
-    }
-    .btn-record.recording { background: var(--rojo-crit) !important; }
-
     .btn-save-comment { border: none; background: var(--cl-verde); color: #ffffff; font-weight: 700; font-size: 12px; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
     .comments-history { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
     .comment-item { background: #ffffff; border: 1px solid var(--line); padding: 10px 12px; border-radius: 10px; font-size: 12px; }
@@ -266,6 +275,17 @@
 </head>
 <body>
 
+  <!-- Overlay Video Pantalla Completa Real sin Barras -->
+  <div id="videoOverlay" class="video-fullscreen-overlay">
+    <button class="btn-skip-video" onclick="cerrarVideoIntro()">
+      Saltar Video <span>⏭️</span>
+    </button>
+    <video id="introVideo" autoplay muted playsinline onended="cerrarVideoIntro()">
+      <source src="video-introduccion.mp4" type="video/mp4">
+      Tu navegador no soporta la reproducción de video.
+    </video>
+  </div>
+
   <div class="wrap">
     <header>
       <div class="brand">
@@ -285,17 +305,6 @@
         <button class="btn-refresh" id="btnRefresh" onclick="cargarDatos(true)"><span class="ico">🔄</span> Actualizar</button>
       </div>
     </header>
-
-    <!-- Reproducción Limpia del Video -->
-    <div class="video-inline-card">
-      <div class="video-inline-title">🎥 Video Introducción</div>
-      <div class="video-inline-wrapper">
-        <video autoplay muted loop playsinline preload="auto">
-          <source src="video-introduccion.mp4" type="video/mp4">
-          Tu navegador no soporta la reproducción de video.
-        </video>
-      </div>
-    </div>
 
     <div class="controls-glass">
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
@@ -371,6 +380,13 @@
     };
 
     const PALABRAS_FALLA_CRITICA = ['EN CORTO', 'NO PRENDE', 'CORTOCIRCUITO', 'NO ENCIENDE'];
+
+    function cerrarVideoIntro() {
+      const overlay = document.getElementById('videoOverlay');
+      const vid = document.getElementById('introVideo');
+      if (vid) vid.pause();
+      if (overlay) overlay.classList.add('hidden');
+    }
 
     function normTexto(s) {
       if (!s) return '';
