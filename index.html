@@ -435,24 +435,16 @@
       document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); });
       document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); });
       document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); });
-      
-      const cacheGuardada = localStorage.getItem('cmi_cache_datos');
-      if (cacheGuardada) {
-        try {
-          const dataCache = JSON.parse(cacheGuardada);
-          inicializar(dataCache);
-        } catch(e){}
-      }
-      cargarDatos(false);
+      cargarDatos(true);
     });
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
+    // Función de carga ajustada: Se elimina localStorage para solucionar QuotaExceededError
     async function cargarDatos(forzarSinCache) {
-      if (forzarSinCache || !localStorage.getItem('cmi_cache_datos')) loader(true);
+      loader(true);
       try {
         const data = await obtenerDatosDesdeBigQuery();
-        localStorage.setItem('cmi_cache_datos', JSON.stringify(data));
         inicializar(data);
       } catch (e) {
         console.error("Error al cargar datos desde BigQuery:", e);
