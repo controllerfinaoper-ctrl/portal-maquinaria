@@ -254,7 +254,7 @@
 
     /* CURSOR POINTER EN LOS GRÁFICOS */
     .chart-container { margin-top: 10px; min-height: 250px; }
-    .apexcharts-canvas, .apexcharts-bar-area, .apexcharts-series path, .apexcharts-text, .apexcharts-marker { cursor: pointer !important; }
+    .apexcharts-canvas, .apexcharts-bar-area, .apexcharts-series path, .apexcharts-text, .apexcharts-marker, .apexcharts-series-markers { cursor: pointer !important; }
     .clickable { cursor: pointer; }
 
     /* Modal */
@@ -437,7 +437,6 @@
       loader(false);
     }
 
-    // Cliente JSONP para evitar bloqueos CORS en GitHub Pages
     function cargarJsonp(url) {
       return new Promise((resolve, reject) => {
         const callbackName = 'gvizCallback_' + Date.now();
@@ -740,8 +739,17 @@
     function renderVista360(evs) {
       const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
       const criticos = evs.filter(e => e.diasProceso >= 3);
+
+      // Conteo de pedidos únicos por estado
+      const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
+      const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
+      const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
+
       return `<div class="col">
         ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
+        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
+        ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
+        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
         ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
         ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
@@ -878,6 +886,23 @@
 
       CHART_INSTANCES[elId] = new ApexCharts(container, options);
       CHART_INSTANCES[elId].render();
+
+      // RESPALDO DE CLIC DIRECTO SOBRE CUALQUIER ELEMENTO O PUNTO DEL GRÁFICO DE LÍNEA
+      container.onclick = function(e) {
+        const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-xaxis-label, .apexcharts-datalabel, .apexcharts-marker');
+        textNodes.forEach((node) => {
+          if (node.contains(e.target)) {
+            const txt = node.textContent || node.innerText || '';
+            const match = datos.find(d => d.label.toLowerCase() === txt.toLowerCase() || txt.toLowerCase().includes(d.label.toLowerCase()));
+            if (match) {
+              const evs = filtrarEventos().filter(ev => {
+                return formatearPeriodoTexto(ev.periodo) === match.label || ev.periodo === match.periodoOriginal;
+              });
+              mostrarModalConsolidado('Solicitudes del periodo: ' + match.label, evs);
+            }
+          }
+        });
+      };
     }
 
     function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
@@ -921,10 +946,11 @@
       };
     }
 
-    function abrirDetalleKpi(titulo, tipo) {
+    function abrirDetalleKpi(titulo, tipo, valFiltro) {
       let evs = filtrarEventos();
       if (tipo === 'sla') evs = evs.filter(e => e.diasProceso >= 3);
       else if (tipo === 'criticas') evs = evs.filter(e => e.esFallaCritica);
+      else if (tipo === 'estado' && valFiltro) evs = evs.filter(e => normTexto(e.estado) === normTexto(valFiltro));
       mostrarModalConsolidado(titulo, evs);
     }
 
