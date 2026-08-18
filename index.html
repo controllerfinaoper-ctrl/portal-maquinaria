@@ -15,8 +15,10 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <script>
-    const SHEET_ID = "1YNdMgaPXapO-b7OGYNNVcZb34suJzoYM1Y8liSa8bmY";
-    const NOMBRE_HOJA = "Hoja 1";
+    // URL del Web App de Google Apps Script que ejecuta la consulta en BigQuery
+    const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
+    
+    // API para comentarios / observaciones
     const COMENTARIOS_API_URL = "https://script.google.com/macros/s/AKfycbz8Y1pFuPL4z5kM3L96ohYUX34FigXZB2vmb2mctoVGszM3sjLHcByILNJUt_-YiDvh/exec";
   </script>
 
@@ -416,8 +418,6 @@
       'Adicional':             { icono: '➕', color: '#06b6d4', label: 'Adicionales' }
     };
 
-    const PALABRAS_FALLA_CRITICA = ['EN CORTO', 'NO PRENDE', 'CORTOCIRCUITO', 'NO ENCIENDE'];
-
     function cerrarVideoIntro() {
       const overlay = document.getElementById('videoIntroOverlay');
       const player = document.getElementById('introVideoPlayer');
@@ -451,73 +451,29 @@
     async function cargarDatos(forzarSinCache) {
       if (forzarSinCache || !localStorage.getItem('cmi_cache_datos')) loader(true);
       try {
-        const data = await obtenerDatosDesdeSheet();
+        const data = await obtenerDatosDesdeBigQuery();
         localStorage.setItem('cmi_cache_datos', JSON.stringify(data));
         inicializar(data);
       } catch (e) {
-        console.error("Error al cargar datos:", e);
+        console.error("Error al cargar datos desde BigQuery:", e);
       }
       loader(false);
     }
 
-    function cargarJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const callbackName = 'gvizCallback_' + Date.now();
-        const script = document.createElement('script');
-        const limpiar = () => { delete window[callbackName]; script.remove(); };
-        window[callbackName] = (json) => { limpiar(); resolve(json); };
-        script.onerror = () => { limpiar(); reject(new Error('Error al conectar con Google Sheets')); };
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'tqx=out:json;responseHandler:' + callbackName;
-        document.body.appendChild(script);
+    async function obtenerDatosDesdeBigQuery() {
+      const response = await fetch(BIGQUERY_API_URL, {
+        method: 'GET',
+        redirect: 'follow'
       });
-    }
 
-    async function obtenerDatosDesdeSheet() {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(NOMBRE_HOJA)}&_=${Date.now()}`;
-      const json = await cargarJsonp(url);
-      const cols = (json.table && json.table.cols) || [];
-      const filas = (json.table && json.table.rows) || [];
-
-      const colIndex = {};
-      cols.forEach((c, i) => { if (c.label) colIndex[normTexto(c.label)] = i; });
-
-      function buscarCol(nombres) {
-        for (const n of nombres) { const idx = colIndex[normTexto(n)]; if (idx !== undefined) return idx; }
-        return -1;
+      if (!response.ok) {
+        throw new Error('Error al conectar con la API de BigQuery: ' + response.statusText);
       }
 
-      const idx = {
-        pedido:     buscarCol(['# Pedido', 'Pedido']),
-        cliente:    buscarCol(['Cliente']),
-        ciudad:     buscarCol(['Ciudad']),
-        fechaSol:   buscarCol(['Fecha de solicitud']),
-        diasProc:   buscarCol(['Dias En Proceso']),
-        estado:     buscarCol(['Estado']),
-        accion:     buscarCol(['Accion']),
-        maquinaria: buscarCol(['Maquinaria']),
-        codActivo:  buscarCol(['Cod. Activo', 'Placa']),
-        obsDetalle: buscarCol(['Observacion Detalle']),
-        estEntrega: buscarCol(['Estado de Entrega'])
-      };
+      const eventosRaw = await response.json();
 
-      function celda(fila, i) { return (i === -1 || !fila.c || !fila.c[i]) ? null : fila.c[i]; }
-      function txt(fila, i) {
-        const c = celda(fila, i);
-        if (!c) return '';
-        const val = (c.f !== undefined && c.f !== null) ? c.f : c.v;
-        return (val === undefined || val === null) ? '' : String(val).trim();
-      }
-      function num(fila, i) {
-        const c = celda(fila, i);
-        if (!c || c.v === null || c.v === undefined) return 0;
-        const n = Number(c.v); return isNaN(n) ? 0 : n;
-      }
-
-      function extraerPeriodo(fechaStr) {
-        if (!fechaStr) return 'Sin fecha';
-        const partes = fechaStr.split('/');
-        if (partes.length === 3) return partes[2] + '-' + (partes[1].length < 2 ? '0' + partes[1] : partes[1]);
-        return 'Sin fecha';
+      if (eventosRaw.error) {
+        throw new Error('Error devuelto por Apps Script: ' + eventosRaw.error);
       }
 
       function moduloDeAccion(accion) {
@@ -529,33 +485,39 @@
         return 'otros';
       }
 
-      const eventos = [];
-      filas.forEach(fila => {
-        const pedido = txt(fila, idx.pedido);
-        if (!pedido) return;
-        const accion = txt(fila, idx.accion) || 'Sin acción';
-        const obsDetalle = txt(fila, idx.obsDetalle);
-        const fSolicitud = (celda(fila, idx.fechaSol) && celda(fila, idx.fechaSol).f) ? String(celda(fila, idx.fechaSol).f).trim() : '';
-
-        eventos.push({
-          pedido, cliente: txt(fila, idx.cliente) || 'Sin cliente', ciudad: txt(fila, idx.ciudad) || 'Sin ciudad',
-          fechaSolicitud: fSolicitud, periodo: extraerPeriodo(fSolicitud), diasProceso: num(fila, idx.diasProc),
-          estado: txt(fila, idx.estado) || 'Sin estado', accion, modulo: moduloDeAccion(accion),
-          maquinaria: txt(fila, idx.maquinaria) || 'Sin especificar', codActivo: txt(fila, idx.codActivo),
-          observacionDetalle: obsDetalle,
-          esFallaCritica: obsDetalle ? PALABRAS_FALLA_CRITICA.some(p => obsDetalle.toUpperCase().indexOf(p) >= 0) : false,
-          estadoEntrega: txt(fila, idx.estEntrega) || 'Sin estado entrega'
-        });
-      });
+      const eventos = eventosRaw.map(e => ({
+        pedido: String(e.pedido || ''),
+        cliente: e.cliente || 'Sin cliente',
+        ciudad: e.ciudad || 'Sin ciudad',
+        fechaSolicitud: e.fechaSolicitud || '',
+        periodo: e.periodo || 'Sin fecha',
+        diasProceso: Number(e.diasProceso) || 0,
+        estado: e.estado || 'Sin estado',
+        accion: e.accion || 'Sin acción',
+        modulo: moduloDeAccion(e.accion),
+        maquinaria: e.maquinaria || 'Sin especificar',
+        codActivo: e.codActivo || '',
+        observacionDetalle: e.observacionDetalle || '',
+        esFallaCritica: Boolean(e.esFallaCritica),
+        estadoEntrega: e.estadoEntrega || 'Sin estado entrega'
+      }));
 
       function unicos(campo) {
-        const vistos = {}; eventos.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
+        const vistos = {}; 
+        eventos.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
         return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
       }
 
       return {
         eventos,
-        filtros: { clientes: unicos('cliente'), ciudades: unicos('ciudad'), acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') },
+        filtros: { 
+          clientes: unicos('cliente'), 
+          ciudades: unicos('ciudad'), 
+          acciones: unicos('accion'), 
+          estados: unicos('estado'), 
+          estadosEntrega: unicos('estadoEntrega'), 
+          periodos: unicos('periodo') 
+        },
         modulos: MODULOS,
         actualizado: new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true })
       };
@@ -685,6 +647,13 @@
         if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
         if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
         if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.fechaDiaSel) {
+          const partes = e.fechaSolicitud.split('/');
+          if (partes.length === 3) {
+            const fechaNorm = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            if (fechaNorm !== ESTADO.fechaDiaSel) return false;
+          }
+        }
         if (ESTADO.busqueda) {
           const q = ESTADO.busqueda.toLowerCase();
           const txtMatch = (e.pedido + ' ' + e.codActivo + ' ' + e.maquinaria + ' ' + e.cliente + ' ' + e.observacionDetalle).toLowerCase();
@@ -898,10 +867,9 @@
       CHART_INSTANCES[elId] = new ApexCharts(container, options); 
       CHART_INSTANCES[elId].render();
 
-      // RESPALDO EXTRA DE CLIC DIRECTO SOBRE EL CONTENEDOR DE LA BARRAS
       container.onclick = function(e) {
         const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-yaxis-label, .apexcharts-datalabel');
-        textNodes.forEach((node, idx) => {
+        textNodes.forEach((node) => {
           if (node.contains(e.target)) {
             const txt = node.textContent || node.innerText;
             const match = datos.find(d => d.label.toLowerCase().includes(txt.toLowerCase()) || txt.toLowerCase().includes(d.label.toLowerCase()));
@@ -914,7 +882,7 @@
       };
     }
 
-    function abrirDetalleKpi(titulo, tipo, valFiltro) {
+    function abrirDetalleKpi(titulo, tipo) {
       let evs = filtrarEventos();
       if (tipo === 'sla') evs = evs.filter(e => e.diasProceso >= 3);
       else if (tipo === 'criticas') evs = evs.filter(e => e.esFallaCritica);
