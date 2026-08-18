@@ -460,17 +460,35 @@
       loader(false);
     }
 
-    async function obtenerDatosDesdeBigQuery() {
-      const response = await fetch(BIGQUERY_API_URL, {
-        method: 'GET',
-        redirect: 'follow'
+    // Cliente JSONP para evitar bloqueos CORS en GitHub Pages
+    function cargarJsonp(url) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'gvizCallback_' + Date.now();
+        const script = document.createElement('script');
+        
+        const limpiar = () => {
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        };
+
+        window[callbackName] = (json) => {
+          limpiar();
+          resolve(json);
+        };
+
+        script.onerror = () => {
+          limpiar();
+          reject(new Error('Error al conectar con la API de BigQuery'));
+        };
+
+        const separador = url.indexOf('?') >= 0 ? '&' : '?';
+        script.src = url + separador + 'callback=' + callbackName;
+        document.body.appendChild(script);
       });
+    }
 
-      if (!response.ok) {
-        throw new Error('Error al conectar con la API de BigQuery: ' + response.statusText);
-      }
-
-      const eventosRaw = await response.json();
+    async function obtenerDatosDesdeBigQuery() {
+      const eventosRaw = await cargarJsonp(BIGQUERY_API_URL);
 
       if (eventosRaw.error) {
         throw new Error('Error devuelto por Apps Script: ' + eventosRaw.error);
