@@ -254,7 +254,7 @@
 
     /* CURSOR POINTER EN LOS GRÁFICOS */
     .chart-container { margin-top: 10px; min-height: 250px; }
-    .apexcharts-canvas, .apexcharts-bar-area, .apexcharts-series path, .apexcharts-text { cursor: pointer !important; }
+    .apexcharts-canvas, .apexcharts-bar-area, .apexcharts-series path, .apexcharts-text, .apexcharts-marker { cursor: pointer !important; }
     .clickable { cursor: pointer; }
 
     /* Modal */
@@ -821,7 +821,11 @@
         conteo[p] = (conteo[p] || 0) + 1;
       });
       const periodos = Object.keys(conteo).sort();
-      return periodos.map(p => ({ label: formatearPeriodoTexto(p), val: conteo[p] }));
+      return periodos.map(p => ({ 
+        label: formatearPeriodoTexto(p), 
+        periodoOriginal: p,
+        val: conteo[p] 
+      }));
     }
 
     function renderizarGraficosApex(evs) {
@@ -847,7 +851,23 @@
 
       const options = {
         series: [{ name: 'Solicitudes', data: datos.map(d => d.val) }],
-        chart: { type: 'area', height: 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false } },
+        chart: { 
+          type: 'area', 
+          height: 250, 
+          fontFamily: "'Plus Jakarta Sans', sans-serif", 
+          toolbar: { show: false },
+          events: {
+            dataPointSelection: function(event, chartContext, config) {
+              if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) {
+                const item = datos[config.dataPointIndex];
+                const evs = filtrarEventos().filter(e => {
+                  return formatearPeriodoTexto(e.periodo) === item.label || e.periodo === item.periodoOriginal;
+                });
+                mostrarModalConsolidado('Solicitudes del periodo: ' + item.label, evs);
+              }
+            }
+          }
+        },
         stroke: { curve: 'smooth', width: 3 },
         colors: [colorHex],
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 100] } },
@@ -855,6 +875,7 @@
         xaxis: { categories: datos.map(d => d.label) },
         tooltip: { y: { formatter: (val) => val + ' solicitudes' } }
       };
+
       CHART_INSTANCES[elId] = new ApexCharts(container, options);
       CHART_INSTANCES[elId].render();
     }
