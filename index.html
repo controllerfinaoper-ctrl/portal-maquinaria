@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
-  <!-- ApexCharts CDN -->
+  <!-- ApexCharts CDN para Gráficos de Barras -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <script>
@@ -42,14 +42,11 @@
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
     html { scroll-behavior: smooth; }
 
-    /* Ocultar barras de desplazamiento por completo */
+    /* Ocultar barras de desplazamiento */
     ::-webkit-scrollbar { display: none; width: 0; height: 0; }
     html, body { -ms-overflow-style: none; scrollbar-width: none; }
 
-    body.no-scroll {
-      overflow: hidden !important;
-      height: 100vh;
-    }
+    body.no-scroll { overflow: hidden !important; height: 100vh; }
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -58,77 +55,35 @@
       min-height: 100vh;
     }
 
-    /* OVERLAY PANTALLA COMPLETA REAL PARA EL VIDEO DE BIENVENIDA */
+    /* OVERLAY VIDEO BIENVENIDA */
     .video-intro-overlay {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 9999999 !important;
-      background: #000000 !important;
-      overflow: hidden !important;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed !important; top: 0 !important; left: 0 !important;
+      width: 100vw !important; height: 100vh !important; z-index: 9999999 !important;
+      background: #000000 !important; overflow: hidden !important;
+      display: flex; align-items: center; justify-content: center;
       transition: opacity .4s ease, visibility .4s ease;
     }
-    .video-intro-overlay.hidden {
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-    }
+    .video-intro-overlay.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+    .video-intro-overlay video { width: 100vw !important; height: 100vh !important; object-fit: cover !important; display: block !important; }
 
-    .video-intro-overlay video {
-      width: 100vw !important;
-      height: 100vh !important;
-      object-fit: cover !important;
-      background: #000000 !important;
-      display: block !important;
-    }
-
-    /* BOTÓN SALTAR VIDEO EN LA ESQUINA SUPERIOR DERECHA */
     .btn-skip-intro {
-      position: absolute !important;
-      top: 24px !important;
-      right: 28px !important;
-      z-index: 10000000 !important;
-      appearance: none;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      background: rgba(10, 51, 86, 0.9);
-      color: #ffffff;
-      padding: 12px 24px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-      transition: all .2s ease;
+      position: absolute !important; top: 24px !important; right: 28px !important; z-index: 10000000 !important;
+      appearance: none; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(10, 51, 86, 0.9);
+      color: #ffffff; padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6); transition: all .2s ease;
     }
-    .btn-skip-intro:hover {
-      background: var(--cl-verde);
-      border-color: var(--cl-verde);
-      transform: translateY(-2px) scale(1.04);
-    }
+    .btn-skip-intro:hover { background: var(--cl-verde); border-color: var(--cl-verde); transform: translateY(-2px) scale(1.04); }
 
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
 
-    /* Header Corporativo Casalimpia */
     header {
       display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 28px;
-      border-radius: 24px; background: #0a3356;
-      border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      color: #fff;
+      border-radius: 24px; background: #0a3356; border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: #fff;
     }
     .brand { display: flex; align-items: center; gap: 18px; }
-    .logo-header-wrap {
-      display: flex; align-items: center; justify-content: center;
-      background: #ffffff; padding: 8px 16px; border-radius: 16px;
-    }
+    .logo-header-wrap { display: flex; align-items: center; justify-content: center; background: #ffffff; padding: 8px 16px; border-radius: 16px; }
     .header-logo { height: 42px; width: auto; object-fit: contain; display: block; }
     .titulos h1 { margin: 0; font-weight: 800; font-size: 20px; color: #ffffff; }
     .titulos p { margin: 4px 0 0; font-size: 13px; color: #93c5fd; }
@@ -136,25 +91,19 @@
     .head-right { display: flex; align-items: center; gap: 18px; }
     .clock { text-align: right; color: #93c5fd; font-size: 12px; display: flex; flex-direction: column; align-items: flex-end; }
     .clock b { color: #ffffff; font-family: 'IBM Plex Mono'; font-size: 13px; }
-    .pulse-live {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--cl-verde);
-      display: inline-block; margin-right: 6px; box-shadow: 0 0 10px var(--cl-verde);
-    }
+    .pulse-live { width: 8px; height: 8px; border-radius: 50%; background: var(--cl-verde); display: inline-block; margin-right: 6px; box-shadow: 0 0 10px var(--cl-verde); }
 
     .btn-refresh {
       appearance: none; border: 0; cursor: pointer; border-radius: 12px; padding: 10px 16px;
       font-weight: 700; font-size: 13px; background: var(--cl-verde); color: #ffffff;
-      display: inline-flex; align-items: center; gap: 8px; transition: transform .15s ease;
-      box-shadow: 0 4px 14px rgba(122, 184, 51, 0.4);
+      display: inline-flex; align-items: center; gap: 8px; transition: transform .15s ease; box-shadow: 0 4px 14px rgba(122, 184, 51, 0.4);
     }
     .btn-refresh:hover { background: var(--cl-verde-hover); transform: translateY(-2px); }
 
-    /* Filtros Rápidos */
     .controls-glass {
       display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 18px;
       padding: 18px 22px; background: #ffffff; border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line);
-      position: relative; z-index: 500;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line); position: relative; z-index: 500;
     }
     .field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; position: relative; }
     .field.search-field { flex: 2; min-width: 210px; }
@@ -164,13 +113,11 @@
       width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px;
       padding: 0 12px; font-family: inherit; font-size: 13px; color: var(--ink); outline: none;
     }
-    .date-input:focus, .field input[type="text"]:focus { border-color: var(--cl-azul); background: #ffffff; }
 
     .combo-wrap { position: relative; width: 100%; z-index: 501; }
     .combo-input {
       width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px;
-      padding: 0 28px 0 12px; font-family: inherit; font-size: 12.5px; color: var(--ink);
-      cursor: pointer; text-overflow: ellipsis; outline: none; font-weight: 600;
+      padding: 0 28px 0 12px; font-family: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; text-overflow: ellipsis; outline: none; font-weight: 600;
     }
     .combo-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); pointer-events: none; }
     .combo-panel {
@@ -196,7 +143,7 @@
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
-    /* Dock de Módulos macOS */
+    /* Dock macOS */
     .dock-wrap { position: relative; margin-top: 18px; z-index: 60; }
     .dock-bar {
       display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
@@ -217,7 +164,6 @@
     }
     .dock-item:hover .dock-label, .dock-item.active .dock-label { opacity: 1; }
 
-    /* Tarjetas por Acción */
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
     .card-accion-kpi {
       background: #ffffff; border-radius: 16px; padding: 14px 18px; border: 1px solid var(--line);
@@ -232,7 +178,6 @@
 
     .hint-bar { display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 6px; font-size: 12px; color: #64748b; font-weight: 500; }
 
-    /* Grid */
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; align-items: start; }
     .col { display: flex; flex-direction: column; gap: 16px; }
 
@@ -252,10 +197,17 @@
     .u { font-size: 14px; color: var(--muted); font-weight: 700; }
     .card-foot { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 
-    /* CURSOR POINTER EN LOS GRÁFICOS */
     .chart-container { margin-top: 10px; min-height: 250px; }
-    .apexcharts-canvas, .apexcharts-bar-area, .apexcharts-series path, .apexcharts-text, .apexcharts-marker, .apexcharts-series-markers { cursor: pointer !important; }
     .clickable { cursor: pointer; }
+
+    /* ESTILOS AREA SVG DINÁMICO ESTILO SHADCN AREA-CHART-2 */
+    .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
+    .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
+    .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
+    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; cursor: pointer; transition: all .2s ease; }
+    .area-node:hover { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
+    .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
+    .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
 
     /* Modal */
     .modal {
@@ -299,7 +251,7 @@
 </head>
 <body class="no-scroll">
 
-  <!-- CAPA DE VIDEO EN PANTALLA COMPLETA REAL CON BOTÓN SALTAR -->
+  <!-- OVERLAY VIDEO -->
   <div id="videoIntroOverlay" class="video-intro-overlay">
     <button class="btn-skip-intro" onclick="cerrarVideoIntro()">
       Saltar Video <span>⏭️</span>
@@ -848,6 +800,7 @@
       if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
     }
 
+    // RENDERIZADO SVG INTERACTIVO PURE SVG ESTILO AREA-CHART-2 NATIVO
     function renderGraficoLinea(elId, datos, colorHex) {
       const container = document.getElementById(elId);
       if (!container) return;
@@ -857,52 +810,71 @@
         return;
       }
 
-      const options = {
-        series: [{ name: 'Solicitudes', data: datos.map(d => d.val) }],
-        chart: { 
-          type: 'area', 
-          height: 250, 
-          fontFamily: "'Plus Jakarta Sans', sans-serif", 
-          toolbar: { show: false },
-          events: {
-            dataPointSelection: function(event, chartContext, config) {
-              if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) {
-                const item = datos[config.dataPointIndex];
-                const evs = filtrarEventos().filter(e => {
-                  return formatearPeriodoTexto(e.periodo) === item.label || e.periodo === item.periodoOriginal;
-                });
-                mostrarModalConsolidado('Solicitudes del periodo: ' + item.label, evs);
-              }
-            }
-          }
-        },
-        stroke: { curve: 'smooth', width: 3 },
-        colors: [colorHex],
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 100] } },
-        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 'bold' } },
-        xaxis: { categories: datos.map(d => d.label) },
-        tooltip: { y: { formatter: (val) => val + ' solicitudes' } }
+      const width = 500;
+      const height = 220;
+      const padding = 35;
+
+      const maxVal = Math.max(...datos.map(d => d.val)) || 1;
+      const minVal = 0;
+
+      const getX = (index) => {
+        if (datos.length === 1) return width / 2;
+        return padding + (index * (width - padding * 2) / (datos.length - 1));
       };
 
-      CHART_INSTANCES[elId] = new ApexCharts(container, options);
-      CHART_INSTANCES[elId].render();
-
-      // RESPALDO DE CLIC DIRECTO SOBRE CUALQUIER ELEMENTO O PUNTO DEL GRÁFICO DE LÍNEA
-      container.onclick = function(e) {
-        const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-xaxis-label, .apexcharts-datalabel, .apexcharts-marker');
-        textNodes.forEach((node) => {
-          if (node.contains(e.target)) {
-            const txt = node.textContent || node.innerText || '';
-            const match = datos.find(d => d.label.toLowerCase() === txt.toLowerCase() || txt.toLowerCase().includes(d.label.toLowerCase()));
-            if (match) {
-              const evs = filtrarEventos().filter(ev => {
-                return formatearPeriodoTexto(ev.periodo) === match.label || ev.periodo === match.periodoOriginal;
-              });
-              mostrarModalConsolidado('Solicitudes del periodo: ' + match.label, evs);
-            }
-          }
-        });
+      const getY = (val) => {
+        return height - padding - ((val - minVal) * (height - padding * 2) / (maxVal - minVal || 1));
       };
+
+      const points = datos.map((d, i) => `${getX(i)},${getY(d.val)}`).join(' ');
+      
+      const firstX = getX(0);
+      const lastX = getX(datos.length - 1);
+      const bottomY = height - padding;
+      const areaPoints = `${firstX},${bottomY} ${points} ${lastX},${bottomY}`;
+
+      let gridLines = '';
+      for (let i = 0; i <= 4; i++) {
+        const yPos = padding + (i * (height - padding * 2) / 4);
+        gridLines += `<line x1="${padding}" y1="${yPos}" x2="${width - padding}" y2="${yPos}" class="area-grid-line" />`;
+      }
+
+      let nodesSvg = '';
+      datos.forEach((d, i) => {
+        const x = getX(i);
+        const y = getY(d.val);
+        nodesSvg += `
+          <g class="clickable" onclick="abrirModalPeriodoDirecto('${d.label}', '${d.periodoOriginal}')">
+            <circle cx="${x}" cy="${y}" r="6" class="area-node" />
+            <text x="${x}" y="${y - 12}" class="area-node-text">${d.val}</text>
+            <text x="${x}" y="${height - 10}" class="area-node-text" style="fill:#64748b; font-size:10px;">${d.label}</text>
+          </g>
+        `;
+      });
+
+      const svgContent = `
+        <svg viewBox="0 0 ${width} ${height}" class="area-svg-chart">
+          <defs>
+            <linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0082c8" stop-opacity="0.45" />
+              <stop offset="100%" stop-color="#0082c8" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <polygon points="${areaPoints}" class="area-path" />
+          <polyline points="${points}" class="line-path" />
+          ${nodesSvg}
+        </svg>
+      `;
+
+      container.innerHTML = svgContent;
+    }
+
+    function abrirModalPeriodoDirecto(labelPeriodo, periodoOriginal) {
+      const evs = filtrarEventos().filter(e => {
+        return formatearPeriodoTexto(e.periodo) === labelPeriodo || e.periodo === periodoOriginal;
+      });
+      mostrarModalConsolidado('Solicitudes del periodo: ' + labelPeriodo, evs);
     }
 
     function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
