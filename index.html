@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <script>
-    // URL del Web App de Google Apps Script que ejecuta la consulta en BigQuery
+    // URL Web App final de Google Apps Script (Conexión BigQuery)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
     
     // API para comentarios / observaciones
@@ -487,19 +487,19 @@
 
       const eventos = eventosRaw.map(e => ({
         pedido: String(e.pedido || ''),
-        cliente: e.cliente || 'Sin cliente',
-        ciudad: e.ciudad || 'Sin ciudad',
-        fechaSolicitud: e.fechaSolicitud || '',
-        periodo: e.periodo || 'Sin fecha',
+        cliente: String(e.cliente || 'Sin cliente'),
+        ciudad: String(e.ciudad || 'Sin ciudad'),
+        fechaSolicitud: String(e.fechaSolicitud || ''),
+        periodo: String(e.periodo || 'Sin fecha'),
         diasProceso: Number(e.diasProceso) || 0,
-        estado: e.estado || 'Sin estado',
-        accion: e.accion || 'Sin acción',
+        estado: String(e.estado || 'Sin estado'),
+        accion: String(e.accion || 'Sin acción'),
         modulo: moduloDeAccion(e.accion),
-        maquinaria: e.maquinaria || 'Sin especificar',
-        codActivo: e.codActivo || '',
-        observacionDetalle: e.observacionDetalle || '',
+        maquinaria: String(e.maquinaria || 'Sin especificar'),
+        codActivo: String(e.codActivo || ''),
+        observacionDetalle: String(e.observacionDetalle || ''),
         esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: e.estadoEntrega || 'Sin estado entrega'
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
       }));
 
       function unicos(campo) {
@@ -655,8 +655,14 @@
           }
         }
         if (ESTADO.busqueda) {
-          const q = ESTADO.busqueda.toLowerCase();
-          const txtMatch = (e.pedido + ' ' + e.codActivo + ' ' + e.maquinaria + ' ' + e.cliente + ' ' + e.observacionDetalle).toLowerCase();
+          const q = ESTADO.busqueda.trim().toLowerCase();
+          const strPedido = String(e.pedido || '').toLowerCase();
+          const strActivo = String(e.codActivo || '').toLowerCase();
+          const strMaquinaria = String(e.maquinaria || '').toLowerCase();
+          const strCliente = String(e.cliente || '').toLowerCase();
+          const strObs = String(e.observacionDetalle || '').toLowerCase();
+
+          const txtMatch = strPedido + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
           if (txtMatch.indexOf(q) < 0) return false;
         }
         return true;
