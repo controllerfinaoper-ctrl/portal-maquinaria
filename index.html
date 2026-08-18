@@ -200,7 +200,7 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
-    /* ESTILOS AREA SVG DINÁMICO ESTILO SHADCN AREA-CHART-2 */
+    /* ESTILOS DEGRADADO SVG DINÁMICO ESTILO AREA-CHART-2 */
     .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
     .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
     .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
@@ -418,8 +418,8 @@
     async function obtenerDatosDesdeBigQuery() {
       const eventosRaw = await cargarJsonp(BIGQUERY_API_URL);
 
-      if (eventosRaw.error) {
-        throw new Error('Error devuelto por Apps Script: ' + eventosRaw.error);
+      if (!eventosRaw || eventosRaw.error) {
+        throw new Error('Error de conexión o respuesta vacía desde Apps Script: ' + (eventosRaw ? eventosRaw.error : 'Sin datos'));
       }
 
       function moduloDeAccion(accion) {
@@ -431,7 +431,7 @@
         return 'otros';
       }
 
-      const eventos = eventosRaw.map(e => {
+      const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => {
         const fSol = String(e.fechaSolicitud || '');
         const per = String(e.periodo || 'Sin fecha');
         let ano = 'Sin fecha';
@@ -692,7 +692,6 @@
       const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
       const criticos = evs.filter(e => e.diasProceso >= 3);
 
-      // Conteo de pedidos únicos por estado
       const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
       const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
       const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
