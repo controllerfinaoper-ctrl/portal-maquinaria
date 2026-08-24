@@ -329,7 +329,7 @@
 
   <script>
     let ESTADO = {
-      anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
+      anoSel: ['2026'], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
       eventos: [], filtros: {}, modulos: {}, actualizado: ''
     };
@@ -593,7 +593,7 @@
     }
 
     function limpiarFiltros() {
-      ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
+      ESTADO.anoSel = ['2026']; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
       ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = '';
       document.getElementById('inputFechaDia').value = '';
       document.getElementById('inputBusqueda').value = '';
@@ -705,7 +705,7 @@
         ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
-        ${cardChartBox('Tendencia de Pedidos (Mes a Mes)', 'chartTendencia')}
+        ${cardChartBox('Tendencia de Pedidos Únicos (Mes a Mes)', 'chartTendenciaPedidos')}
         ${cardChartBox('Top Fallas Frecuentes', 'chartFallas')}
       </div>
       <div class="col">
@@ -720,25 +720,37 @@
         ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')}
         ${cardKPI('Fallas Críticas ("En Corto")', contarPedidosUnicos(fallasCrit), 'órdenes', 'rojo', fallasCrit.length + ' casos críticos', 'criticas')}
       </div>
-      <div class="col">${cardChartBox('Principales Fallas Reportadas', 'chartFallas')}</div>
+      <div class="col">
+        ${cardChartBox('Tendencia Pedidos Únicos Mantenimiento', 'chartTendenciaPedidos')}
+        ${cardChartBox('Principales Fallas Reportadas', 'chartFallas')}
+      </div>
       <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos')}</div>`;
     }
 
     function renderEntregas(evs) {
       return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div>
-      <div class="col">${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos')}</div>
+      <div class="col">
+        ${cardChartBox('Tendencia Pedidos Únicos Entregas', 'chartTendenciaPedidos')}
+        ${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos')}
+      </div>
       <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes')}</div>`;
     }
 
     function renderRecogidas(evs) {
       return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
-      <div class="col">${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones')}</div>
+      <div class="col">
+        ${cardChartBox('Tendencia Pedidos Únicos Recogidas', 'chartTendenciaPedidos')}
+        ${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones')}
+      </div>
       <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes')}</div>`;
     }
 
     function renderAccesorios(evs) {
       return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
-      <div class="col">${cardChartBox('Accesorios Más Pedidos', 'chartEquipos')}</div>
+      <div class="col">
+        ${cardChartBox('Tendencia Pedidos Únicos Accesorios', 'chartTendenciaPedidos')}
+        ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos')}
+      </div>
       <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
     }
 
@@ -773,24 +785,26 @@
       return p;
     }
 
-    function agruparPorPeriodo(evs) {
-      const conteo = {};
+    // Agrupa calculando la cantidad de PEDIDOS ÚNICOS por mes
+    function agruparPedidosUnicosPorPeriodo(evs) {
+      const conteoPedidos = {};
       evs.forEach(e => {
         const p = (e.periodo && e.periodo !== 'Sin fecha') ? e.periodo : 'Sin fecha';
-        conteo[p] = (conteo[p] || 0) + 1;
+        if (!conteoPedidos[p]) conteoPedidos[p] = {};
+        if (e.pedido) conteoPedidos[p][e.pedido] = true;
       });
-      const periodos = Object.keys(conteo).sort();
+      const periodos = Object.keys(conteoPedidos).sort();
       return periodos.map(p => ({ 
         label: formatearPeriodoTexto(p), 
         periodoOriginal: p,
-        val: conteo[p] 
+        val: Object.keys(conteoPedidos[p]).length 
       }));
     }
 
     function renderizarGraficosApex(evs) {
-      if (document.getElementById('chartTendencia')) {
-        const datosTendencia = agruparPorPeriodo(evs);
-        renderGraficoLinea('chartTendencia', datosTendencia, '#0082c8');
+      if (document.getElementById('chartTendenciaPedidos')) {
+        const datosTendencia = agruparPedidosUnicosPorPeriodo(evs);
+        renderGraficoLinea('chartTendenciaPedidos', datosTendencia, '#0082c8');
       }
 
       if (document.getElementById('chartFallas')) renderBarraHorizontal('chartFallas', agrupar(evs, 'observacionDetalle', 5), 'observacionDetalle', '#0082c8');
@@ -799,7 +813,7 @@
       if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
     }
 
-    // RENDERIZADO SVG INTERACTIVO PURE SVG ESTILO AREA-CHART-2 NATIVO
+    // RENDERIZADO SVG INTERACTIVO
     function renderGraficoLinea(elId, datos, colorHex) {
       const container = document.getElementById(elId);
       if (!container) return;
