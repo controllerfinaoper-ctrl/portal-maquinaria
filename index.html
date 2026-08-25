@@ -204,8 +204,8 @@
     .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
     .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
     .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
-    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; cursor: pointer; transition: all .2s ease; }
-    .area-node:hover { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
+    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; transition: all .2s ease; }
+    .node-group:hover .area-node { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
     .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
     .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
 
@@ -785,7 +785,6 @@
       return p;
     }
 
-    // Agrupa calculando la cantidad de PEDIDOS ÚNICOS por mes
     function agruparPedidosUnicosPorPeriodo(evs) {
       const conteoPedidos = {};
       evs.forEach(e => {
@@ -813,7 +812,6 @@
       if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
     }
 
-    // RENDERIZADO SVG INTERACTIVO
     function renderGraficoLinea(elId, datos, colorHex) {
       const container = document.getElementById(elId);
       if (!container) return;
@@ -857,7 +855,10 @@
         const x = getX(i);
         const y = getY(d.val);
         nodesSvg += `
-          <g class="clickable" onclick="abrirModalPeriodoDirecto('${d.label}', '${d.periodoOriginal}')">
+          <g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;">
+            <!-- Zona táctil amplia e invisible (radio 20px) para clic fácil -->
+            <circle cx="${x}" cy="${y}" r="20" fill="transparent" />
+            <!-- Punto visible -->
             <circle cx="${x}" cy="${y}" r="6" class="area-node" />
             <text x="${x}" y="${y - 12}" class="area-node-text">${d.val}</text>
             <text x="${x}" y="${height - 10}" class="area-node-text" style="fill:#64748b; font-size:10px;">${d.label}</text>
@@ -881,12 +882,25 @@
       `;
 
       container.innerHTML = svgContent;
+
+      // Delegación de eventos directamente en el contenedor SVG
+      container.onclick = function(e) {
+        const group = e.target.closest('.node-group');
+        if (group) {
+          const periodo = group.getAttribute('data-periodo');
+          const label = group.getAttribute('data-label');
+          abrirModalPeriodoDirecto(label, periodo);
+        }
+      };
     }
 
     function abrirModalPeriodoDirecto(labelPeriodo, periodoOriginal) {
       const evs = filtrarEventos().filter(e => {
-        return formatearPeriodoTexto(e.periodo) === labelPeriodo || e.periodo === periodoOriginal;
+        if (!e.periodo || e.periodo === 'Sin fecha') return false;
+        if (periodoOriginal && e.periodo === periodoOriginal) return true;
+        return formatearPeriodoTexto(e.periodo).toLowerCase() === String(labelPeriodo).toLowerCase();
       });
+      
       mostrarModalConsolidado('Solicitudes del periodo: ' + labelPeriodo, evs);
     }
 
@@ -959,7 +973,7 @@
 
       const pedidosKeys = Object.keys(agrupadosPorPedido);
       
-      body.innerHTML = '<div class="consolidado-container">' + pedidosKeys.slice(0, 50).map(numPed => {
+      body.innerHTML = '<div class="consolidado-container">' + pedidosKeys.map(numPed => {
         const grupo = agrupadosPorPedido[numPed];
 
         return `<div class="pedido-card">
