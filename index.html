@@ -14,6 +14,9 @@
   <!-- ApexCharts CDN para Gráficos de Barras -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+  <!-- FullCalendar CDN para Agendador/Calendario Operativo -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
   <script>
     // URL Web App final de Google Apps Script (Conexión BigQuery)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
@@ -340,7 +343,8 @@
       mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo'] },
       entregas:      { label: 'Entregas / Iniciaciones',     icono: '📦', acciones: ['Iniciacion', 'Iniciación'] },
       recogidas:     { label: 'Recogidas y Cierres',         icono: '🚚', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
-      accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] }
+      accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
+      agendador:     { label: 'Agenda Logística',            icono: '📅', acciones: null }
     };
 
     const CONFIG_ACCIONES = {
@@ -602,7 +606,7 @@
 
     function filtrarEventos() {
       return ESTADO.eventos.filter(e => {
-        if (ESTADO.moduloSel !== 'general' && e.modulo !== ESTADO.moduloSel) return false;
+        if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
         if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
@@ -683,9 +687,15 @@
       else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
       else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
       else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
+      else if (ESTADO.moduloSel === 'agendador') html = renderAgendador(evs);
 
       grid.innerHTML = html;
-      setTimeout(() => renderizarGraficosApex(evs), 30);
+
+      if (ESTADO.moduloSel === 'agendador') {
+        setTimeout(() => inicializarCalendarioFull(evs), 50);
+      } else {
+        setTimeout(() => renderizarGraficosApex(evs), 30);
+      }
     }
 
     function renderVista360(evs) {
@@ -752,6 +762,18 @@
         ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos')}
       </div>
       <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
+    }
+
+    function renderAgendador(evs) {
+      return `
+        <div style="grid-column: span 3;" class="card">
+          <div class="card-top" style="margin-bottom: 15px;">
+            <span class="card-title">📅 Programador Operativo de Maquinaria</span>
+            <button class="btn-refresh" onclick="abrirModalNuevoAgendamiento()">➕ Programar Mantenimiento / Ruta</button>
+          </div>
+          <div id="calendarContainer" style="min-height: 650px;"></div>
+        </div>
+      `;
     }
 
     function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) {
@@ -1000,6 +1022,127 @@
 
     function cerrarModal() {
       document.getElementById('modal').classList.remove('show');
+    }
+
+    function inicializarCalendarioFull(evs) {
+      const calendarEl = document.getElementById('calendarContainer');
+      if (!calendarEl) return;
+
+      const eventosCalendario = evs.map(e => {
+        let fechaISO = '';
+        if (e.fechaSolicitud && e.fechaSolicitud.includes('/')) {
+          const p = e.fechaSolicitud.split('/');
+          if (p.length === 3) fechaISO = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        }
+
+        const conf = CONFIG_ACCIONES[e.accion] || { color: '#0082c8' };
+
+        return {
+          title: `#${e.pedido} - ${e.cliente} (${e.maquinaria})`,
+          start: fechaISO || new Date(),
+          backgroundColor: conf.color,
+          borderColor: conf.color,
+          extendedProps: e
+        };
+      });
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        initialDate: '2026-08-01',
+        locale: 'es',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' },
+        events: eventosCalendario,
+        eventClick: function(info) {
+          const datos = info.event.extendedProps;
+          mostrarModalConsolidado(`Detalle Pedido #${datos.pedido}`, [datos]);
+        }
+      });
+
+      calendar.render();
+    }
+
+    function abrirModalNuevoAgendamiento() {
+      const body = document.getElementById('modalBody');
+      document.getElementById('modalTitulo').textContent = 'Programar Evento / Mantenimiento';
+
+      body.innerHTML = `
+        <form style="display: flex; flex-direction: column; gap: 14px;" onsubmit="event.preventDefault(); guardarNuevoAgendamiento();">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label>
+              <input type="text" id="agPedido" class="date-input" placeholder="Ej: 998231" required>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label>
+              <input type="text" id="agCliente" class="date-input" placeholder="Nombre del cliente" required>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label>
+              <select id="agAccion" class="date-input" style="height: 40px;">
+                <option value="Mantenimiento Correctivo">Mantenimiento Correctivo</option>
+                <option value="Iniciacion">Iniciación / Entrega</option>
+                <option value="Recogida">Recogida</option>
+                <option value="CambioAccesorio">Cambio de Accesorio</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label>
+              <input type="date" id="agFecha" class="date-input" value="2026-08-25" required>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label>
+            <input type="text" id="agMaquinaria" class="date-input" placeholder="Ej: Fregadora Automática 50L" required>
+          </div>
+
+          <div>
+            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO / OBSERVACIÓN</label>
+            <input type="text" id="agObs" class="date-input" placeholder="Nombre del técnico o notas de ruta">
+          </div>
+
+          <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">
+            💾 Guardar en Agenda Operativa
+          </button>
+        </form>
+      `;
+
+      document.getElementById('modal').classList.add('show');
+    }
+
+    function guardarNuevoAgendamiento() {
+      const fVal = document.getElementById('agFecha').value.split('-');
+      const fSolicitudStr = `${fVal[2]}/${fVal[1]}/${fVal[0]}`;
+
+      const nuevoEvento = {
+        pedido: document.getElementById('agPedido').value,
+        cliente: document.getElementById('agCliente').value,
+        ciudad: 'Bogotá',
+        fechaSolicitud: fSolicitudStr,
+        periodo: `${fVal[0]}-${fVal[1]}`,
+        ano: fVal[0],
+        diasProceso: 0,
+        estado: 'En proceso',
+        accion: document.getElementById('agAccion').value,
+        modulo: 'mantenimiento',
+        maquinaria: document.getElementById('agMaquinaria').value,
+        codActivo: 'PROG-2026',
+        observacionDetalle: document.getElementById('agObs').value,
+        esFallaCritica: false,
+        estadoEntrega: 'Programado'
+      };
+
+      ESTADO.eventos.unshift(nuevoEvento);
+      cerrarModal();
+      render();
     }
   </script>
 </body>
