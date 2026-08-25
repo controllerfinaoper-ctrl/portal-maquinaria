@@ -203,6 +203,16 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
+    /* ESTILOS TABLA PROGRAMACIÓN Y AGENDADOR */
+    .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+    .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
+    .tabla-agendador th:hover { background: #0082c8; }
+    .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
+    .tabla-agendador tr:hover { background: #f1f5f9; }
+    .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-action-prog:hover { background: var(--cl-verde-hover); }
+
     /* ESTILOS DEGRADADO SVG DINÁMICO ESTILO AREA-CHART-2 */
     .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
     .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
@@ -334,7 +344,8 @@
     let ESTADO = {
       anoSel: ['2026'], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
-      eventos: [], filtros: {}, modulos: {}, actualizado: ''
+      eventos: [], filtros: {}, modulos: {}, actualizado: '',
+      ordenTablaCol: 'diasProceso', ordenTablaAsc: false
     };
     let CHART_INSTANCES = {};
 
@@ -344,7 +355,7 @@
       entregas:      { label: 'Entregas / Iniciaciones',     icono: '📦', acciones: ['Iniciacion', 'Iniciación'] },
       recogidas:     { label: 'Recogidas y Cierres',         icono: '🚚', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
       accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
-      agendador:     { label: 'Agenda Logística',            icono: '📅', acciones: null }
+      agendador:     { label: 'Tabla de Programación',       icono: '📋', acciones: null }
     };
 
     const CONFIG_ACCIONES = {
@@ -687,13 +698,11 @@
       else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
       else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
       else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
-      else if (ESTADO.moduloSel === 'agendador') html = renderAgendador(evs);
+      else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
 
       grid.innerHTML = html;
 
-      if (ESTADO.moduloSel === 'agendador') {
-        setTimeout(() => inicializarCalendarioFull(evs), 50);
-      } else {
+      if (ESTADO.moduloSel !== 'agendador') {
         setTimeout(() => renderizarGraficosApex(evs), 30);
       }
     }
@@ -764,16 +773,74 @@
       <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
     }
 
-    function renderAgendador(evs) {
+    /* VISTA TABLA DE PROGRAMACIÓN OPERATIVA */
+    function renderTablaAgendador(evs) {
+      const col = ESTADO.ordenTablaCol;
+      const asc = ESTADO.ordenTablaAsc;
+
+      const ordenados = [...evs].sort((a, b) => {
+        let valA = a[col] || '';
+        let valB = b[col] || '';
+        if (typeof valA === 'number') return asc ? valA - valB : valB - valA;
+        return asc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+      });
+
       return `
         <div style="grid-column: span 3;" class="card">
           <div class="card-top" style="margin-bottom: 15px;">
-            <span class="card-title">📅 Programador Operativo de Maquinaria</span>
-            <button class="btn-refresh" onclick="abrirModalNuevoAgendamiento()">➕ Programar Mantenimiento / Ruta</button>
+            <div>
+              <span class="card-title">📋 Tabla Control y Programación de Solicitudes</span>
+              <p style="margin:4px 0 0; font-size:12px; color:var(--muted);">Filtra por estado, fecha o cliente y presiona 'Programar' para agendar en la vista calendario.</p>
+            </div>
+            <button class="btn-refresh" onclick="abrirModalCalendarioAgendado()">📅 Ver Vista Calendario</button>
           </div>
-          <div id="calendarContainer" style="min-height: 650px;"></div>
+
+          <div class="tabla-programacion-wrap">
+            <table class="tabla-agendador">
+              <thead>
+                <tr>
+                  <th onclick="cambiarOrdenTabla('pedido')">Pedido ${col === 'pedido' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('cliente')">Cliente / Ciudad ${col === 'cliente' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('fechaSolicitud')">Fecha Solicitud ${col === 'fechaSolicitud' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('accion')">Acción ${col === 'accion' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('maquinaria')">Maquinaria / Activo ${col === 'maquinaria' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('estado')">Estado ${col === 'estado' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th onclick="cambiarOrdenTabla('diasProceso')">Días Proceso ${col === 'diasProceso' ? (asc ? '▲' : '▼') : ''}</th>
+                  <th style="text-align:center;">Acción Operativa</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ordenados.map(e => `
+                  <tr>
+                    <td><span class="code-activo">#${e.pedido}</span></td>
+                    <td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.ciudad}</span></td>
+                    <td>${e.fechaSolicitud}</td>
+                    <td><span class="badge-accion">${e.accion}</span></td>
+                    <td><b>${e.maquinaria}</b> <span style="font-size:11px; color:var(--cl-azul);">${e.codActivo ? '('+e.codActivo+')' : ''}</span></td>
+                    <td><span class="tag-dias ${normTexto(e.estado)==='cerrado'?'ok':(normTexto(e.estado)==='rechazado'?'crit':'')}">${e.estado}</span></td>
+                    <td><span class="tag-dias ${e.diasProceso >= 3 ? 'crit' : 'ok'}">${e.diasProceso} días</span></td>
+                    <td style="text-align:center;">
+                      <button class="btn-action-prog" onclick="abrirModalNuevoAgendamientoDirecto('${e.pedido}', '${e.cliente.replace(/'/g, "\\'")}', '${e.maquinaria.replace(/'/g, "\\'")}', '${e.accion}')">
+                        📅 Programar
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
+    }
+
+    function cambiarOrdenTabla(columna) {
+      if (ESTADO.ordenTablaCol === columna) {
+        ESTADO.ordenTablaAsc = !ESTADO.ordenTablaAsc;
+      } else {
+        ESTADO.ordenTablaCol = columna;
+        ESTADO.ordenTablaAsc = true;
+      }
+      render();
     }
 
     function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) {
@@ -1024,74 +1091,79 @@
       document.getElementById('modal').classList.remove('show');
     }
 
-    function inicializarCalendarioFull(evs) {
-      const calendarEl = document.getElementById('calendarContainer');
-      if (!calendarEl) return;
+    /* MODAL CON CALENDARIO AGENDADO */
+    function abrirModalCalendarioAgendado() {
+      const evs = filtrarEventos();
+      document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
+      const body = document.getElementById('modalBody');
+      body.innerHTML = '<div id="modalCalendarContainer" style="min-height: 600px; padding:10px;"></div>';
+      
+      document.getElementById('modal').classList.add('show');
 
-      const eventosCalendario = evs.map(e => {
-        let fechaISO = '';
-        if (e.fechaSolicitud && e.fechaSolicitud.includes('/')) {
-          const p = e.fechaSolicitud.split('/');
-          if (p.length === 3) fechaISO = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
-        }
+      setTimeout(() => {
+        const calendarEl = document.getElementById('modalCalendarContainer');
+        if (!calendarEl) return;
 
-        const conf = CONFIG_ACCIONES[e.accion] || { color: '#0082c8' };
+        const eventosCalendario = evs.map(e => {
+          let fechaISO = '';
+          if (e.fechaSolicitud && e.fechaSolicitud.includes('/')) {
+            const p = e.fechaSolicitud.split('/');
+            if (p.length === 3) fechaISO = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+          }
 
-        return {
-          title: `#${e.pedido} - ${e.cliente} (${e.maquinaria})`,
-          start: fechaISO || new Date(),
-          backgroundColor: conf.color,
-          borderColor: conf.color,
-          extendedProps: e
-        };
-      });
+          const conf = CONFIG_ACCIONES[e.accion] || { color: '#0082c8' };
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        initialDate: '2026-08-01',
-        locale: 'es',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' },
-        events: eventosCalendario,
-        eventClick: function(info) {
-          const datos = info.event.extendedProps;
-          mostrarModalConsolidado(`Detalle Pedido #${datos.pedido}`, [datos]);
-        }
-      });
+          return {
+            title: `#${e.pedido} - ${e.cliente} (${e.maquinaria})`,
+            start: fechaISO || new Date(),
+            backgroundColor: conf.color,
+            borderColor: conf.color,
+            extendedProps: e
+          };
+        });
 
-      calendar.render();
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          initialDate: '2026-08-01',
+          locale: 'es',
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+          },
+          buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' },
+          events: eventosCalendario,
+          eventClick: function(info) {
+            const datos = info.event.extendedProps;
+            alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nAcción: ${datos.accion}\nMaquinaria: ${datos.maquinaria}\nFecha: ${datos.fechaSolicitud}`);
+          }
+        });
+
+        calendar.render();
+      }, 100);
     }
 
-    function abrirModalNuevoAgendamiento() {
+    function abrirModalNuevoAgendamientoDirecto(pedido, cliente, maquinaria, accion) {
       const body = document.getElementById('modalBody');
-      document.getElementById('modalTitulo').textContent = 'Programar Evento / Mantenimiento';
+      document.getElementById('modalTitulo').textContent = 'Programar Pedido #' + pedido;
 
       body.innerHTML = `
         <form style="display: flex; flex-direction: column; gap: 14px;" onsubmit="event.preventDefault(); guardarNuevoAgendamiento();">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label>
-              <input type="text" id="agPedido" class="date-input" placeholder="Ej: 998231" required>
+              <input type="text" id="agPedido" class="date-input" value="${pedido}" readonly required>
             </div>
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label>
-              <input type="text" id="agCliente" class="date-input" placeholder="Nombre del cliente" required>
+              <input type="text" id="agCliente" class="date-input" value="${cliente}" required>
             </div>
           </div>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label>
-              <select id="agAccion" class="date-input" style="height: 40px;">
-                <option value="Mantenimiento Correctivo">Mantenimiento Correctivo</option>
-                <option value="Iniciacion">Iniciación / Entrega</option>
-                <option value="Recogida">Recogida</option>
-                <option value="CambioAccesorio">Cambio de Accesorio</option>
-              </select>
+              <input type="text" id="agAccion" class="date-input" value="${accion}" required>
             </div>
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label>
@@ -1101,16 +1173,16 @@
 
           <div>
             <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label>
-            <input type="text" id="agMaquinaria" class="date-input" placeholder="Ej: Fregadora Automática 50L" required>
+            <input type="text" id="agMaquinaria" class="date-input" value="${maquinaria}" required>
           </div>
 
           <div>
-            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO / OBSERVACIÓN</label>
-            <input type="text" id="agObs" class="date-input" placeholder="Nombre del técnico o notas de ruta">
+            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO ASIGNADO / OBSERVACIÓN</label>
+            <input type="text" id="agObs" class="date-input" placeholder="Ej: Técnico Carlos Ruiz - Ruta Mañana">
           </div>
 
           <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">
-            💾 Guardar en Agenda Operativa
+            💾 Guardar Programación Operativa
           </button>
         </form>
       `;
@@ -1119,28 +1191,15 @@
     }
 
     function guardarNuevoAgendamiento() {
-      const fVal = document.getElementById('agFecha').value.split('-');
-      const fSolicitudStr = `${fVal[2]}/${fVal[1]}/${fVal[0]}`;
+      const ped = document.getElementById('agPedido').value;
+      const idx = ESTADO.eventos.findIndex(e => e.pedido === ped);
+      
+      if (idx >= 0) {
+        ESTADO.eventos[idx].estadoEntrega = 'Programado';
+        ESTADO.eventos[idx].observacionDetalle += ' [Programado: ' + document.getElementById('agObs').value + ']';
+      }
 
-      const nuevoEvento = {
-        pedido: document.getElementById('agPedido').value,
-        cliente: document.getElementById('agCliente').value,
-        ciudad: 'Bogotá',
-        fechaSolicitud: fSolicitudStr,
-        periodo: `${fVal[0]}-${fVal[1]}`,
-        ano: fVal[0],
-        diasProceso: 0,
-        estado: 'En proceso',
-        accion: document.getElementById('agAccion').value,
-        modulo: 'mantenimiento',
-        maquinaria: document.getElementById('agMaquinaria').value,
-        codActivo: 'PROG-2026',
-        observacionDetalle: document.getElementById('agObs').value,
-        esFallaCritica: false,
-        estadoEntrega: 'Programado'
-      };
-
-      ESTADO.eventos.unshift(nuevoEvento);
+      alert('¡Pedido #' + ped + ' agendado exitosamente!');
       cerrarModal();
       render();
     }
