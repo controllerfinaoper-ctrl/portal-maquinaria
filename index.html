@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // URL Web App BigQuery (Existente)
+    // URL Web App BigQuery (Mantenimiento)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
     
     // URL Web App Google Drive (ETL Pedidos SLA)
@@ -154,7 +154,6 @@
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
-    /* Dock macOS */
     .dock-wrap { position: relative; margin-top: 18px; z-index: 60; }
     .dock-bar {
       display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
@@ -211,7 +210,6 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
-    /* ESTILOS TABLA PROGRAMACIÓN Y AGENDADOR */
     .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
     .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
     .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
@@ -221,7 +219,6 @@
     .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
     .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
 
-    /* ESTILOS DEGRADADO SVG DINÁMICO */
     .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
     .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
     .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
@@ -230,7 +227,6 @@
     .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
     .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
 
-    /* Modal */
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
       background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
@@ -328,7 +324,7 @@
       </div>
     </div>
 
-    <!-- BARRA DE FILTROS INDEPENDIENTES Y EXCLUSIVOS PARA EL MÓDULO PEDIDOS SLA (DRIVE) -->
+    <!-- BARRA DE FILTROS INDEPENDIENTES PARA EL MÓDULO PEDIDOS SLA (DRIVE) -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
         🎯 Filtros Independientes Módulo Alertas SLA (Google Drive)
@@ -341,7 +337,7 @@
       <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
     </div>
 
-    <!-- DOCK MACOS DE NAVEGACIÓN -->
+    <!-- DOCK DE NAVEGACIÓN -->
     <div class="dock-wrap">
       <nav class="dock-bar" id="dockBar" role="toolbar"></nav>
     </div>
@@ -369,7 +365,6 @@
   </div>
 
   <script>
-    // ESTADO GENERAL (anoSel en [] vacíos para mostrar todo al iniciar)
     let ESTADO = {
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
@@ -385,7 +380,6 @@
     let CHART_INSTANCES = {};
     let CALENDARIO_INSTANCE = null;
 
-    // DEFINICIÓN DE MÓDULOS
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
       alertasSLA:    { label: 'Alertas de Incumplimiento (SLA)', icono: '🚨', acciones: null },
@@ -431,40 +425,41 @@
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
-    // CARGAR FUENTES DE DATOS (BIGQUERY + GOOGLE DRIVE SHEET)
-    async function cargarDatos(forzarSinCache) {
-      loader(true);
-      try {
-        const [dataBigQuery, dataDriveSLA] = await Promise.all([
-          obtenerDatosDesdeBigQuery(),
-          obtenerDatosDesdeDriveSLA()
-        ]);
-
-        inicializar(dataBigQuery, dataDriveSLA);
-      } catch (e) {
-        console.error("Error al cargar datos combinados:", e);
-      }
-      loader(false);
-    }
-
-    function cargarJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    function cargarJsonp(url, timeoutMs = 12000) {
+      return new Promise((resolve) => {
+        const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
         const script = document.createElement('script');
-        
+        let finalizado = false;
+
         const limpiar = () => {
+          finalizado = true;
           delete window[callbackName];
           if (script.parentNode) script.parentNode.removeChild(script);
         };
 
+        const timer = setTimeout(() => {
+          if (!finalizado) {
+            limpiar();
+            console.warn(`Timeout al consultar API: ${url}`);
+            resolve(null);
+          }
+        }, timeoutMs);
+
         window[callbackName] = (json) => {
-          limpiar();
-          resolve(json);
+          if (!finalizado) {
+            clearTimeout(timer);
+            limpiar();
+            resolve(json);
+          }
         };
 
         script.onerror = () => {
-          limpiar();
-          reject(new Error('Error al conectar con la API Web App'));
+          if (!finalizado) {
+            clearTimeout(timer);
+            limpiar();
+            console.error(`Error de red al consultar API: ${url}`);
+            resolve(null);
+          }
         };
 
         const separador = url.indexOf('?') >= 0 ? '&' : '?';
@@ -473,13 +468,37 @@
       });
     }
 
-    async function obtenerDatosDesdeBigQuery() {
-      const eventosRaw = await cargarJsonp(BIGQUERY_API_URL);
+    async function cargarDatos(forzarSinCache) {
+      loader(true);
+      try {
+        let dataBQ = { eventos: [], filtros: {} };
+        try {
+          const rawBQ = await cargarJsonp(BIGQUERY_API_URL);
+          if (rawBQ) dataBQ = procesarDatosBigQuery(rawBQ);
+        } catch (eBQ) {
+          console.error("Error al procesar BigQuery:", eBQ);
+        }
 
-      if (!eventosRaw || eventosRaw.error) {
-        throw new Error('Error en BigQuery: ' + (eventosRaw ? eventosRaw.error : 'Sin datos'));
+        let dataSLA = { eventosSLA: [], filtrosSLA: {} };
+        try {
+          const rawSLA = await cargarJsonp(DRIVE_SLA_API_URL);
+          if (rawSLA && Array.isArray(rawSLA)) {
+            dataSLA = procesarDatosSLA(rawSLA);
+          }
+        } catch (eSLA) {
+          console.error("Error al procesar Drive SLA:", eSLA);
+        }
+
+        inicializar(dataBQ, dataSLA);
+
+      } catch (e) {
+        console.error("Error general en la carga:", e);
+      } finally {
+        loader(false);
       }
+    }
 
+    function procesarDatosBigQuery(eventosRaw) {
       function moduloDeAccion(accion) {
         const normAcc = normTexto(accion);
         for (const clave of Object.keys(MODULOS)) {
@@ -543,31 +562,23 @@
       };
     }
 
-    async function obtenerDatosDesdeDriveSLA() {
-      try {
-        const rawSLA = await cargarJsonp(DRIVE_SLA_API_URL);
-        if (!rawSLA || !Array.isArray(rawSLA)) return { eventosSLA: [], filtrosSLA: {} };
-
-        function unicosSLA(campo) {
-          const vistos = {};
-          rawSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
-          return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
-        }
-
-        return {
-          eventosSLA: rawSLA,
-          filtrosSLA: {
-            clientes: unicosSLA('cliente'),
-            ciudades: unicosSLA('ciudad'),
-            estadosWms: unicosSLA('estadoWMS'),
-            alertas: unicosSLA('alertaSLA'),
-            agotados: unicosSLA('flagAgotado')
-          }
-        };
-      } catch (err) {
-        console.error("Error al obtener datos de SLA Google Drive:", err);
-        return { eventosSLA: [], filtrosSLA: {} };
+    function procesarDatosSLA(rawSLA) {
+      function unicosSLA(campo) {
+        const vistos = {};
+        rawSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
+        return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
       }
+
+      return {
+        eventosSLA: rawSLA,
+        filtrosSLA: {
+          clientes: unicosSLA('cliente'),
+          ciudades: unicosSLA('ciudad'),
+          estadosWms: unicosSLA('estadoWMS'),
+          alertas: unicosSLA('alertaSLA'),
+          agotados: unicosSLA('flagAgotado')
+        }
+      };
     }
 
     function inicializar(dataBQ, dataSLA) {
@@ -748,20 +759,16 @@
       });
     }
 
-    // FILTRADO FLEXIBLE PARA EVENTOS DRIVE SLA
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // 1. Filtro por Año (Solo si hay una selección explícita)
         if (ESTADO.anoSel.length > 0 && e.ano && e.ano !== 'Sin fecha') {
           if (ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
 
-        // 2. Filtro por Periodo
         if (ESTADO.periodoSel.length > 0 && e.periodo && e.periodo !== 'Sin fecha') {
           if (ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         }
 
-        // 3. Filtro por Fecha Exacta
         if (ESTADO.fechaDiaSel) {
           const partes = String(e.fechaMontaje || '').split('/');
           if (partes.length === 3) {
@@ -770,7 +777,6 @@
           }
         }
 
-        // 4. Búsqueda Rápida
         if (ESTADO.busqueda) {
           const q = ESTADO.busqueda.trim().toLowerCase();
           const strPed = String(e.pedido || '').toLowerCase();
@@ -779,7 +785,6 @@
           if ((strPed + ' ' + strCli + ' ' + strCiu).indexOf(q) < 0) return false;
         }
 
-        // 5. Filtros Independientes SLA
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
         if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
@@ -1281,7 +1286,6 @@
       document.getElementById('modal').classList.add('show');
     }
 
-    // MODAL DETALLE PEDIDOS SLA
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
       document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
       const body = document.getElementById('modalBody');
@@ -1317,7 +1321,6 @@
       document.getElementById('modal').classList.remove('show');
     }
 
-    /* MODAL CALENDARIO AGENDADO */
     function abrirModalCalendarioAgendado() {
       document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
       const body = document.getElementById('modalBody');
