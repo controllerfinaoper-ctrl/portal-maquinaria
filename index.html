@@ -21,7 +21,7 @@
     // URL Web App BigQuery (Existente)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
     
-    // URL Web App Google Drive (Nuevo ETL Pedidos SLA)
+    // URL Web App Google Drive (ETL Pedidos SLA)
     const DRIVE_SLA_API_URL = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
   </script>
 
@@ -369,9 +369,9 @@
   </div>
 
   <script>
-    // ESTADO GENERAL Y DEL MÓDULO SLA
+    // ESTADO GENERAL (anoSel en [] vacíos para mostrar todo al iniciar)
     let ESTADO = {
-      anoSel: ['2026'], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
+      anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
       eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
       ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
@@ -385,7 +385,7 @@
     let CHART_INSTANCES = {};
     let CALENDARIO_INSTANCE = null;
 
-    // DEFINICIÓN DE MÓDULOS (INCLUYENDO EL NUEVO MÓDULO SLA)
+    // DEFINICIÓN DE MÓDULOS
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
       alertasSLA:    { label: 'Alertas de Incumplimiento (SLA)', icono: '🚨', acciones: null },
@@ -431,7 +431,7 @@
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
-    // CARGAR AMBAS FUENTES DE DATOS EN PARALELO (BIGQUERY + GOOGLE DRIVE SHEET)
+    // CARGAR FUENTES DE DATOS (BIGQUERY + GOOGLE DRIVE SHEET)
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
@@ -543,7 +543,6 @@
       };
     }
 
-    // OBTENER Y PROCESAR DATOS DE GOOGLE DRIVE (PEDIDOS Y ALERTAS SLA)
     async function obtenerDatosDesdeDriveSLA() {
       try {
         const rawSLA = await cargarJsonp(DRIVE_SLA_API_URL);
@@ -605,7 +604,6 @@
       ESTADO.moduloSel = key;
       construirDock();
 
-      // Mostrar o ocultar controles específicos según el módulo
       const esSLA = (key === 'alertasSLA');
       document.getElementById('barFiltrosSLA').style.display = esSLA ? 'flex' : 'none';
       document.querySelectorAll('.filter-bq').forEach(el => el.style.display = esSLA ? 'none' : 'flex');
@@ -699,7 +697,7 @@
     }
 
     function limpiarFiltros() {
-      ESTADO.anoSel = ['2026']; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
+      ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
       ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = '';
       document.getElementById('inputFechaDia').value = '';
       document.getElementById('inputBusqueda').value = '';
@@ -750,12 +748,20 @@
       });
     }
 
-    // FILTRADO DE EVENTOS DRIVE SLA (COMBINA FILTROS GLOBALES TEMPORALES Y BÚSQUEDA CON FILTROS LOCALES SLA)
+    // FILTRADO FLEXIBLE PARA EVENTOS DRIVE SLA
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // 1. Filtros Temporales GLOBALES
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        // 1. Filtro por Año (Solo si hay una selección explícita)
+        if (ESTADO.anoSel.length > 0 && e.ano && e.ano !== 'Sin fecha') {
+          if (ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        }
+
+        // 2. Filtro por Periodo
+        if (ESTADO.periodoSel.length > 0 && e.periodo && e.periodo !== 'Sin fecha') {
+          if (ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        }
+
+        // 3. Filtro por Fecha Exacta
         if (ESTADO.fechaDiaSel) {
           const partes = String(e.fechaMontaje || '').split('/');
           if (partes.length === 3) {
@@ -764,7 +770,7 @@
           }
         }
 
-        // 2. Filtros Búsqueda Rápida Global
+        // 4. Búsqueda Rápida
         if (ESTADO.busqueda) {
           const q = ESTADO.busqueda.trim().toLowerCase();
           const strPed = String(e.pedido || '').toLowerCase();
@@ -773,7 +779,7 @@
           if ((strPed + ' ' + strCli + ' ' + strCiu).indexOf(q) < 0) return false;
         }
 
-        // 3. Filtros INDEPENDIENTES / LOCALES de SLA
+        // 5. Filtros Independientes SLA
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
         if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
@@ -852,12 +858,10 @@
       }
     }
 
-    // RENDERIZADO DEL NUEVO MÓDULO DE ALERTAS SLA (PEDIDOS EN RIESGO / INCUMPLIMIENTO)
     function renderVistaAlertasSLA(evsSLA) {
       const totalPedidos = contarPedidosUnicos(evsSLA);
       const incumplimientos = evsSLA.filter(e => e.alertaSLA === "ALERTA: Incumplimiento");
       const retrasosAgotados = evsSLA.filter(e => e.alertaSLA === "Retraso por Agotado");
-      const enPlazo = evsSLA.filter(e => e.alertaSLA === "En plazo / Agotado");
 
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
 
@@ -1277,7 +1281,7 @@
       document.getElementById('modal').classList.add('show');
     }
 
-    // MODAL DETALLE PARA PEDIDOS SLA (GOOGLE DRIVE)
+    // MODAL DETALLE PEDIDOS SLA
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
       document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
       const body = document.getElementById('modalBody');
@@ -1313,7 +1317,7 @@
       document.getElementById('modal').classList.remove('show');
     }
 
-    /* MODAL CON CALENDARIO AGENDADO */
+    /* MODAL CALENDARIO AGENDADO */
     function abrirModalCalendarioAgendado() {
       document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
       const body = document.getElementById('modalBody');
