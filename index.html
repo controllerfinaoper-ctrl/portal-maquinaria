@@ -18,11 +18,8 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // URL Web App BigQuery (Mantenimiento)
+    // Conexión Única Unificada a BigQuery Gateway (Mantenimiento + SLA)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
-    
-    // URL Web App Google Drive (ETL Pedidos SLA)
-    const DRIVE_SLA_API_URL = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
   </script>
 
   <style>
@@ -324,10 +321,10 @@
       </div>
     </div>
 
-    <!-- BARRA DE FILTROS INDEPENDIENTES PARA EL MÓDULO PEDIDOS SLA (DRIVE) -->
+    <!-- BARRA DE FILTROS INDEPENDIENTES PARA EL MÓDULO PEDIDOS SLA (BIGQUERY) -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
-        🎯 Filtros Independientes Módulo Alertas SLA (Google Drive)
+        🎯 Filtros Independientes Módulo Alertas SLA (BigQuery)
       </div>
       <div class="field"><label>Cliente SLA</label><div id="comboClienteSLA"></div></div>
       <div class="field"><label>Ciudad SLA</label><div id="comboCiudadSLA"></div></div>
@@ -468,6 +465,7 @@
       });
     }
 
+    // CARGAR VISTAS UNIFICADAS DESDE BIGQUERY
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
@@ -476,17 +474,18 @@
           const rawBQ = await cargarJsonp(BIGQUERY_API_URL);
           if (rawBQ) dataBQ = procesarDatosBigQuery(rawBQ);
         } catch (eBQ) {
-          console.error("Error al procesar BigQuery:", eBQ);
+          console.error("Error al procesar BigQuery Operativo:", eBQ);
         }
 
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         try {
-          const rawSLA = await cargarJsonp(DRIVE_SLA_API_URL);
+          // Consulta al módulo SLA desde BigQuery
+          const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla`);
           if (rawSLA && Array.isArray(rawSLA)) {
             dataSLA = procesarDatosSLA(rawSLA);
           }
         } catch (eSLA) {
-          console.error("Error al procesar Drive SLA:", eSLA);
+          console.error("Error al procesar BigQuery SLA:", eSLA);
         }
 
         inicializar(dataBQ, dataSLA);
@@ -563,14 +562,35 @@
     }
 
     function procesarDatosSLA(rawSLA) {
+      const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => ({
+        pedido: String(e.pedido || ''),
+        cliente: String(e.cliente || 'Sin cliente'),
+        ciudad: String(e.ciudad || 'Sin ciudad'),
+        estadoWMS: String(e.estadoWMS || 'Sin Estado'),
+        flagAgotado: String(e.flagAgotado || 'No'),
+        fechaMontaje: String(e.fechaMontaje || 'Sin fecha'),
+        ano: String(e.ano || 'Sin fecha'),
+        periodo: String(e.periodo || 'Sin fecha'),
+        diasTranscurridos: Number(e.diasTranscurridos) || 0,
+        alertaSLA: String(e.alertaSLA || 'En plazo / Agotado'),
+        totalItems: Number(e.totalItems) || 1,
+        totalCantSolicitada: Number(e.totalCantSolicitada) || 0,
+        totalCantAlistada: Number(e.totalCantAlistada) || 0,
+        totalCantDespachada: Number(e.totalCantDespachada) || 0,
+        totalCantEntregada: Number(e.totalCantEntregada) || 0,
+        totalPeso: Number(e.totalPeso) || 0,
+        totalVolumen: Number(e.totalVolumen) || 0,
+        detalleProductos: String(e.detalleProductos || 'Sin detalle de productos')
+      }));
+
       function unicosSLA(campo) {
         const vistos = {};
-        rawSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
+        eventosSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
         return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
       }
 
       return {
-        eventosSLA: rawSLA,
+        eventosSLA,
         filtrosSLA: {
           clientes: unicosSLA('cliente'),
           ciudades: unicosSLA('ciudad'),
@@ -733,12 +753,10 @@
       render();
     }
 
-    // FILTRADO INTELIGENTE DE MANTENIMIENTO (BIGQUERY)
     function filtrarEventos() {
       return ESTADO.eventos.filter(e => {
         if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
         
-        // Evaluar selección solo si el filtro tiene valores seleccionados parcialmente
         if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
           if (ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
@@ -783,7 +801,6 @@
       });
     }
 
-    // FILTRADO INTELIGENTE DE PEDIDOS (GOOGLE DRIVE SLA)
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
         if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
@@ -806,7 +823,8 @@
           const strPed = String(e.pedido || '').toLowerCase();
           const strCli = String(e.cliente || '').toLowerCase();
           const strCiu = String(e.ciudad || '').toLowerCase();
-          if ((strPed + ' ' + strCli + ' ' + strCiu).indexOf(q) < 0) return false;
+          const strDet = String(e.detalleProductos || '').toLowerCase();
+          if ((strPed + ' ' + strCli + ' ' + strCiu + ' ' + strDet).indexOf(q) < 0) return false;
         }
 
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
@@ -905,7 +923,7 @@
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde Drive', 'slaAll')}
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
         ${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
         ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}
         ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
@@ -1320,11 +1338,15 @@
       document.getElementById('modal').classList.add('show');
     }
 
+    // MODAL DETALLE CONSOLIDADO CON MÉTRICAS Y CANTIDADES EXTENDIDAS (HASTA COLUMNA BD)
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
-      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos Únicos)';
       const body = document.getElementById('modalBody');
 
-      if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
+      if (!eventosListSLA.length) { 
+        body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; 
+        return; 
+      }
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
         let tagClase = 'ok';
@@ -1333,7 +1355,7 @@
 
         return `<div class="pedido-card">
           <div class="pedido-head">
-            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
+            <span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span>
             <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
             <span class="tag-dias ${tagClase}">${e.alertaSLA}</span>
           </div>
@@ -1343,6 +1365,21 @@
               <div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div>
               <div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div>
               <div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div>
+            </div>
+
+            <!-- MÉTRICAS Y CANTIDADES OPERATIVAS CONSOLIDADAS -->
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;">
+              <div><b>Ítems:</b><br>${e.totalItems || 1}</div>
+              <div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div>
+              <div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div>
+              <div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div>
+              <div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div>
+              <div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div>
+            </div>
+
+            <!-- DETALLE DE PRODUCTOS INCLUIDOS EN EL PEDIDO -->
+            <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
+              <b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}
             </div>
           </div>
         </div>`;
