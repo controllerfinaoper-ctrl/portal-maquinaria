@@ -336,7 +336,7 @@
 
     <!-- DOCK DE NAVEGACIÓN -->
     <div class="dock-wrap">
-      <nav class="dock-bar" id="dockBar" role="toolbar"></nav>
+      nav class="dock-bar" id="dockBar" role="toolbar"></nav>
     </div>
 
     <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
@@ -422,7 +422,7 @@
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
-    function cargarJsonp(url, timeoutMs = 15000) {
+    function cargarJsonp(url, timeoutMs = 25000) {
       return new Promise((resolve) => {
         const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
         const script = document.createElement('script');
@@ -465,7 +465,6 @@
       });
     }
 
-    // CARGAR VISTAS UNIFICADAS DESDE BIGQUERY
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
@@ -479,7 +478,6 @@
 
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         try {
-          // Consulta al módulo SLA desde BigQuery
           const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla`);
           if (rawSLA && Array.isArray(rawSLA)) {
             dataSLA = procesarDatosSLA(rawSLA);
@@ -642,7 +640,6 @@
       render();
     }
 
-    // COMBO MULTI-SELECCIÓN CON BOTÓN LIMPIAR OPERATIVO Y DESMARCADO VISUAL REAL
     function crearComboMultiples(contenedorId, opciones, seleccionados, alCambiar, etiquetaTodos) {
       const container = document.getElementById(contenedorId);
       if (!container) return;
@@ -714,7 +711,6 @@
         }
       });
 
-      // BOTÓN "TODOS"
       container.querySelector('.btn-all').addEventListener('click', (e) => {
         e.stopPropagation();
         seleccionados.length = 0;
@@ -723,7 +719,6 @@
         alCambiar(seleccionados);
       });
 
-      // BOTÓN "LIMPIAR"
       container.querySelector('.btn-none').addEventListener('click', (e) => {
         e.stopPropagation();
         seleccionados.length = 0;
@@ -747,11 +742,11 @@
     }
 
     function poblarCombosSLA() {
-      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes, ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
-      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades, ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
-      crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms, ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
-      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas, ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
-      crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados, ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
+      crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
+      crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
     }
 
     function limpiarFiltros() {
@@ -824,13 +819,30 @@
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
+        // BÚSQUEDA RÁPIDA (Prioridad por Pedido/Salida)
+        if (ESTADO.busqueda) {
+          const q = ESTADO.busqueda.trim().toLowerCase();
+          const strPed = String(e.pedido || '').toLowerCase();
+          const strCli = String(e.cliente || '').toLowerCase();
+          const strCiu = String(e.ciudad || '').toLowerCase();
+          const strDet = String(e.detalleProductos || '').toLowerCase();
+          const strEst = String(e.estadoWMS || '').toLowerCase();
+
+          const matchGlobal = (strPed + ' ' + strCli + ' ' + strCiu + ' ' + strDet + ' ' + strEst);
+          if (matchGlobal.indexOf(q) < 0) return false;
+        }
+
+        // Filtro Año
+        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
           if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
-        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
+
+        // Filtro Periodo
+        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
           if (e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         }
 
+        // Filtro Fecha Exacta
         if (ESTADO.fechaDiaSel) {
           const partes = String(e.fechaMontaje || '').split('/');
           if (partes.length === 3) {
@@ -839,29 +851,30 @@
           }
         }
 
-        if (ESTADO.busqueda) {
-          const q = ESTADO.busqueda.trim().toLowerCase();
-          const strPed = String(e.pedido || '').toLowerCase();
-          const strCli = String(e.cliente || '').toLowerCase();
-          const strCiu = String(e.ciudad || '').toLowerCase();
-          const strDet = String(e.detalleProductos || '').toLowerCase();
-          if ((strPed + ' ' + strCli + ' ' + strCiu + ' ' + strDet).indexOf(q) < 0) return false;
-        }
-
-        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
+        // Filtros Independientes SLA (Desplegables)
+        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
           if (ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         }
-        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length) {
+        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length) {
           if (ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
         }
-        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length) {
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length) {
           if (ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
         }
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length) {
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length) {
           if (ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
         }
-        if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
+        if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
           if (ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
+        }
+
+        // Control de valor ficticio __NINGUNO__
+        if (ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') >= 0) {
+          return false;
         }
 
         return true;
@@ -1359,7 +1372,6 @@
       document.getElementById('modal').classList.add('show');
     }
 
-    // MODAL DETALLE CONSOLIDADO CON MÉTRICAS Y CANTIDADES EXTENDIDAS (HASTA COLUMNA BD)
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
       document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos Únicos)';
       const body = document.getElementById('modalBody');
@@ -1388,7 +1400,6 @@
               <div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div>
             </div>
 
-            <!-- MÉTRICAS Y CANTIDADES OPERATIVAS CONSOLIDADAS -->
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;">
               <div><b>Ítems:</b><br>${e.totalItems || 1}</div>
               <div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div>
@@ -1398,7 +1409,6 @@
               <div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div>
             </div>
 
-            <!-- DETALLE DE PRODUCTOS INCLUIDOS EN EL PEDIDO -->
             <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
               <b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}
             </div>
