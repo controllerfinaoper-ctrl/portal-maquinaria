@@ -642,13 +642,17 @@
       render();
     }
 
+    // COMBO MULTI-SELECCIÓN CON BOTÓN LIMPIAR OPERATIVO Y DESMARCADO VISUAL REAL
     function crearComboMultiples(contenedorId, opciones, seleccionados, alCambiar, etiquetaTodos) {
       const container = document.getElementById(contenedorId);
       if (!container) return;
       const opcionesList = opciones || [];
 
       const obtenerTextoBoton = () => {
-        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length) return etiquetaTodos;
+        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length || seleccionados.indexOf('__NINGUNO__') >= 0) {
+          if (seleccionados.indexOf('__NINGUNO__') >= 0) return '0 seleccionados';
+          return etiquetaTodos;
+        }
         if (seleccionados.length === 1) return seleccionados[0];
         return seleccionados.length + ' seleccionados';
       };
@@ -678,7 +682,7 @@
         const filtrados = opcionesList.filter(it => !filtro || it.toLowerCase().indexOf(filtro.toLowerCase()) >= 0);
         if (!filtrados.length) { list.innerHTML = '<div style="padding:8px;font-size:11px;">Sin resultados</div>'; return; }
         list.innerHTML = filtrados.map(it => {
-          const isChecked = (seleccionados.length === 0 || seleccionados.indexOf(it) >= 0) ? 'checked' : '';
+          const isChecked = (seleccionados.length === 0 || (seleccionados.indexOf(it) >= 0 && seleccionados.indexOf('__NINGUNO__') < 0)) ? 'checked' : '';
           return `<label class="combo-item-multi"><input type="checkbox" value="${it.replace(/"/g, '&quot;')}" ${isChecked}><span>${it}</span></label>`;
         }).join('');
       };
@@ -690,28 +694,45 @@
       });
 
       search.addEventListener('input', () => renderizarLista(search.value));
+
       list.addEventListener('change', (e) => {
         if (e.target.tagName === 'INPUT') {
           const val = e.target.value;
-          if (seleccionados.length === 0) {
-            opcionesList.forEach(it => seleccionados.push(it));
+          const idxNinguno = seleccionados.indexOf('__NINGUNO__');
+          if (idxNinguno >= 0) seleccionados.splice(idxNinguno, 1);
+
+          if (e.target.checked) { 
+            if (seleccionados.indexOf(val) < 0) seleccionados.push(val); 
+          } else { 
+            const idx = seleccionados.indexOf(val); 
+            if (idx >= 0) seleccionados.splice(idx, 1); 
           }
-          if (e.target.checked) { if (seleccionados.indexOf(val) < 0) seleccionados.push(val); }
-          else { const idx = seleccionados.indexOf(val); if (idx >= 0) seleccionados.splice(idx, 1); }
           
           if (seleccionados.length === opcionesList.length) seleccionados.length = 0;
-          input.value = obtenerTextoBoton(); alCambiar(seleccionados);
+          input.value = obtenerTextoBoton(); 
+          alCambiar(seleccionados);
         }
       });
 
-      container.querySelector('.btn-all').addEventListener('click', () => {
+      // BOTÓN "TODOS"
+      container.querySelector('.btn-all').addEventListener('click', (e) => {
+        e.stopPropagation();
         seleccionados.length = 0;
-        renderizarLista(search.value); input.value = obtenerTextoBoton(); alCambiar(seleccionados);
+        renderizarLista(search.value); 
+        input.value = obtenerTextoBoton(); 
+        alCambiar(seleccionados);
       });
-      container.querySelector('.btn-none').addEventListener('click', () => {
-        seleccionados.length = 0; 
-        renderizarLista(search.value); input.value = obtenerTextoBoton(); alCambiar(seleccionados);
+
+      // BOTÓN "LIMPIAR"
+      container.querySelector('.btn-none').addEventListener('click', (e) => {
+        e.stopPropagation();
+        seleccionados.length = 0;
+        seleccionados.push('__NINGUNO__'); 
+        list.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false);
+        input.value = '0 seleccionados'; 
+        alCambiar(seleccionados);
       });
+
       document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) panel.classList.remove('show'); });
     }
 
