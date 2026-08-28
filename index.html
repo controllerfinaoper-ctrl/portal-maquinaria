@@ -11,15 +11,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
-  <!-- ApexCharts CDN para Gráficos de Barras -->
+  <!-- ApexCharts CDN para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <!-- FullCalendar CDN para Agendador/Calendario Operativo -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // URL Web App final de Google Apps Script (Conexión BigQuery)
+    // URL Web App BigQuery (Existente)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
+    
+    // URL Web App Google Drive (Nuevo ETL Pedidos SLA)
+    const DRIVE_SLA_API_URL = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
   </script>
 
   <style>
@@ -45,7 +48,6 @@
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
     html { scroll-behavior: smooth; }
 
-    /* Ocultar barras de desplazamiento */
     ::-webkit-scrollbar { display: none; width: 0; height: 0; }
     html, body { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -58,7 +60,6 @@
       min-height: 100vh;
     }
 
-    /* OVERLAY VIDEO BIENVENIDA */
     .video-intro-overlay {
       position: fixed !important; top: 0 !important; left: 0 !important;
       width: 100vw !important; height: 100vh !important; z-index: 9999999 !important;
@@ -108,6 +109,13 @@
       padding: 18px 22px; background: #ffffff; border-radius: 20px;
       box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line); position: relative; z-index: 500;
     }
+
+    .controls-glass-sla {
+      display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 10px; margin-bottom: 14px;
+      padding: 14px 18px; background: #f0f9ff; border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0, 130, 200, 0.06); border: 1px solid #bae6fd; position: relative; z-index: 490;
+    }
+
     .field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; position: relative; }
     .field.search-field { flex: 2; min-width: 210px; }
     .field label { font-size: 11px; font-weight: 800; color: var(--cl-azul-dark); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -213,7 +221,7 @@
     .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
     .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
 
-    /* ESTILOS DEGRADADO SVG DINÁMICO ESTILO AREA-CHART-2 */
+    /* ESTILOS DEGRADADO SVG DINÁMICO */
     .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
     .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
     .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
@@ -246,7 +254,9 @@
     .code-activo { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--cl-azul); background: var(--cl-azul-light); padding: 2px 7px; border-radius: 6px; font-size: 11px; }
     .badge-accion { background: #f3f4f6; color: #374151; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
-    .tag-dias.ok { background: #dcfce7; color: #15803d; } .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
+    .tag-dias.ok { background: #dcfce7; color: #15803d; } 
+    .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
+    .tag-dias.warn { background: #fef9c3; color: #a16207; }
 
     .vacio { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; }
 
@@ -264,7 +274,7 @@
 </head>
 <body class="no-scroll">
 
-  <!-- OVERLAY VIDEO -->
+  <!-- OVERLAY VIDEO BIENVENIDA -->
   <div id="videoIntroOverlay" class="video-intro-overlay">
     <button class="btn-skip-intro" onclick="cerrarVideoIntro()">
       Saltar Video <span>⏭️</span>
@@ -295,16 +305,20 @@
       </div>
     </header>
 
+    <!-- BARRA DE FILTROS TEMPORALES GLOBALES DEL PORTAL -->
     <div class="controls-glass">
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
       <div class="field"><label>Fecha exacta (Día)</label><input type="date" id="inputFechaDia" class="date-input"></div>
-      <div class="field"><label>Cliente</label><div id="comboCliente"></div></div>
-      <div class="field"><label>Ciudad</label><div id="comboCiudad"></div></div>
-      <div class="field"><label>Estado</label><div id="comboEstado"></div></div>
-      <div class="field"><label>Estado Entrega</label><div id="comboEstadoEntrega"></div></div>
-      <div class="field"><label>Acción</label><div id="comboAccion"></div></div>
-      <div class="field search-field"><label>Búsqueda rápida</label><input type="text" id="inputBusqueda" placeholder="🔍 Pedido, Activo, Maquinaria..."></div>
+      
+      <!-- Filtros Mantenimiento/Operativo BigQuery -->
+      <div class="field filter-bq"><label>Cliente</label><div id="comboCliente"></div></div>
+      <div class="field filter-bq"><label>Ciudad</label><div id="comboCiudad"></div></div>
+      <div class="field filter-bq"><label>Estado</label><div id="comboEstado"></div></div>
+      <div class="field filter-bq"><label>Estado Entrega</label><div id="comboEstadoEntrega"></div></div>
+      <div class="field filter-bq"><label>Acción</label><div id="comboAccion"></div></div>
+      
+      <div class="field search-field"><label>Búsqueda rápida</label><input type="text" id="inputBusqueda" placeholder="🔍 Pedido, Activo, Maquinaria, Cliente..."></div>
       
       <button class="btn-clear" onclick="limpiarFiltros()">🧹 Limpiar</button>
       <div class="sep"></div>
@@ -314,6 +328,20 @@
       </div>
     </div>
 
+    <!-- BARRA DE FILTROS INDEPENDIENTES Y EXCLUSIVOS PARA EL MÓDULO PEDIDOS SLA (DRIVE) -->
+    <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
+      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
+        🎯 Filtros Independientes Módulo Alertas SLA (Google Drive)
+      </div>
+      <div class="field"><label>Cliente SLA</label><div id="comboClienteSLA"></div></div>
+      <div class="field"><label>Ciudad SLA</label><div id="comboCiudadSLA"></div></div>
+      <div class="field"><label>Estado WMS</label><div id="comboEstadoWmsSLA"></div></div>
+      <div class="field"><label>Nivel de Alerta SLA</label><div id="comboAlertaSLA"></div></div>
+      <div class="field"><label>Flag Agotado</label><div id="comboAgotadoSLA"></div></div>
+      <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
+    </div>
+
+    <!-- DOCK MACOS DE NAVEGACIÓN -->
     <div class="dock-wrap">
       <nav class="dock-bar" id="dockBar" role="toolbar"></nav>
     </div>
@@ -329,7 +357,7 @@
 
   <div id="loader"><div class="spin"></div></div>
 
-  <!-- Modal -->
+  <!-- Modal Detalle Consolidado -->
   <div id="modal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
@@ -341,18 +369,26 @@
   </div>
 
   <script>
+    // ESTADO GENERAL Y DEL MÓDULO SLA
     let ESTADO = {
       anoSel: ['2026'], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
-      eventos: [], filtros: {}, modulos: {}, actualizado: '',
+      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
       ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
       tecnicoFiltroCalendar: 'todos'
     };
+
+    let ESTADO_SLA = {
+      clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: []
+    };
+
     let CHART_INSTANCES = {};
     let CALENDARIO_INSTANCE = null;
 
+    // DEFINICIÓN DE MÓDULOS (INCLUYENDO EL NUEVO MÓDULO SLA)
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
+      alertasSLA:    { label: 'Alertas de Incumplimiento (SLA)', icono: '🚨', acciones: null },
       mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo'] },
       entregas:      { label: 'Entregas / Iniciaciones',     icono: '📦', acciones: ['Iniciacion', 'Iniciación'] },
       recogidas:     { label: 'Recogidas y Cierres',         icono: '🚚', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
@@ -395,20 +431,25 @@
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
+    // CARGAR AMBAS FUENTES DE DATOS EN PARALELO (BIGQUERY + GOOGLE DRIVE SHEET)
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
-        const data = await obtenerDatosDesdeBigQuery();
-        inicializar(data);
+        const [dataBigQuery, dataDriveSLA] = await Promise.all([
+          obtenerDatosDesdeBigQuery(),
+          obtenerDatosDesdeDriveSLA()
+        ]);
+
+        inicializar(dataBigQuery, dataDriveSLA);
       } catch (e) {
-        console.error("Error al cargar datos desde BigQuery:", e);
+        console.error("Error al cargar datos combinados:", e);
       }
       loader(false);
     }
 
     function cargarJsonp(url) {
       return new Promise((resolve, reject) => {
-        const callbackName = 'gvizCallback_' + Date.now();
+        const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         const script = document.createElement('script');
         
         const limpiar = () => {
@@ -423,7 +464,7 @@
 
         script.onerror = () => {
           limpiar();
-          reject(new Error('Error al conectar con la API de BigQuery'));
+          reject(new Error('Error al conectar con la API Web App'));
         };
 
         const separador = url.indexOf('?') >= 0 ? '&' : '?';
@@ -436,13 +477,13 @@
       const eventosRaw = await cargarJsonp(BIGQUERY_API_URL);
 
       if (!eventosRaw || eventosRaw.error) {
-        throw new Error('Error de conexión o respuesta vacía desde Apps Script: ' + (eventosRaw ? eventosRaw.error : 'Sin datos'));
+        throw new Error('Error en BigQuery: ' + (eventosRaw ? eventosRaw.error : 'Sin datos'));
       }
 
       function moduloDeAccion(accion) {
         const normAcc = normTexto(accion);
         for (const clave of Object.keys(MODULOS)) {
-          if (clave === 'general') continue;
+          if (clave === 'general' || clave === 'alertasSLA') continue;
           if (MODULOS[clave].acciones && MODULOS[clave].acciones.some(a => normTexto(a) === normAcc)) return clave;
         }
         return 'otros';
@@ -498,21 +539,52 @@
           estados: unicos('estado'), 
           estadosEntrega: unicos('estadoEntrega'), 
           periodos: unicos('periodo') 
-        },
-        modulos: MODULOS,
-        actualizado: new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true })
+        }
       };
     }
 
-    function inicializar(data) {
-      ESTADO.eventos = data.eventos || [];
-      ESTADO.filtros = data.filtros || {};
-      ESTADO.modulos = data.modulos || {};
-      ESTADO.actualizado = data.actualizado || '—';
+    // OBTENER Y PROCESAR DATOS DE GOOGLE DRIVE (PEDIDOS Y ALERTAS SLA)
+    async function obtenerDatosDesdeDriveSLA() {
+      try {
+        const rawSLA = await cargarJsonp(DRIVE_SLA_API_URL);
+        if (!rawSLA || !Array.isArray(rawSLA)) return { eventosSLA: [], filtrosSLA: {} };
+
+        function unicosSLA(campo) {
+          const vistos = {};
+          rawSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
+          return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
+        }
+
+        return {
+          eventosSLA: rawSLA,
+          filtrosSLA: {
+            clientes: unicosSLA('cliente'),
+            ciudades: unicosSLA('ciudad'),
+            estadosWms: unicosSLA('estadoWMS'),
+            alertas: unicosSLA('alertaSLA'),
+            agotados: unicosSLA('flagAgotado')
+          }
+        };
+      } catch (err) {
+        console.error("Error al obtener datos de SLA Google Drive:", err);
+        return { eventosSLA: [], filtrosSLA: {} };
+      }
+    }
+
+    function inicializar(dataBQ, dataSLA) {
+      ESTADO.eventos = dataBQ.eventos || [];
+      ESTADO.filtros = dataBQ.filtros || {};
+      
+      ESTADO.eventosSLA = dataSLA.eventosSLA || [];
+      ESTADO.filtrosSLA = dataSLA.filtrosSLA || {};
+      
+      ESTADO.modulos = MODULOS;
+      ESTADO.actualizado = new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true });
 
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
       construirDock();
       poblarCombos();
+      poblarCombosSLA();
       render();
     }
 
@@ -532,6 +604,12 @@
     function cambiarModulo(key) {
       ESTADO.moduloSel = key;
       construirDock();
+
+      // Mostrar o ocultar controles específicos según el módulo
+      const esSLA = (key === 'alertasSLA');
+      document.getElementById('barFiltrosSLA').style.display = esSLA ? 'flex' : 'none';
+      document.querySelectorAll('.filter-bq').forEach(el => el.style.display = esSLA ? 'none' : 'flex');
+
       render();
     }
 
@@ -612,12 +690,32 @@
       crearComboMultiples('comboAccion', ESTADO.filtros.acciones, ESTADO.accionSel, v => { ESTADO.accionSel = v; render(); }, 'Todas las acciones');
     }
 
+    function poblarCombosSLA() {
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes, ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades, ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
+      crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms, ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas, ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
+      crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados, ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
+    }
+
     function limpiarFiltros() {
       ESTADO.anoSel = ['2026']; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
       ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = '';
       document.getElementById('inputFechaDia').value = '';
       document.getElementById('inputBusqueda').value = '';
-      poblarCombos(); render();
+      poblarCombos(); 
+      limpiarFiltrosSLA();
+      render();
+    }
+
+    function limpiarFiltrosSLA() {
+      ESTADO_SLA.clienteSel = [];
+      ESTADO_SLA.ciudadSel = [];
+      ESTADO_SLA.estadoWmsSel = [];
+      ESTADO_SLA.alertaSel = [];
+      ESTADO_SLA.agotadoSel = [];
+      poblarCombosSLA();
+      render();
     }
 
     function filtrarEventos() {
@@ -652,6 +750,40 @@
       });
     }
 
+    // FILTRADO DE EVENTOS DRIVE SLA (COMBINA FILTROS GLOBALES TEMPORALES Y BÚSQUEDA CON FILTROS LOCALES SLA)
+    function filtrarEventosSLA() {
+      return ESTADO.eventosSLA.filter(e => {
+        // 1. Filtros Temporales GLOBALES
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO.fechaDiaSel) {
+          const partes = String(e.fechaMontaje || '').split('/');
+          if (partes.length === 3) {
+            const fechaNorm = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            if (fechaNorm !== ESTADO.fechaDiaSel) return false;
+          }
+        }
+
+        // 2. Filtros Búsqueda Rápida Global
+        if (ESTADO.busqueda) {
+          const q = ESTADO.busqueda.trim().toLowerCase();
+          const strPed = String(e.pedido || '').toLowerCase();
+          const strCli = String(e.cliente || '').toLowerCase();
+          const strCiu = String(e.ciudad || '').toLowerCase();
+          if ((strPed + ' ' + strCli + ' ' + strCiu).indexOf(q) < 0) return false;
+        }
+
+        // 3. Filtros INDEPENDIENTES / LOCALES de SLA
+        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
+
+        return true;
+      });
+    }
+
     function contarPedidosUnicos(evs) {
       const vistos = {}; evs.forEach(e => { if (e.pedido) vistos[e.pedido] = true; });
       return Object.keys(vistos).length;
@@ -660,6 +792,11 @@
     function renderTarjetasAcciones(evs) {
       const wrap = document.getElementById('accionesSummaryWrap');
       if (!wrap) return;
+
+      if (ESTADO.moduloSel === 'alertasSLA') {
+        wrap.innerHTML = '';
+        return;
+      }
 
       const conteoAcciones = {};
       evs.forEach(e => {
@@ -688,17 +825,20 @@
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
       CHART_INSTANCES = {};
 
-      const evs = filtrarEventos();
+      const esSLA = (ESTADO.moduloSel === 'alertasSLA');
+      const evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
+
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
       document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
 
       renderTarjetasAcciones(evs);
 
       const grid = document.getElementById('grid');
-      if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan.</div>'; return; }
+      if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
 
       let html = '';
       if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
+      else if (ESTADO.moduloSel === 'alertasSLA') html = renderVistaAlertasSLA(evs);
       else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
       else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
       else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
@@ -710,6 +850,31 @@
       if (ESTADO.moduloSel !== 'agendador') {
         setTimeout(() => renderizarGraficosApex(evs), 30);
       }
+    }
+
+    // RENDERIZADO DEL NUEVO MÓDULO DE ALERTAS SLA (PEDIDOS EN RIESGO / INCUMPLIMIENTO)
+    function renderVistaAlertasSLA(evsSLA) {
+      const totalPedidos = contarPedidosUnicos(evsSLA);
+      const incumplimientos = evsSLA.filter(e => e.alertaSLA === "ALERTA: Incumplimiento");
+      const retrasosAgotados = evsSLA.filter(e => e.alertaSLA === "Retraso por Agotado");
+      const enPlazo = evsSLA.filter(e => e.alertaSLA === "En plazo / Agotado");
+
+      const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
+
+      return `<div class="col">
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde Drive', 'slaAll')}
+        ${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
+        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}
+        ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}
+        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA')}
+        ${cardChartBox('Ciudades con Mayor Incumplimiento', 'chartCiudadesSLA')}
+      </div>`;
     }
 
     function renderVista360(evs) {
@@ -778,12 +943,10 @@
       <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
     }
 
-    /* VISTA TABLA DE PROGRAMACIÓN OPERATIVA (SOLO "EN PROCESO") */
     function renderTablaAgendador(evs) {
       const col = ESTADO.ordenTablaCol;
       const asc = ESTADO.ordenTablaAsc;
 
-      // Filtrar ÚNICAMENTE las solicitudes que están en estado "En proceso"
       const soloEnProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
 
       const ordenados = [...soloEnProceso].sort((a, b) => {
@@ -898,6 +1061,14 @@
     }
 
     function renderizarGraficosApex(evs) {
+      if (ESTADO.moduloSel === 'alertasSLA') {
+        if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
+        if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
+        if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
+        if (document.getElementById('chartCiudadesSLA')) renderBarraHorizontal('chartCiudadesSLA', agrupar(evs, 'ciudad', 5), 'ciudad', '#eab308');
+        return;
+      }
+
       if (document.getElementById('chartTendenciaPedidos')) {
         const datosTendencia = agruparPedidosUnicosPorPeriodo(evs);
         renderGraficoLinea('chartTendenciaPedidos', datosTendencia, '#0082c8');
@@ -1040,6 +1211,14 @@
     }
 
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
+      if (ESTADO.moduloSel === 'alertasSLA') {
+        let evs = filtrarEventosSLA();
+        if (tipo === 'slaIncumplimiento') evs = evs.filter(e => e.alertaSLA === 'ALERTA: Incumplimiento');
+        else if (tipo === 'slaAgotados') evs = evs.filter(e => e.alertaSLA === 'Retraso por Agotado');
+        mostrarModalConsolidadoSLA(titulo, evs);
+        return;
+      }
+
       let evs = filtrarEventos();
       if (tipo === 'sla') evs = evs.filter(e => e.diasProceso >= 3);
       else if (tipo === 'criticas') evs = evs.filter(e => e.esFallaCritica);
@@ -1048,6 +1227,12 @@
     }
 
     function abrirDetalleBarra(titulo, campo, valor) {
+      if (ESTADO.moduloSel === 'alertasSLA') {
+        const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor);
+        mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs);
+        return;
+      }
+
       const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor);
       mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
     }
@@ -1092,11 +1277,43 @@
       document.getElementById('modal').classList.add('show');
     }
 
+    // MODAL DETALLE PARA PEDIDOS SLA (GOOGLE DRIVE)
+    function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
+      const body = document.getElementById('modalBody');
+
+      if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
+
+      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
+        let tagClase = 'ok';
+        if (e.alertaSLA === 'ALERTA: Incumplimiento') tagClase = 'crit';
+        else if (e.alertaSLA === 'Retraso por Agotado') tagClase = 'warn';
+
+        return `<div class="pedido-card">
+          <div class="pedido-head">
+            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
+            <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
+            <span class="tag-dias ${tagClase}">${e.alertaSLA}</span>
+          </div>
+          <div class="pedido-body">
+            <div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+              <div>📅 <b>Fecha Montaje:</b> ${e.fechaMontaje}</div>
+              <div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div>
+              <div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div>
+              <div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('') + '</div>';
+
+      document.getElementById('modal').classList.add('show');
+    }
+
     function cerrarModal() {
       document.getElementById('modal').classList.remove('show');
     }
 
-    /* MODAL CON CALENDARIO AGENDADO (SOLO MUESTRA PROGRAMADOS CON FILTRO POR TÉCNICO) */
+    /* MODAL CON CALENDARIO AGENDADO */
     function abrirModalCalendarioAgendado() {
       document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
       const body = document.getElementById('modalBody');
@@ -1123,9 +1340,7 @@
       const calendarEl = document.getElementById('modalCalendarContainer');
       if (!calendarEl) return;
 
-      // Filtrar SOLO los eventos que han sido marcados como programados
       const agendados = ESTADO.eventos.filter(e => e.programado);
-
       const tec = ESTADO.tecnicoFiltroCalendar;
       const filtradosPorTec = (tec === 'todos') ? agendados : agendados.filter(e => e.tecnicoAsignado === tec);
 
