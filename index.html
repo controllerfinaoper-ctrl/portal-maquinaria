@@ -468,22 +468,26 @@
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
-        let dataBQ = { eventos: [], filtros: {} };
-        try {
-          const rawBQ = await cargarJsonp(BIGQUERY_API_URL);
-          if (rawBQ) dataBQ = procesarDatosBigQuery(rawBQ);
-        } catch (eBQ) {
-          console.error("Error al procesar BigQuery Operativo:", eBQ);
-        }
-
+        const timestamp = Date.now();
+        
+        // 1. Carga del Módulo SLA
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         try {
-          const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla`);
+          const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`);
           if (rawSLA && Array.isArray(rawSLA)) {
             dataSLA = procesarDatosSLA(rawSLA);
           }
         } catch (eSLA) {
           console.error("Error al procesar BigQuery SLA:", eSLA);
+        }
+
+        // 2. Carga del Módulo Operativo General
+        let dataBQ = { eventos: [], filtros: {} };
+        try {
+          const rawBQ = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`);
+          if (rawBQ) dataBQ = procesarDatosBigQuery(rawBQ);
+        } catch (eBQ) {
+          console.error("Error al procesar BigQuery Operativo:", eBQ);
         }
 
         inicializar(dataBQ, dataSLA);
@@ -508,13 +512,10 @@
       const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => {
         const fSol = String(e.fechaSolicitud || '');
         const per = String(e.periodo || 'Sin fecha');
-        let ano = 'Sin fecha';
+        let ano = String(e.ano || 'Sin fecha');
         
-        if (per.indexOf('-') === 4) {
+        if (ano === 'Sin fecha' && per.indexOf('-') === 4) {
           ano = per.split('-')[0];
-        } else if (fSol.length >= 10 && fSol.indexOf('/') >= 0) {
-          const partes = fSol.split('/');
-          if (partes.length === 3) ano = partes[2];
         }
 
         return {
@@ -829,7 +830,7 @@
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // A. BÚSQUEDA RÁPIDA (Prioridad sobre todos los demás filtros)
+        // Priority 1: Búsqueda rápida por ID de Salida/Pedido
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
           const qClean = qRaw.replace(/[^a-z0-9]/g, '');
@@ -838,15 +839,19 @@
           const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
           const strCli = String(e.cliente || '').toLowerCase();
           const strCiu = String(e.ciudad || '').toLowerCase();
-          const strDet = String(e.detalleProductos || '').toLowerCase();
-          const strEst = String(e.estadoWMS || '').toLowerCase();
 
-          const matchGlobal = (strPedRaw + ' ' + strCli + ' ' + strCiu + ' ' + strDet + ' ' + strEst);
-          
-          return (matchGlobal.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
+          const matchText = strPedRaw + ' ' + strCli + ' ' + strCiu;
+          return (matchText.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
         }
 
-        // B. FILTROS DE DESPLEGABLES (Solo aplican si NO hay texto en la Búsqueda Rápida)
+        // Priority 2: Filtros de combos desplegables
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
+          if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        }
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
+          if (e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        }
+
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
           if (ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         }
@@ -861,15 +866,6 @@
         }
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
           if (ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
-        }
-
-        // C. CONTROL DE BOTÓN LIMPIAR / NINGUNO
-        if (ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') >= 0) {
-          return false;
         }
 
         return true;
