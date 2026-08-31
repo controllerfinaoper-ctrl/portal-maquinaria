@@ -5,20 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CMI · Control de Maquinaria y Equipos · Casalimpia S.A.</title>
   
-  <!-- Preconexión Ultra Rápida a Google y CDNs -->
   <link rel="preconnect" href="https://docs.google.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
-  <!-- ApexCharts CDN para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-  <!-- FullCalendar CDN para Agendador/Calendario Operativo -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // Conexión Única Unificada a BigQuery Gateway (Mantenimiento + SLA)
+    // Conexión Única Unificada a BigQuery Gateway
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
@@ -267,7 +264,6 @@
 </head>
 <body class="no-scroll">
 
-  <!-- OVERLAY VIDEO BIENVENIDA -->
   <div id="videoIntroOverlay" class="video-intro-overlay">
     <button class="btn-skip-intro" onclick="cerrarVideoIntro()">
       Saltar Video <span>⏭️</span>
@@ -298,13 +294,11 @@
       </div>
     </header>
 
-    <!-- BARRA DE FILTROS TEMPORALES GLOBALES DEL PORTAL -->
     <div class="controls-glass">
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
       <div class="field"><label>Fecha exacta (Día)</label><input type="date" id="inputFechaDia" class="date-input"></div>
       
-      <!-- Filtros Mantenimiento/Operativo BigQuery -->
       <div class="field filter-bq"><label>Cliente</label><div id="comboCliente"></div></div>
       <div class="field filter-bq"><label>Ciudad</label><div id="comboCiudad"></div></div>
       <div class="field filter-bq"><label>Estado</label><div id="comboEstado"></div></div>
@@ -321,7 +315,6 @@
       </div>
     </div>
 
-    <!-- BARRA DE FILTROS INDEPENDIENTES PARA EL MÓDULO PEDIDOS SLA (BIGQUERY) -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
         🎯 Filtros Independientes Módulo Alertas SLA (BigQuery)
@@ -334,7 +327,6 @@
       <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
     </div>
 
-    <!-- DOCK DE NAVEGACIÓN -->
     <div class="dock-wrap">
       <nav class="dock-bar" id="dockBar" role="toolbar"></nav>
     </div>
@@ -350,12 +342,11 @@
 
   <div id="loader"><div class="spin"></div></div>
 
-  <!-- Modal Detalle Consolidado -->
   <div id="modal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="modalTitulo">Detalle Consolidado de Solicitudes</h3>
-        <button class="btn-close" onclick="cerrarModal()">&times;</button>
+        <button class="btn-close" onclick="cerrarModal()">×</button>
       </div>
       <div id="modalBody" class="modal-body"></div>
     </div>
@@ -452,10 +443,14 @@
 
         script.onerror = () => {
           if (!finalizado) {
-            clearTimeout(timer);
             limpiar();
-            console.error(`Error de red al consultar API: ${url}`);
-            resolve(null);
+            fetch(url)
+              .then(res => res.json())
+              .then(data => resolve(data))
+              .catch(err => {
+                console.error(`Error de red en API: ${url}`, err);
+                resolve(null);
+              });
           }
         };
 
@@ -470,7 +465,7 @@
       try {
         const timestamp = Date.now();
         
-        // 1. Carga del Módulo SLA
+        // 1. Cargar Módulo SLA (Vista Consolidada)
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         try {
           const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`);
@@ -481,11 +476,13 @@
           console.error("Error al procesar BigQuery SLA:", eSLA);
         }
 
-        // 2. Carga del Módulo Operativo General
+        // 2. Cargar Módulo Operativo General
         let dataBQ = { eventos: [], filtros: {} };
         try {
           const rawBQ = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`);
-          if (rawBQ) dataBQ = procesarDatosBigQuery(rawBQ);
+          if (rawBQ && Array.isArray(rawBQ)) {
+            dataBQ = procesarDatosBigQuery(rawBQ);
+          }
         } catch (eBQ) {
           console.error("Error al procesar BigQuery Operativo:", eBQ);
         }
@@ -681,7 +678,7 @@
         if (!filtrados.length) { list.innerHTML = '<div style="padding:8px;font-size:11px;">Sin resultados</div>'; return; }
         list.innerHTML = filtrados.map(it => {
           const isChecked = (seleccionados.length === 0 || (seleccionados.indexOf(it) >= 0 && seleccionados.indexOf('__NINGUNO__') < 0)) ? 'checked' : '';
-          return `<label class="combo-item-multi"><input type="checkbox" value="${it.replace(/"/g, '&quot;')}" ${isChecked}><span>${it}</span></label>`;
+          return `<label class="combo-item-multi"><input type="checkbox" value="${it.replace(/"/g, '"')}" ${isChecked}><span>${it}</span></label>`;
         }).join('');
       };
 
@@ -948,14 +945,11 @@
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
-        ${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
-        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}
-        ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
+        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
       </div>
       <div class="col">
-        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}
-        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
+        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
       </div>
       <div class="col">
         ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA')}
@@ -973,10 +967,8 @@
 
       return `<div class="col">
         ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
-        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
-        ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
-        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
-        ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
+        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
+        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
         ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
@@ -1196,7 +1188,7 @@
       const firstX = getX(0);
       const lastX = getX(datos.length - 1);
       const bottomY = height - padding;
-      const areaPoints = `${firstX},${bottomY} ${points} ${lastX},${bottomY}`;
+      const areaPoints = `${firstX},${bottomY}${points} ${lastX},${bottomY}`;
 
       let gridLines = '';
       for (let i = 0; i <= 4; i++) {
@@ -1219,7 +1211,7 @@
       });
 
       const svgContent = `
-        <svg viewBox="0 0 ${width} ${height}" class="area-svg-chart">
+        <svg viewBox="0 0 ${width}${height}" class="area-svg-chart">
           <defs>
             <linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#0082c8" stop-opacity="0.45" />
@@ -1397,7 +1389,7 @@
               <div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div>
               <div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div>
               <div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div>
-              <div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div>
+              <div><b>Volumen/Peso:</b><br>${e.totalVolumen \vert{}\vert{} 0} m³ / ${e.totalPeso || 0} kg</div>
             </div>
 
             <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
@@ -1471,7 +1463,7 @@
         events: eventosCalendario,
         eventClick: function(info) {
           const datos = info.event.extendedProps;
-          alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado: ${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción: ${datos.accion}`);
+          alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado:${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción:${datos.accion}`);
         }
       });
 
@@ -1492,72 +1484,4 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label>
-              <input type="text" id="agPedido" class="date-input" value="${pedido}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label>
-              <input type="text" id="agCliente" class="date-input" value="${cliente}" readonly required>
-            </div>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label>
-              <input type="text" id="agAccion" class="date-input" value="${accion}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label>
-              <input type="date" id="agFecha" class="date-input" value="2026-08-25" required>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label>
-              <input type="text" id="agMaquinaria" class="date-input" value="${maquinaria}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO ASIGNADO</label>
-              <select id="agTecnico" class="date-input" style="height:40px;">
-                <option value="James">James</option>
-                <option value="Carlos">Carlos</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NOTAS OPERATIVAS / OBSERVACIONES</label>
-            <input type="text" id="agObs" class="date-input" placeholder="Ej: Ruta mañana - Llevar accesorios completos">
-          </div>
-
-          <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">
-            💾 Guardar Programación Operativa
-          </button>
-        </form>
-      `;
-
-      document.getElementById('modal').classList.add('show');
-    }
-
-    function guardarNuevoAgendamiento() {
-      const ped = document.getElementById('agPedido').value;
-      const fechaProg = document.getElementById('agFecha').value;
-      const tec = document.getElementById('agTecnico').value;
-      const obs = document.getElementById('agObs').value;
-
-      const idx = ESTADO.eventos.findIndex(e => e.pedido === ped);
-      
-      if (idx >= 0) {
-        ESTADO.eventos[idx].programado = true;
-        ESTADO.eventos[idx].fechaProgramada = fechaProg;
-        ESTADO.eventos[idx].tecnicoAsignado = tec;
-        ESTADO.eventos[idx].observacionDetalle += ' [Programado con ' + tec + ' el ' + fechaProg + ': ' + obs + ']';
-      }
-
-      alert('¡Pedido #' + ped + ' asignado a ' + tec + ' para la fecha ' + fechaProg + '!');
-      cerrarModal();
-      render();
-    }
-  </script>
-</body>
-</html>
+              <input type="text" id="agPedido" class="date-input" value="${pedido
