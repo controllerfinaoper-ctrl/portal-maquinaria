@@ -21,7 +21,7 @@
     // 1. URL exclusiva para el Módulo Seguimiento Pedidos (alertas_sla_pedidos -> 53 pedidos / 609 ítems)
     const API_URL_PEDIDOS = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
 
-    // 2. URL exclusiva para Módulos Operativos / Vista 360° (TBLPedidosMaquinaria -> 3.288 pedidos / 8.985 ítems)
+    // 2. URL exclusiva para Módulos Operativos de Maquinaria (TBLPedidosMaquinaria -> 3.288 pedidos / 8.985 ítems)
     const API_URL_MAQUINARIA = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
@@ -104,6 +104,7 @@
     }
     .btn-refresh:hover { background: var(--cl-verde-hover); transform: translateY(-2px); }
 
+    /* FILTROS */
     .controls-glass {
       display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 18px;
       padding: 18px 22px; background: #ffffff; border-radius: 20px;
@@ -154,25 +155,46 @@
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
-    .dock-wrap { position: relative; margin-top: 18px; z-index: 60; }
-    .dock-bar {
-      display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 10px 20px; width: 100%; border-radius: 20px; background: #ffffff;
-      border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+    /* NUEVA NAVEGACIÓN DE DOS NIVELES */
+    .nav-container { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+    
+    /* NIVEL 1: VISTAS PRINCIPALES */
+    .main-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .main-tab-btn {
+      appearance: none; border: 2px solid var(--line); background: #ffffff;
+      border-radius: 18px; padding: 16px 24px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all .2s var(--ease); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
     }
-    .dock-item {
-      position: relative; width: 44px; height: 44px; border-radius: 12px; border: none;
-      background: #f1f5f9; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 20px; color: var(--ink); transition: background .15s;
+    .main-tab-btn:hover { border-color: var(--cl-azul); transform: translateY(-2px); }
+    .main-tab-btn.active {
+      background: linear-gradient(135deg, #0a3356 0%, #0082c8 100%);
+      border-color: #0082c8; color: #ffffff; box-shadow: 0 8px 24px rgba(0, 130, 200, 0.25);
     }
-    .dock-item:hover { background: #e2e8f0; }
-    .dock-item.active { background: var(--cl-azul-dark); color: #fff; }
-    .dock-label {
-      position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%);
-      background: var(--cl-azul-dark); color: #fff; font-size: 11px; font-weight: 700;
-      padding: 4px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s;
+    .main-tab-info { display: flex; align-items: center; gap: 14px; }
+    .main-tab-icon { font-size: 26px; }
+    .main-tab-text { display: flex; flex-direction: column; text-align: left; }
+    .main-tab-title { font-weight: 800; font-size: 16px; letter-spacing: -0.2px; }
+    .main-tab-btn.active .main-tab-title { color: #ffffff; }
+    .main-tab-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .main-tab-btn.active .main-tab-sub { color: #93c5fd; }
+    .main-tab-badge { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 12px; padding: 4px 12px; border-radius: 999px; background: #f1f5f9; color: var(--ink); }
+    .main-tab-btn.active .main-tab-badge { background: rgba(255,255,255,0.2); color: #ffffff; }
+
+    /* NIVEL 2: SUBMÓDULOS DE MAQUINARIA */
+    .sub-dock-wrap {
+      background: #ffffff; border-radius: 16px; padding: 6px;
+      border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+      display: flex; gap: 6px; overflow-x: auto;
     }
-    .dock-item:hover .dock-label, .dock-item.active .dock-label { opacity: 1; }
+    .sub-dock-item {
+      flex: 1; border: none; background: transparent; padding: 10px 14px;
+      border-radius: 12px; font-family: inherit; font-size: 12.5px; font-weight: 700;
+      color: var(--muted); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: 8px; white-space: nowrap; transition: all .15s ease;
+    }
+    .sub-dock-item:hover { background: #f1f5f9; color: var(--ink); }
+    .sub-dock-item.active { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; }
 
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
     .card-accion-kpi {
@@ -300,6 +322,7 @@
       </div>
     </header>
 
+    <!-- BARRA DE FILTROS TEMPORALES Y GLOBALES -->
     <div class="controls-glass">
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
@@ -321,6 +344,7 @@
       </div>
     </div>
 
+    <!-- FILTROS INDEPENDIENTES SEGUIMIENTO PEDIDOS -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
         🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)
@@ -333,8 +357,42 @@
       <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
     </div>
 
-    <div class="dock-wrap">
-      <nav class="dock-bar" id="dockBar" role="toolbar"></nav>
+    <!-- ESTRUCTURA DE NAVEGACIÓN REDISEÑADA EN DOS NIVELES -->
+    <div class="nav-container">
+      <!-- NIVEL 1: VISTAS PRINCIPALES -->
+      <div class="main-tabs">
+        <button class="main-tab-btn active" id="btnMainMaquinaria" onclick="cambiarVistaPrincipal('maquinaria')">
+          <div class="main-tab-info">
+            <span class="main-tab-icon">🚜</span>
+            <div class="main-tab-text">
+              <span class="main-tab-title">Maquinaria y Equipos</span>
+              <span class="main-tab-sub">Vista 360°, Mantenimiento, Entregas y Agendador</span>
+            </div>
+          </div>
+          <span class="main-tab-badge" id="badgeMaquinaria">3,288 registros</span>
+        </button>
+
+        <button class="main-tab-btn" id="btnMainPedidos" onclick="cambiarVistaPrincipal('pedidos')">
+          <div class="main-tab-info">
+            <span class="main-tab-icon">📦</span>
+            <div class="main-tab-text">
+              <span class="main-tab-title">Seguimiento Pedidos</span>
+              <span class="main-tab-sub">Control de Tiempos y Alertas de Incumplimiento SLA</span>
+            </div>
+          </div>
+          <span class="main-tab-badge" id="badgePedidos">53 pedidos</span>
+        </button>
+      </div>
+
+      <!-- NIVEL 2: SUBMÓDULOS DE MAQUINARIA -->
+      <div class="sub-dock-wrap" id="subDockMaquinaria">
+        <button class="sub-dock-item active" onclick="cambiarSubModulo('general')">🧭 Vista 360°</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('mantenimiento')">🛠️ Mantenimiento Correctivo</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('entregas')">🚚 Entregas / Iniciaciones</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('recogidas')">🏁 Recogidas y Cierres</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('accesorios')">🧩 Accesorios y Adicionales</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('agendador')">📋 Tabla de Programación</button>
+      </div>
     </div>
 
     <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
@@ -361,7 +419,9 @@
   <script>
     let ESTADO = {
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
-      estadoEntregaSel: [], accionSel: [], busqueda: '', moduloSel: 'general',
+      estadoEntregaSel: [], accionSel: [], busqueda: '', 
+      vistaPrincipal: 'maquinaria', // 'maquinaria' o 'pedidos'
+      moduloSel: 'general',
       eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
       ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
       tecnicoFiltroCalendar: 'todos'
@@ -471,7 +531,7 @@
       try {
         const timestamp = Date.now();
         
-        // 1. CARGA DESDE LA API DE PEDIDOS (Seguimiento Pedidos -> 53 registros)
+        // 1. CARGA SEGUIMIENTO PEDIDOS (API_URL_PEDIDOS -> 53 registros)
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         let rawSLA = null;
         try {
@@ -486,7 +546,7 @@
           dataSLA = procesarDatosSLA(rawSLA);
         }
 
-        // 2. CARGA DESDE LA API DE MAQUINARIA (Módulos Operativos -> 3.288 registros)
+        // 2. CARGA MAQUINARIA (API_URL_MAQUINARIA -> 3.288 registros)
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         let rawBQ = null;
         try {
@@ -622,32 +682,52 @@
       ESTADO.actualizado = new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true });
 
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
-      construirDock();
+      
+      // Actualizar Badges
+      document.getElementById('badgeMaquinaria').textContent = contarPedidosUnicos(ESTADO.eventos) + " registros";
+      document.getElementById('badgePedidos').textContent = contarPedidosUnicos(ESTADO.eventosSLA) + " pedidos";
+
       poblarCombos();
       poblarCombosSLA();
       render();
     }
 
-    function construirDock() {
-      const dock = document.getElementById('dockBar');
-      if (!dock) return;
-      dock.innerHTML = Object.keys(ESTADO.modulos).map(k => {
-        const m = ESTADO.modulos[k];
-        const active = (k === ESTADO.moduloSel) ? 'active' : '';
-        return `<button class="dock-item ${active}" onclick="cambiarModulo('${k}')">
-          <span class="dock-label">${m.label}</span>
-          <span aria-hidden="true">${m.icono}</span>
-        </button>`;
-      }).join('');
+    function cambiarVistaPrincipal(vista) {
+      ESTADO.vistaPrincipal = vista;
+      
+      const btnMaq = document.getElementById('btnMainMaquinaria');
+      const btnPed = document.getElementById('btnMainPedidos');
+      const subDock = document.getElementById('subDockMaquinaria');
+      const barFiltrosSLA = document.getElementById('barFiltrosSLA');
+
+      if (vista === 'maquinaria') {
+        btnMaq.classList.add('active');
+        btnPed.classList.remove('active');
+        subDock.style.display = 'flex';
+        barFiltrosSLA.style.display = 'none';
+        document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'flex');
+        ESTADO.moduloSel = 'general';
+      } else {
+        btnPed.classList.add('active');
+        btnMaq.classList.remove('active');
+        subDock.style.display = 'none';
+        barFiltrosSLA.style.display = 'flex';
+        document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'none');
+        ESTADO.moduloSel = 'alertasSLA';
+      }
+
+      render();
     }
 
-    function cambiarModulo(key) {
-      ESTADO.moduloSel = key;
-      construirDock();
-
-      const esSLA = (key === 'alertasSLA');
-      document.getElementById('barFiltrosSLA').style.display = esSLA ? 'flex' : 'none';
-      document.querySelectorAll('.filter-bq').forEach(el => el.style.display = esSLA ? 'none' : 'flex');
+    function cambiarSubModulo(subKey) {
+      ESTADO.moduloSel = subKey;
+      
+      document.querySelectorAll('.sub-dock-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) {
+          btn.classList.add('active');
+        }
+      });
 
       render();
     }
@@ -890,7 +970,7 @@
       const wrap = document.getElementById('accionesSummaryWrap');
       if (!wrap) return;
 
-      if (ESTADO.moduloSel === 'alertasSLA') {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
         wrap.innerHTML = '';
         return;
       }
@@ -922,7 +1002,7 @@
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
       CHART_INSTANCES = {};
 
-      const esSLA = (ESTADO.moduloSel === 'alertasSLA');
+      const esSLA = (ESTADO.vistaPrincipal === 'pedidos');
       const evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
 
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
@@ -1156,7 +1236,7 @@
     }
 
     function renderizarGraficosApex(evs) {
-      if (ESTADO.moduloSel === 'alertasSLA') {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
         if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
         if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
         if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
@@ -1306,7 +1386,7 @@
     }
 
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
-      if (ESTADO.moduloSel === 'alertasSLA') {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
         let evs = filtrarEventosSLA();
         if (tipo === 'slaIncumplimiento') evs = evs.filter(e => e.alertaSLA === 'ALERTA: Incumplimiento');
         else if (tipo === 'slaAgotados') evs = evs.filter(e => e.alertaSLA === 'Retraso por Agotado');
@@ -1322,7 +1402,7 @@
     }
 
     function abrirDetalleBarra(titulo, campo, valor) {
-      if (ESTADO.moduloSel === 'alertasSLA') {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
         const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor);
         mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs);
         return;
