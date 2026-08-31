@@ -276,7 +276,7 @@
       height: 100%;
       min-height: 550px;
       overflow-x: auto;
-      overflow-y: hidden;
+      overflow-y: auto;
       background: #ffffff;
       border-radius: 16px;
       padding: 20px;
@@ -1062,11 +1062,11 @@
       </div>
       <div class="col">
         ${cardChartBoxToggle('Tendencia de Pedidos Únicos', 'chartTendenciaPedidosSLA')}
-        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}
+        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
       </div>
       <div class="col">
-        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
-        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA')}
+        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA', 'cliente', '#0082c8')}
+        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
       </div>`;
     }
 
@@ -1088,11 +1088,11 @@
       </div>
       <div class="col">
         ${cardChartBox('Tendencia de Pedidos Únicos (Mes a Mes)', 'chartTendenciaPedidos')}
-        ${cardChartBox('Top Fallas Frecuentes', 'chartFallas')}
+        ${cardChartBox('Top Fallas Frecuentes', 'chartFallas', 'observacionDetalle', '#0082c8')}
       </div>
       <div class="col">
-        ${cardChartBox('Equipos Más Solicitados', 'chartEquipos')}
-        ${cardChartBox('Top Clientes con Requerimientos', 'chartClientes')}
+        ${cardChartBox('Equipos Más Solicitados', 'chartEquipos', 'maquinaria', '#7ab833')}
+        ${cardChartBox('Top Clientes con Requerimientos', 'chartClientes', 'cliente', '#0a3356')}
       </div>`;
     }
 
@@ -1104,36 +1104,36 @@
       </div>
       <div class="col">
         ${cardChartBox('Tendencia Pedidos Únicos Mantenimiento', 'chartTendenciaPedidos')}
-        ${cardChartBox('Principales Fallas Reportadas', 'chartFallas')}
+        ${cardChartBox('Principales Fallas Reportadas', 'chartFallas', 'observacionDetalle', '#0082c8')}
       </div>
-      <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos')}</div>`;
+      <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos', 'maquinaria', '#7ab833')}</div>`;
     }
 
     function renderEntregas(evs) {
       return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div>
       <div class="col">
         ${cardChartBox('Tendencia Pedidos Únicos Entregas', 'chartTendenciaPedidos')}
-        ${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos')}
+        ${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos', 'maquinaria', '#7ab833')}
       </div>
-      <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes')}</div>`;
+      <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
     }
 
     function renderRecogidas(evs) {
       return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
       <div class="col">
         ${cardChartBox('Tendencia Pedidos Únicos Recogidas', 'chartTendenciaPedidos')}
-        ${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones')}
+        ${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones', 'accion', '#eab308')}
       </div>
-      <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes')}</div>`;
+      <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes', 'cliente', '#0a3356')}</div>`;
     }
 
     function renderAccesorios(evs) {
       return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
       <div class="col">
         ${cardChartBox('Tendencia Pedidos Únicos Accesorios', 'chartTendenciaPedidos')}
-        ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos')}
+        ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos', 'maquinaria', '#7ab833')}
       </div>
-      <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes')}</div>`;
+      <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
     }
 
     function renderTablaAgendador(evs) {
@@ -1215,8 +1215,14 @@
       </div>`;
     }
 
-    function cardChartBox(titulo, chartId) {
-      return `<div class="card"><div class="card-top"><span class="card-title">${titulo}</span></div><div id="${chartId}" class="chart-container"></div></div>`;
+    function cardChartBox(titulo, chartId, campoFiltro, colorHex) {
+      return `<div class="card">
+        <div class="card-top">
+          <span class="card-title">${titulo}</span>
+          <button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarCualquierGrafico('${titulo.replace(/'/g, "\\'")}', '${chartId}', '${campoFiltro || ''}', '${colorHex || '#0082c8'}')">⛶</button>
+        </div>
+        <div id="${chartId}" class="chart-container"></div>
+      </div>`;
     }
 
     function cardChartBoxToggle(titulo, chartId) {
@@ -1240,6 +1246,34 @@
     function cambiarAgrupacionTendenciaSLA(tipo) {
       ESTADO.agrupacionTendenciaSLA = tipo;
       render();
+    }
+
+    function ampliarCualquierGrafico(titulo, chartId, campoFiltro, colorHex) {
+      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
+      
+      const modalCard = document.querySelector('.modal-card');
+      if (modalCard) modalCard.classList.add('modal-fullscreen');
+
+      document.getElementById('modalTitulo').textContent = '📊 ' + titulo + ' (Vista Pantalla Completa - Top 15)';
+      const body = document.getElementById('modalBody');
+
+      body.innerHTML = `
+        <div class="fullscreen-chart-wrapper">
+          <div id="expandedCustomChartContainer" style="width: 100%; min-height: 550px;"></div>
+        </div>
+      `;
+
+      document.getElementById('modal').classList.add('show');
+
+      setTimeout(() => {
+        if (campoFiltro) {
+          const datosTop15 = agrupar(evs, campoFiltro, 15);
+          renderBarraHorizontalCustom('expandedCustomChartContainer', datosTop15, campoFiltro, colorHex, 550);
+        } else {
+          const datosTendencia = agruparPedidosUnicosPorPeriodo(evs);
+          renderGraficoLineaCustom('expandedCustomChartContainer', datosTendencia, colorHex, 1600, 500);
+        }
+      }, 60);
     }
 
     function ampliarGraficoPantallaCompleta() {
@@ -1504,12 +1538,16 @@
     }
 
     function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
+      renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, 250);
+    }
+
+    function renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, customHeight) {
       const container = document.getElementById(elId); if (!container) return;
       
       const options = {
         series: [{ name: 'Cantidad', data: datos.map(d => d.val) }],
         chart: { 
-          type: 'bar', height: 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false },
+          type: 'bar', height: customHeight || 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false },
           events: {
             dataPointSelection: function(event, chartContext, config) {
               if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) {
@@ -1522,7 +1560,7 @@
         },
         plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
         colors: [colorHex],
-        dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700 } },
+        dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '12px' } },
         xaxis: { categories: datos.map(d => d.label) }
       };
       
