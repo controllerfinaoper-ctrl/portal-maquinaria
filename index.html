@@ -230,7 +230,7 @@
     }
     .modal.show { opacity: 1; pointer-events: auto; }
     .modal-card { background: #f8fafc; border-radius: 24px; max-width: 1150px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
-    .modal-head { padding: 20px 28px; background: var(--cl-azul-dark); display: flex; justify-between: space-between; align-items: center; color: #fff; }
+    .modal-head { padding: 20px 28px; background: var(--cl-azul-dark); display: flex; justify-content: space-between; align-items: center; color: #fff; }
     .modal-head h3 { margin: 0; font-size: 16.5px; font-weight: 800; color: #ffffff; }
     .btn-close { border: none; background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; color: #fff; display: grid; place-items: center; }
     .modal-body { padding: 20px; overflow-y: auto; max-height: 75vh; }
@@ -819,7 +819,7 @@
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // BÚSQUEDA RÁPIDA (Prioridad por Pedido/Salida)
+        // 1. BÚSQUEDA RÁPIDA (Prioridad por Pedido/Salida)
         if (ESTADO.busqueda) {
           const q = ESTADO.busqueda.trim().toLowerCase();
           const strPed = String(e.pedido || '').toLowerCase();
@@ -832,17 +832,17 @@
           if (matchGlobal.indexOf(q) < 0) return false;
         }
 
-        // Filtro Año
-        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
+        // 2. Filtro Año
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
           if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
 
-        // Filtro Periodo
-        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
+        // 3. Filtro Periodo
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
           if (e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         }
 
-        // Filtro Fecha Exacta
+        // 4. Filtro Fecha Exacta
         if (ESTADO.fechaDiaSel) {
           const partes = String(e.fechaMontaje || '').split('/');
           if (partes.length === 3) {
@@ -851,7 +851,7 @@
           }
         }
 
-        // Filtros Independientes SLA (Desplegables)
+        // 5. Filtros Independientes SLA (Desplegables)
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
           if (ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         }
@@ -866,15 +866,6 @@
         }
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
           if (ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
-        }
-
-        // Control de valor ficticio __NINGUNO__
-        if (ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') >= 0 || 
-            ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') >= 0) {
-          return false;
         }
 
         return true;
