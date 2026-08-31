@@ -5,23 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CMI · Control de Maquinaria y Equipos · Casalimpia S.A.</title>
   
-  <!-- Preconexión Ultra Rápida a Google y CDNs -->
   <link rel="preconnect" href="https://docs.google.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
-  <!-- ApexCharts CDN para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-  <!-- FullCalendar CDN para Agendador/Calendario Operativo -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // 1. URL exclusiva para el Módulo Seguimiento Pedidos (alertas_sla_pedidos -> 53 pedidos / 609 ítems)
     const API_URL_PEDIDOS = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
-
-    // 2. URL exclusiva para Módulos Operativos de Maquinaria (TBLPedidosMaquinaria -> 3.288 pedidos / 8.985 ítems)
     const API_URL_MAQUINARIA = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
@@ -104,7 +97,6 @@
     }
     .btn-refresh:hover { background: var(--cl-verde-hover); transform: translateY(-2px); }
 
-    /* FILTROS */
     .controls-glass {
       display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 18px;
       padding: 18px 22px; background: #ffffff; border-radius: 20px;
@@ -155,10 +147,7 @@
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
-    /* NUEVA NAVEGACIÓN DE DOS NIVELES */
     .nav-container { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
-    
-    /* NIVEL 1: VISTAS PRINCIPALES */
     .main-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .main-tab-btn {
       appearance: none; border: 2px solid var(--line); background: #ffffff;
@@ -181,7 +170,6 @@
     .main-tab-badge { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 12px; padding: 4px 12px; border-radius: 999px; background: #f1f5f9; color: var(--ink); }
     .main-tab-btn.active .main-tab-badge { background: rgba(255,255,255,0.2); color: #ffffff; }
 
-    /* NIVEL 2: SUBMÓDULOS DE MAQUINARIA */
     .sub-dock-wrap {
       background: #ffffff; border-radius: 16px; padding: 6px;
       border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
@@ -195,6 +183,15 @@
     }
     .sub-dock-item:hover { background: #f1f5f9; color: var(--ink); }
     .sub-dock-item.active { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; }
+
+    /* BOTONES INTERACTIVOS DEL GRÁFICO (MES / SEMANA / DÍA) */
+    .chart-toggle-group { display: flex; background: #f1f5f9; padding: 3px; border-radius: 10px; gap: 2px; }
+    .btn-toggle-chart {
+      border: none; background: transparent; font-size: 11px; font-weight: 800;
+      color: var(--muted); padding: 4px 10px; border-radius: 8px; cursor: pointer; transition: all .15s ease;
+    }
+    .btn-toggle-chart:hover { color: var(--cl-azul); }
+    .btn-toggle-chart.active { background: var(--cl-azul); color: #ffffff; box-shadow: 0 2px 6px rgba(0, 130, 200, 0.3); }
 
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
     .card-accion-kpi {
@@ -322,7 +319,6 @@
       </div>
     </header>
 
-    <!-- BARRA DE FILTROS TEMPORALES Y GLOBALES -->
     <div class="controls-glass">
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
@@ -344,7 +340,6 @@
       </div>
     </div>
 
-    <!-- FILTROS INDEPENDIENTES SEGUIMIENTO PEDIDOS -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
         🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)
@@ -357,9 +352,7 @@
       <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
     </div>
 
-    <!-- ESTRUCTURA DE NAVEGACIÓN REDISEÑADA EN DOS NIVELES -->
     <div class="nav-container">
-      <!-- NIVEL 1: VISTAS PRINCIPALES -->
       <div class="main-tabs">
         <button class="main-tab-btn active" id="btnMainMaquinaria" onclick="cambiarVistaPrincipal('maquinaria')">
           <div class="main-tab-info">
@@ -384,7 +377,6 @@
         </button>
       </div>
 
-      <!-- NIVEL 2: SUBMÓDULOS DE MAQUINARIA -->
       <div class="sub-dock-wrap" id="subDockMaquinaria">
         <button class="sub-dock-item active" onclick="cambiarSubModulo('general')">🧭 Vista 360°</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('mantenimiento')">🛠️ Mantenimiento Correctivo</button>
@@ -420,8 +412,9 @@
     let ESTADO = {
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
-      vistaPrincipal: 'maquinaria', // 'maquinaria' o 'pedidos'
+      vistaPrincipal: 'maquinaria',
       moduloSel: 'general',
+      agrupacionTendenciaSLA: 'mes', // 'mes', 'semana', 'dia'
       eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
       ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
       tecnicoFiltroCalendar: 'todos'
@@ -531,7 +524,6 @@
       try {
         const timestamp = Date.now();
         
-        // 1. CARGA SEGUIMIENTO PEDIDOS (API_URL_PEDIDOS -> 53 registros)
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         let rawSLA = null;
         try {
@@ -546,7 +538,6 @@
           dataSLA = procesarDatosSLA(rawSLA);
         }
 
-        // 2. CARGA MAQUINARIA (API_URL_MAQUINARIA -> 3.288 registros)
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         let rawBQ = null;
         try {
@@ -683,7 +674,6 @@
 
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
       
-      // Actualizar Badges
       document.getElementById('badgeMaquinaria').textContent = contarPedidosUnicos(ESTADO.eventos) + " registros";
       document.getElementById('badgePedidos').textContent = contarPedidosUnicos(ESTADO.eventosSLA) + " pedidos";
 
@@ -1043,12 +1033,12 @@
         ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
       </div>
       <div class="col">
+        ${cardChartBoxToggle('Tendencia de Pedidos Únicos', 'chartTendenciaPedidosSLA')}
         ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}
-        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
       </div>
       <div class="col">
+        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
         ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA')}
-        ${cardChartBox('Ciudades con Mayor Incumplimiento', 'chartCiudadesSLA')}
       </div>`;
     }
 
@@ -1201,6 +1191,26 @@
       return `<div class="card"><div class="card-top"><span class="card-title">${titulo}</span></div><div id="${chartId}" class="chart-container"></div></div>`;
     }
 
+    function cardChartBoxToggle(titulo, chartId) {
+      const g = ESTADO.agrupacionTendenciaSLA || 'mes';
+      return `<div class="card">
+        <div class="card-top">
+          <span class="card-title">${titulo}</span>
+          <div class="chart-toggle-group">
+            <button class="btn-toggle-chart ${g === 'mes' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('mes')">Mes</button>
+            <button class="btn-toggle-chart ${g === 'semana' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('semana')">Semana</button>
+            <button class="btn-toggle-chart ${g === 'dia' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('dia')">Día</button>
+          </div>
+        </div>
+        <div id="${chartId}" class="chart-container"></div>
+      </div>`;
+    }
+
+    function cambiarAgrupacionTendenciaSLA(tipo) {
+      ESTADO.agrupacionTendenciaSLA = tipo;
+      render();
+    }
+
     function agrupar(evs, campo, top) {
       const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; });
       return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
@@ -1235,12 +1245,57 @@
       }));
     }
 
+    function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
+      const conteo = {};
+
+      evsSLA.forEach(e => {
+        let claveLabel = 'Sin fecha';
+        let rawFecha = e.fechaMontaje || e.periodo || '';
+
+        if (agrupacion === 'mes') {
+          claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha';
+        } else if (agrupacion === 'semana') {
+          if (rawFecha.includes('/')) {
+            const p = rawFecha.split('/');
+            if (p.length === 3) {
+              const f = new Date(p[2], p[1] - 1, p[0]);
+              const primerDiaAño = new Date(f.getFullYear(), 0, 1);
+              const numSemana = Math.ceil((((f - primerDiaAño) / 86400000) + primerDiaAño.getDay() + 1) / 7);
+              claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')';
+            }
+          } else {
+            claveLabel = e.periodo || 'Sin fecha';
+          }
+        } else if (agrupacion === 'dia') {
+          if (rawFecha.includes('/')) {
+            const p = rawFecha.split('/');
+            claveLabel = p[0] + '/' + p[1];
+          } else {
+            claveLabel = rawFecha || 'Sin fecha';
+          }
+        }
+
+        if (!conteo[claveLabel]) conteo[claveLabel] = {};
+        if (e.pedido) conteo[claveLabel][e.pedido] = true;
+      });
+
+      const claves = Object.keys(conteo);
+      return claves.map(k => ({
+        label: k,
+        periodoOriginal: k,
+        val: Object.keys(conteo[k]).length
+      }));
+    }
+
     function renderizarGraficosApex(evs) {
       if (ESTADO.vistaPrincipal === 'pedidos') {
+        if (document.getElementById('chartTendenciaPedidosSLA')) {
+          const datosTendenciaSLA = agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes');
+          renderGraficoLinea('chartTendenciaPedidosSLA', datosTendenciaSLA, '#0082c8');
+        }
         if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
         if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
         if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
-        if (document.getElementById('chartCiudadesSLA')) renderBarraHorizontal('chartCiudadesSLA', agrupar(evs, 'ciudad', 5), 'ciudad', '#eab308');
         return;
       }
 
@@ -1335,6 +1390,12 @@
     }
 
     function abrirModalPeriodoDirecto(labelPeriodo, periodoOriginal) {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        const evs = filtrarEventosSLA();
+        mostrarModalConsolidadoSLA('Solicitudes del periodo / fecha: ' + labelPeriodo, evs);
+        return;
+      }
+
       const evs = filtrarEventos().filter(e => {
         if (!e.periodo || e.periodo === 'Sin fecha') return false;
         if (periodoOriginal && e.periodo === periodoOriginal) return true;
