@@ -14,7 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
+    // URL DE LA API DE APPS SCRIPT ACTUALIZADA PARA SEGUIMIENTO DE PEDIDOS
+    const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
   </script>
 
   <style>
@@ -313,7 +314,6 @@
       </div>
     </div>
 
-    <!-- RENOMBRADO A SEGUIMIENTO PEDIDOS -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
         🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)
@@ -367,7 +367,6 @@
     let CHART_INSTANCES = {};
     let CALENDARIO_INSTANCE = null;
 
-    // MODULO RENOMBRADO A "Seguimiento Pedidos"
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
       alertasSLA:    { label: 'Seguimiento Pedidos',        icono: '📦', acciones: null },
@@ -467,7 +466,7 @@
         const urlSLA = `${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`;
         const urlGeneral = `${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`;
         
-        // 1. Carga directa del Módulo SLA (Seguimiento Pedidos)
+        // 1. Carga del Módulo SLA (Seguimiento Pedidos -> alertas_sla_pedidos)
         let rawSLA = null;
         try {
           const res = await fetch(urlSLA);
@@ -481,7 +480,7 @@
           dataSLA = procesarDatosSLA(rawSLA);
         }
 
-        // 2. Carga de los Módulos Operativos (TBLPedidosMaquinaria)
+        // 2. Carga Módulos Operativos (TBLPedidosMaquinaria)
         let rawBQ = null;
         try {
           const resGen = await fetch(urlGeneral);
@@ -835,7 +834,6 @@
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // Priority 1: Búsqueda rápida por ID de Salida/Pedido
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
           const qClean = qRaw.replace(/[^a-z0-9]/g, '');
@@ -849,7 +847,6 @@
           return (matchText.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
         }
 
-        // Priority 2: Filtros de combos desplegables
         if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
           if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
@@ -930,8 +927,8 @@
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
 
       let html = '';
-      if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
-      else if (ESTADO.moduloSel === 'alertasSLA') html = renderVistaAlertasSLA(evs);
+      if (esSLA) html = renderVistaAlertasSLA(evs);
+      else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
       else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
       else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
       else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
