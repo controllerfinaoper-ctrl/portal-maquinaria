@@ -1301,47 +1301,65 @@
       }));
     }
 
-    function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
-      const conteo = {};
+function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
+  const conteo = {};
+  const ordenFechas = {}; // Almacena fechas en milisegundos para ordenamiento cronológico
 
-      evsSLA.forEach(e => {
-        let claveLabel = 'Sin fecha';
-        let rawFecha = e.fechaMontaje || e.periodo || '';
+  evsSLA.forEach(e => {
+    let claveLabel = 'Sin fecha';
+    let sortKey = 0;
+    let rawFecha = e.fechaMontaje || e.periodo || '';
 
-        if (agrupacion === 'mes') {
-          claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha';
-        } else if (agrupacion === 'semana') {
-          if (rawFecha.includes('/')) {
-            const p = rawFecha.split('/');
-            if (p.length === 3) {
-              const f = new Date(p[2], p[1] - 1, p[0]);
-              const primerDiaAño = new Date(f.getFullYear(), 0, 1);
-              const numSemana = Math.ceil((((f - primerDiaAño) / 86400000) + primerDiaAño.getDay() + 1) / 7);
-              claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')';
-            }
-          } else {
-            claveLabel = e.periodo || 'Sin fecha';
-          }
-        } else if (agrupacion === 'dia') {
-          if (rawFecha.includes('/')) {
-            const p = rawFecha.split('/');
-            claveLabel = p[0] + '/' + p[1];
-          } else {
-            claveLabel = rawFecha || 'Sin fecha';
-          }
+    if (agrupacion === 'mes') {
+      claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha';
+      sortKey = e.periodo || '0000-00';
+    } else if (agrupacion === 'semana') {
+      if (rawFecha.includes('/')) {
+        const p = rawFecha.split('/');
+        if (p.length === 3) {
+          const f = new Date(p[2], p[1] - 1, p[0]);
+          const primerDiaAno = new Date(f.getFullYear(), 0, 1);
+          const numSemana = Math.ceil((((f - primerDiaAno) / 86400000) + primerDiaAno.getDay() + 1) / 7);
+          claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')';
+          sortKey = p[2] + '-' + String(numSemana).padStart(2, '0');
         }
-
-        if (!conteo[claveLabel]) conteo[claveLabel] = {};
-        if (e.pedido) conteo[claveLabel][e.pedido] = true;
-      });
-
-      const claves = Object.keys(conteo);
-      return claves.map(k => ({
-        label: k,
-        periodoOriginal: k,
-        val: Object.keys(conteo[k]).length
-      }));
+      } else {
+        claveLabel = e.periodo || 'Sin fecha';
+        sortKey = e.periodo || '0000-00';
+      }
+    } else if (agrupacion === 'dia') {
+      if (rawFecha.includes('/')) {
+        const p = rawFecha.split('/');
+        if (p.length === 3) {
+          claveLabel = p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0');
+          sortKey = p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0');
+        }
+      } else {
+        claveLabel = rawFecha || 'Sin fecha';
+        sortKey = rawFecha;
+      }
     }
+
+    if (!conteo[claveLabel]) {
+      conteo[claveLabel] = {};
+      ordenFechas[claveLabel] = sortKey;
+    }
+    if (e.pedido) conteo[claveLabel][e.pedido] = true;
+  });
+
+  // ORDENAR DEL MÁS ANTIGUO AL MÁS RECIENTE
+  const clavesOrdenadas = Object.keys(conteo).sort((a, b) => {
+    if (ordenFechas[a] < ordenFechas[b]) return -1;
+    if (ordenFechas[a] > ordenFechas[b]) return 1;
+    return 0;
+  });
+
+  return clavesOrdenadas.map(k => ({
+    label: k,
+    periodoOriginal: k,
+    val: Object.keys(conteo[k]).length
+  }));
+}
 
     function renderizarGraficosApex(evs) {
       if (ESTADO.vistaPrincipal === 'pedidos') {
