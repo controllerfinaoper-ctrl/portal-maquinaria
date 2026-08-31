@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // Conexión Única Unificada a BigQuery Gateway
+    // Conexión Única Unificada a BigQuery Gateway (Mantenimiento + SLA)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
@@ -464,27 +464,35 @@
       loader(true);
       try {
         const timestamp = Date.now();
+        const urlSLA = `${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`;
+        const urlGeneral = `${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`;
         
-        // 1. Cargar Módulo SLA (Vista Consolidada)
-        let dataSLA = { eventosSLA: [], filtrosSLA: {} };
+        // 1. Carga directa del Módulo SLA
+        let rawSLA = null;
         try {
-          const rawSLA = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`);
-          if (rawSLA && Array.isArray(rawSLA)) {
-            dataSLA = procesarDatosSLA(rawSLA);
-          }
-        } catch (eSLA) {
-          console.error("Error al procesar BigQuery SLA:", eSLA);
+          const res = await fetch(urlSLA);
+          rawSLA = await res.json();
+        } catch (e) {
+          rawSLA = await cargarJsonp(urlSLA);
         }
 
-        // 2. Cargar Módulo Operativo General
-        let dataBQ = { eventos: [], filtros: {} };
+        let dataSLA = { eventosSLA: [], filtrosSLA: {} };
+        if (rawSLA && Array.isArray(rawSLA)) {
+          dataSLA = procesarDatosSLA(rawSLA);
+        }
+
+        // 2. Carga del Módulo Operativo General
+        let rawBQ = null;
         try {
-          const rawBQ = await cargarJsonp(`${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`);
-          if (rawBQ && Array.isArray(rawBQ)) {
-            dataBQ = procesarDatosBigQuery(rawBQ);
-          }
-        } catch (eBQ) {
-          console.error("Error al procesar BigQuery Operativo:", eBQ);
+          const resGen = await fetch(urlGeneral);
+          rawBQ = await resGen.json();
+        } catch (e) {
+          rawBQ = await cargarJsonp(urlGeneral);
+        }
+
+        let dataBQ = { eventos: [], filtros: {} };
+        if (rawBQ && Array.isArray(rawBQ)) {
+          dataBQ = procesarDatosBigQuery(rawBQ);
         }
 
         inicializar(dataBQ, dataSLA);
@@ -945,11 +953,14 @@
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
-        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
+        ${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
+        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}
+        ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
       </div>
       <div class="col">
-        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
+        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA')}
+        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA')}
       </div>
       <div class="col">
         ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA')}
@@ -967,8 +978,10 @@
 
       return `<div class="col">
         ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
-        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
-        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
+        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
+        ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
+        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
+        ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
         ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
@@ -1188,7 +1201,7 @@
       const firstX = getX(0);
       const lastX = getX(datos.length - 1);
       const bottomY = height - padding;
-      const areaPoints = `${firstX},${bottomY}${points} ${lastX},${bottomY}`;
+      const areaPoints = `${firstX},${bottomY} ${points} ${lastX},${bottomY}`;
 
       let gridLines = '';
       for (let i = 0; i <= 4; i++) {
@@ -1211,7 +1224,7 @@
       });
 
       const svgContent = `
-        <svg viewBox="0 0 ${width}${height}" class="area-svg-chart">
+        <svg viewBox="0 0 ${width} ${height}" class="area-svg-chart">
           <defs>
             <linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#0082c8" stop-opacity="0.45" />
@@ -1389,7 +1402,7 @@
               <div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div>
               <div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div>
               <div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div>
-              <div><b>Volumen/Peso:</b><br>${e.totalVolumen \vert{}\vert{} 0} m³ / ${e.totalPeso || 0} kg</div>
+              <div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div>
             </div>
 
             <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
@@ -1463,7 +1476,7 @@
         events: eventosCalendario,
         eventClick: function(info) {
           const datos = info.event.extendedProps;
-          alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado:${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción:${datos.accion}`);
+          alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado: ${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción: ${datos.accion}`);
         }
       });
 
@@ -1484,4 +1497,72 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label>
-              <input type="text" id="agPedido" class="date-input" value="${pedido
+              <input type="text" id="agPedido" class="date-input" value="${pedido}" readonly required>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label>
+              <input type="text" id="agCliente" class="date-input" value="${cliente}" readonly required>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label>
+              <input type="text" id="agAccion" class="date-input" value="${accion}" readonly required>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label>
+              <input type="date" id="agFecha" class="date-input" value="2026-08-25" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label>
+              <input type="text" id="agMaquinaria" class="date-input" value="${maquinaria}" readonly required>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO ASIGNADO</label>
+              <select id="agTecnico" class="date-input" style="height:40px;">
+                <option value="James">James</option>
+                <option value="Carlos">Carlos</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NOTAS OPERATIVAS / OBSERVACIONES</label>
+            <input type="text" id="agObs" class="date-input" placeholder="Ej: Ruta mañana - Llevar accesorios completos">
+          </div>
+
+          <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">
+            💾 Guardar Programación Operativa
+          </button>
+        </form>
+      `;
+
+      document.getElementById('modal').classList.add('show');
+    }
+
+    function guardarNuevoAgendamiento() {
+      const ped = document.getElementById('agPedido').value;
+      const fechaProg = document.getElementById('agFecha').value;
+      const tec = document.getElementById('agTecnico').value;
+      const obs = document.getElementById('agObs').value;
+
+      const idx = ESTADO.eventos.findIndex(e => e.pedido === ped);
+      
+      if (idx >= 0) {
+        ESTADO.eventos[idx].programado = true;
+        ESTADO.eventos[idx].fechaProgramada = fechaProg;
+        ESTADO.eventos[idx].tecnicoAsignado = tec;
+        ESTADO.eventos[idx].observacionDetalle += ' [Programado con ' + tec + ' el ' + fechaProg + ': ' + obs + ']';
+      }
+
+      alert('¡Pedido #' + ped + ' asignado a ' + tec + ' para la fecha ' + fechaProg + '!');
+      cerrarModal();
+      render();
+    }
+  </script>
+</body>
+</html>
