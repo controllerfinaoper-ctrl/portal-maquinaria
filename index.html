@@ -1303,7 +1303,7 @@
 
     function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
       const conteo = {};
-      const ordenFechas = {}; // Almacena fechas en milisegundos para ordenamiento cronológico
+      const ordenFechas = {};
 
       evsSLA.forEach(e => {
         let claveLabel = 'Sin fecha';
@@ -1347,7 +1347,6 @@
         if (e.pedido) conteo[claveLabel][e.pedido] = true;
       });
 
-      // ORDENAR DEL MÁS ANTIGUO AL MÁS RECIENTE
       const clavesOrdenadas = Object.keys(conteo).sort((a, b) => {
         if (ordenFechas[a] < ordenFechas[b]) return -1;
         if (ordenFechas[a] > ordenFechas[b]) return 1;
@@ -1399,7 +1398,7 @@
 
       const width = customWidth || 500;
       const height = customHeight || 220;
-      const padding = 40;
+      const padding = 50;
 
       const maxVal = Math.max(...datos.map(d => d.val)) || 1;
       const minVal = 0;
@@ -1435,10 +1434,10 @@
         
         nodesSvg += `
           <g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;">
-            <circle cx="${x}" cy="${y}" r="18" fill="transparent" />
-            <circle cx="${x}" cy="${y}" r="5" class="area-node" />
-            <text x="${x}" y="${y - 10}" class="area-node-text" style="font-size: 10px;">${d.val}</text>
-            <text x="${x}" y="${height - 12}" class="area-node-text" style="fill:#64748b; font-size:${esLargo ? '8.5px' : '10px'}; font-weight: 600;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 12})"` : ''}>${d.label}</text>
+            <circle cx="${x}" cy="${y}" r="22" fill="transparent" />
+            <circle cx="${x}" cy="${y}" r="6" class="area-node" />
+            <text x="${x}" y="${y - 12}" class="area-node-text" style="font-size: 13px; font-weight: 800; fill: #0a3356;">${d.val}</text>
+            <text x="${x}" y="${height - 10}" class="area-node-text" style="fill: #475569; font-size: 12px; font-weight: 700;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 10})"` : ''}>${d.label}</text>
           </g>
         `;
       });
