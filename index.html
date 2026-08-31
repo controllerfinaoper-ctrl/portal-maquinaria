@@ -742,6 +742,12 @@
     }
 
     function poblarCombosSLA() {
+      ESTADO_SLA.clienteSel = [];
+      ESTADO_SLA.ciudadSel = [];
+      ESTADO_SLA.estadoWmsSel = [];
+      ESTADO_SLA.alertaSel = [];
+      ESTADO_SLA.agotadoSel = [];
+
       crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
       crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
       crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
@@ -773,6 +779,21 @@
       return ESTADO.eventos.filter(e => {
         if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
         
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
+          const qRaw = ESTADO.busqueda.trim().toLowerCase();
+          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
+
+          const strPedRaw = String(e.pedido || '').toLowerCase();
+          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
+          const strActivo = String(e.codActivo || '').toLowerCase();
+          const strMaquinaria = String(e.maquinaria || '').toLowerCase();
+          const strCliente = String(e.cliente || '').toLowerCase();
+          const strObs = String(e.observacionDetalle || '').toLowerCase();
+
+          const txtMatchRaw = strPedRaw + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
+          return (txtMatchRaw.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
+        }
+
         if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
           if (ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         }
@@ -802,36 +823,19 @@
             if (fechaNorm !== ESTADO.fechaDiaSel) return false;
           }
         }
-        if (ESTADO.busqueda) {
-          const qRaw = ESTADO.busqueda.trim().toLowerCase();
-          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
-
-          const strPedRaw = String(e.pedido || '').toLowerCase();
-          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
-          const strActivo = String(e.codActivo || '').toLowerCase();
-          const strMaquinaria = String(e.maquinaria || '').toLowerCase();
-          const strCliente = String(e.cliente || '').toLowerCase();
-          const strObs = String(e.observacionDetalle || '').toLowerCase();
-
-          const txtMatchRaw = strPedRaw + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
-          const txtMatchClean = strPedClean;
-
-          if (txtMatchRaw.indexOf(qRaw) < 0 && txtMatchClean.indexOf(qClean) < 0) return false;
-        }
         return true;
       });
     }
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // 1. BÚSQUEDA RÁPIDA FLEXIBLE (Soporta E-187967, E187967, 187967 y 578002)
-        if (ESTADO.busqueda) {
+        // A. BÚSQUEDA RÁPIDA (Prioridad sobre todos los demás filtros)
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
           const qClean = qRaw.replace(/[^a-z0-9]/g, '');
 
           const strPedRaw = String(e.pedido || '').toLowerCase();
           const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
-          
           const strCli = String(e.cliente || '').toLowerCase();
           const strCiu = String(e.ciudad || '').toLowerCase();
           const strDet = String(e.detalleProductos || '').toLowerCase();
@@ -839,29 +843,10 @@
 
           const matchGlobal = (strPedRaw + ' ' + strCli + ' ' + strCiu + ' ' + strDet + ' ' + strEst);
           
-          if (matchGlobal.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false;
+          return (matchGlobal.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
         }
 
-        // 2. Filtro Año
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
-          if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        }
-
-        // 3. Filtro Periodo
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
-          if (e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        }
-
-        // 4. Filtro Fecha Exacta
-        if (ESTADO.fechaDiaSel) {
-          const partes = String(e.fechaMontaje || '').split('/');
-          if (partes.length === 3) {
-            const fechaNorm = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-            if (fechaNorm !== ESTADO.fechaDiaSel) return false;
-          }
-        }
-
-        // 5. Filtros Independientes SLA (Desplegables)
+        // B. FILTROS DE DESPLEGABLES (Solo aplican si NO hay texto en la Búsqueda Rápida)
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
           if (ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         }
@@ -876,6 +861,15 @@
         }
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
           if (ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
+        }
+
+        // C. CONTROL DE BOTÓN LIMPIAR / NINGUNO
+        if (ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') >= 0 || 
+            ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') >= 0) {
+          return false;
         }
 
         return true;
