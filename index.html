@@ -803,15 +803,20 @@
           }
         }
         if (ESTADO.busqueda) {
-          const q = ESTADO.busqueda.trim().toLowerCase();
-          const strPedido = String(e.pedido || '').toLowerCase();
+          const qRaw = ESTADO.busqueda.trim().toLowerCase();
+          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
+
+          const strPedRaw = String(e.pedido || '').toLowerCase();
+          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
           const strActivo = String(e.codActivo || '').toLowerCase();
           const strMaquinaria = String(e.maquinaria || '').toLowerCase();
           const strCliente = String(e.cliente || '').toLowerCase();
           const strObs = String(e.observacionDetalle || '').toLowerCase();
 
-          const txtMatch = strPedido + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
-          if (txtMatch.indexOf(q) < 0) return false;
+          const txtMatchRaw = strPedRaw + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
+          const txtMatchClean = strPedClean;
+
+          if (txtMatchRaw.indexOf(qRaw) < 0 && txtMatchClean.indexOf(qClean) < 0) return false;
         }
         return true;
       });
@@ -819,17 +824,22 @@
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
-        // 1. BÚSQUEDA RÁPIDA (Prioridad por Pedido/Salida)
+        // 1. BÚSQUEDA RÁPIDA FLEXIBLE (Soporta E-187967, E187967, 187967 y 578002)
         if (ESTADO.busqueda) {
-          const q = ESTADO.busqueda.trim().toLowerCase();
-          const strPed = String(e.pedido || '').toLowerCase();
+          const qRaw = ESTADO.busqueda.trim().toLowerCase();
+          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
+
+          const strPedRaw = String(e.pedido || '').toLowerCase();
+          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
+          
           const strCli = String(e.cliente || '').toLowerCase();
           const strCiu = String(e.ciudad || '').toLowerCase();
           const strDet = String(e.detalleProductos || '').toLowerCase();
           const strEst = String(e.estadoWMS || '').toLowerCase();
 
-          const matchGlobal = (strPed + ' ' + strCli + ' ' + strCiu + ' ' + strDet + ' ' + strEst);
-          if (matchGlobal.indexOf(q) < 0) return false;
+          const matchGlobal = (strPedRaw + ' ' + strCli + ' ' + strCiu + ' ' + strDet + ' ' + strEst);
+          
+          if (matchGlobal.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false;
         }
 
         // 2. Filtro Año
