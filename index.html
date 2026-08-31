@@ -11,11 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // Conexión Única Unificada a BigQuery Gateway (Mantenimiento + SLA)
     const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
@@ -315,9 +313,10 @@
       </div>
     </div>
 
+    <!-- RENOMBRADO A SEGUIMIENTO PEDIDOS -->
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
       <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
-        🎯 Filtros Independientes Módulo Alertas SLA (BigQuery)
+        🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)
       </div>
       <div class="field"><label>Cliente SLA</label><div id="comboClienteSLA"></div></div>
       <div class="field"><label>Ciudad SLA</label><div id="comboCiudadSLA"></div></div>
@@ -346,7 +345,7 @@
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="modalTitulo">Detalle Consolidado de Solicitudes</h3>
-        <button class="btn-close" onclick="cerrarModal()">×</button>
+        <button class="btn-close" onclick="cerrarModal()">&times;</button>
       </div>
       <div id="modalBody" class="modal-body"></div>
     </div>
@@ -368,12 +367,13 @@
     let CHART_INSTANCES = {};
     let CALENDARIO_INSTANCE = null;
 
+    // MODULO RENOMBRADO A "Seguimiento Pedidos"
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
-      alertasSLA:    { label: 'Alertas de Incumplimiento (SLA)', icono: '🚨', acciones: null },
+      alertasSLA:    { label: 'Seguimiento Pedidos',        icono: '📦', acciones: null },
       mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo'] },
-      entregas:      { label: 'Entregas / Iniciaciones',     icono: '📦', acciones: ['Iniciacion', 'Iniciación'] },
-      recogidas:     { label: 'Recogidas y Cierres',         icono: '🚚', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
+      entregas:      { label: 'Entregas / Iniciaciones',     icono: '🚚', acciones: ['Iniciacion', 'Iniciación'] },
+      recogidas:     { label: 'Recogidas y Cierres',         icono: '🏁', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
       accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
       agendador:     { label: 'Tabla de Programación',       icono: '📋', acciones: null }
     };
@@ -467,7 +467,7 @@
         const urlSLA = `${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`;
         const urlGeneral = `${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`;
         
-        // 1. Carga directa del Módulo SLA
+        // 1. Carga directa del Módulo SLA (Seguimiento Pedidos)
         let rawSLA = null;
         try {
           const res = await fetch(urlSLA);
@@ -481,7 +481,7 @@
           dataSLA = procesarDatosSLA(rawSLA);
         }
 
-        // 2. Carga del Módulo Operativo General
+        // 2. Carga de los Módulos Operativos (TBLPedidosMaquinaria)
         let rawBQ = null;
         try {
           const resGen = await fetch(urlGeneral);
@@ -515,7 +515,7 @@
       }
 
       const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => {
-        const fSol = String(e.fechaSolicitud || '');
+        const fSol = String(e.fechaSolicitud || e.fecha || '');
         const per = String(e.periodo || 'Sin fecha');
         let ano = String(e.ano || 'Sin fecha');
         
@@ -524,19 +524,19 @@
         }
 
         return {
-          pedido: String(e.pedido || ''),
-          cliente: String(e.cliente || 'Sin cliente'),
-          ciudad: String(e.ciudad || 'Sin ciudad'),
+          pedido: String(e.pedido || e.salida || ''),
+          cliente: String(e.cliente || e.nombre || 'Sin cliente'),
+          ciudad: String(e.ciudad || e.nombre_punto_destino || 'Sin ciudad'),
           fechaSolicitud: fSol,
           periodo: per,
           ano: ano,
           diasProceso: Number(e.diasProceso) || 0,
           estado: String(e.estado || 'Sin estado'),
-          accion: String(e.accion || 'Sin acción'),
-          modulo: moduloDeAccion(e.accion),
-          maquinaria: String(e.maquinaria || 'Sin especificar'),
-          codActivo: String(e.codActivo || ''),
-          observacionDetalle: String(e.observacionDetalle || ''),
+          accion: String(e.accion || e.tipo_accion || 'Sin acción'),
+          modulo: moduloDeAccion(e.accion || e.tipo_accion),
+          maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
+          codActivo: String(e.codActivo || e.codigo_activo || ''),
+          observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
           esFallaCritica: Boolean(e.esFallaCritica),
           estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
           programado: false,
