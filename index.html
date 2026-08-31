@@ -5,17 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CMI · Control de Maquinaria y Equipos · Casalimpia S.A.</title>
   
+  <!-- Preconexión Ultra Rápida a Google y CDNs -->
   <link rel="preconnect" href="https://docs.google.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex-Mono:wght@500;600;700&display=swap" rel="stylesheet">
   
+  <!-- ApexCharts CDN para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <!-- FullCalendar CDN para Agendador/Calendario Operativo -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // URL DE LA API DE APPS SCRIPT ACTUALIZADA PARA SEGUIMIENTO DE PEDIDOS
-    const BIGQUERY_API_URL = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
+    // 1. URL exclusiva para el Módulo Seguimiento Pedidos (alertas_sla_pedidos -> 53 pedidos / 609 ítems)
+    const API_URL_PEDIDOS = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
+
+    // 2. URL exclusiva para Módulos Operativos / Vista 360° (TBLPedidosMaquinaria -> 3.288 pedidos / 8.985 ítems)
+    const API_URL_MAQUINARIA = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
   <style>
@@ -463,10 +470,9 @@
       loader(true);
       try {
         const timestamp = Date.now();
-        const urlSLA = `${BIGQUERY_API_URL}?modulo=sla&_nc=${timestamp}`;
-        const urlGeneral = `${BIGQUERY_API_URL}?modulo=general&_nc=${timestamp}`;
         
-        // 1. Carga del Módulo SLA (Seguimiento Pedidos -> alertas_sla_pedidos)
+        // 1. CARGA DESDE LA API DE PEDIDOS (Seguimiento Pedidos -> 53 registros)
+        const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         let rawSLA = null;
         try {
           const res = await fetch(urlSLA);
@@ -480,7 +486,8 @@
           dataSLA = procesarDatosSLA(rawSLA);
         }
 
-        // 2. Carga Módulos Operativos (TBLPedidosMaquinaria)
+        // 2. CARGA DESDE LA API DE MAQUINARIA (Módulos Operativos -> 3.288 registros)
+        const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         let rawBQ = null;
         try {
           const resGen = await fetch(urlGeneral);
