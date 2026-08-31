@@ -184,7 +184,8 @@
     .sub-dock-item:hover { background: #f1f5f9; color: var(--ink); }
     .sub-dock-item.active { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; }
 
-    /* BOTONES INTERACTIVOS DEL GRÁFICO (MES / SEMANA / DÍA) */
+    /* CONTROLES DE NAVEGACIÓN Y EXPANSIÓN EN GRÁFICO */
+    .chart-controls-right { display: flex; align-items: center; gap: 6px; }
     .chart-toggle-group { display: flex; background: #f1f5f9; padding: 3px; border-radius: 10px; gap: 2px; }
     .btn-toggle-chart {
       border: none; background: transparent; font-size: 11px; font-weight: 800;
@@ -192,6 +193,13 @@
     }
     .btn-toggle-chart:hover { color: var(--cl-azul); }
     .btn-toggle-chart.active { background: var(--cl-azul); color: #ffffff; box-shadow: 0 2px 6px rgba(0, 130, 200, 0.3); }
+
+    .btn-expand-chart {
+      border: 1px solid var(--line); background: #ffffff; color: var(--cl-azul-dark);
+      font-size: 13px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; transition: all .15s ease;
+    }
+    .btn-expand-chart:hover { background: var(--cl-azul-light); border-color: #bae6fd; color: var(--cl-azul); }
 
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
     .card-accion-kpi {
@@ -414,7 +422,7 @@
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
       vistaPrincipal: 'maquinaria',
       moduloSel: 'general',
-      agrupacionTendenciaSLA: 'mes', // 'mes', 'semana', 'dia'
+      agrupacionTendenciaSLA: 'mes',
       eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
       ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
       tecnicoFiltroCalendar: 'todos'
@@ -1191,15 +1199,19 @@
       return `<div class="card"><div class="card-top"><span class="card-title">${titulo}</span></div><div id="${chartId}" class="chart-container"></div></div>`;
     }
 
+    /* CARD CON BOTONERA MES/SEMANA/DÍA Y BOTÓN DE PANTALLA COMPLETA */
     function cardChartBoxToggle(titulo, chartId) {
       const g = ESTADO.agrupacionTendenciaSLA || 'mes';
       return `<div class="card">
         <div class="card-top">
           <span class="card-title">${titulo}</span>
-          <div class="chart-toggle-group">
-            <button class="btn-toggle-chart ${g === 'mes' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('mes')">Mes</button>
-            <button class="btn-toggle-chart ${g === 'semana' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('semana')">Semana</button>
-            <button class="btn-toggle-chart ${g === 'dia' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('dia')">Día</button>
+          <div class="chart-controls-right">
+            <div class="chart-toggle-group">
+              <button class="btn-toggle-chart ${g === 'mes' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('mes')">Mes</button>
+              <button class="btn-toggle-chart ${g === 'semana' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('semana')">Semana</button>
+              <button class="btn-toggle-chart ${g === 'dia' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('dia')">Día</button>
+            </div>
+            <button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarGraficoPantallaCompleta()">⛶</button>
           </div>
         </div>
         <div id="${chartId}" class="chart-container"></div>
@@ -1209,6 +1221,25 @@
     function cambiarAgrupacionTendenciaSLA(tipo) {
       ESTADO.agrupacionTendenciaSLA = tipo;
       render();
+    }
+
+    function ampliarGraficoPantallaCompleta() {
+      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
+      const datos = agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes');
+
+      document.getElementById('modalTitulo').textContent = '📈 Tendencia de Pedidos Únicos (Vista Ampliada - ' + (ESTADO.agrupacionTendenciaSLA || 'mes').toUpperCase() + ')';
+      const body = document.getElementById('modalBody');
+
+      body.innerHTML = `
+        <div style="width:100%; overflow-x:auto; padding: 20px 10px; background:#ffffff; border-radius:16px; border: 1px solid var(--line);">
+          <div id="expandedChartContainer" style="min-width: 1000px; height: 420px;"></div>
+        </div>
+      `;
+
+      document.getElementById('modal').classList.add('show');
+      setTimeout(() => {
+        renderGraficoLineaCustom('expandedChartContainer', datos, '#0082c8', 1200, 380);
+      }, 50);
     }
 
     function agrupar(evs, campo, top) {
@@ -1311,6 +1342,10 @@
     }
 
     function renderGraficoLinea(elId, datos, colorHex) {
+      renderGraficoLineaCustom(elId, datos, colorHex, 500, 220);
+    }
+
+    function renderGraficoLineaCustom(elId, datos, colorHex, customWidth, customHeight) {
       const container = document.getElementById(elId);
       if (!container) return;
 
@@ -1319,9 +1354,9 @@
         return;
       }
 
-      const width = 500;
-      const height = 220;
-      const padding = 35;
+      const width = customWidth || 500;
+      const height = customHeight || 220;
+      const padding = 40;
 
       const maxVal = Math.max(...datos.map(d => d.val)) || 1;
       const minVal = 0;
@@ -1348,16 +1383,20 @@
         gridLines += `<line x1="${padding}" y1="${yPos}" x2="${width - padding}" y2="${yPos}" class="area-grid-line" />`;
       }
 
+      // ROTAR O ESPACIAR ETIQUETAS SI SON MÁS DE 12 PUNTOS
+      const esLargo = datos.length > 12;
+
       let nodesSvg = '';
       datos.forEach((d, i) => {
         const x = getX(i);
         const y = getY(d.val);
+        
         nodesSvg += `
           <g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;">
-            <circle cx="${x}" cy="${y}" r="20" fill="transparent" />
-            <circle cx="${x}" cy="${y}" r="6" class="area-node" />
-            <text x="${x}" y="${y - 12}" class="area-node-text">${d.val}</text>
-            <text x="${x}" y="${height - 10}" class="area-node-text" style="fill:#64748b; font-size:10px;">${d.label}</text>
+            <circle cx="${x}" cy="${y}" r="18" fill="transparent" />
+            <circle cx="${x}" cy="${y}" r="5" class="area-node" />
+            <text x="${x}" y="${y - 10}" class="area-node-text" style="font-size: 10px;">${d.val}</text>
+            <text x="${x}" y="${height - 12}" class="area-node-text" style="fill:#64748b; font-size:${esLargo ? '8.5px' : '10px'}; font-weight: 600;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 12})"` : ''}>${d.label}</text>
           </g>
         `;
       });
