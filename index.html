@@ -255,13 +255,13 @@
     </div>
 
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
-      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)</div>
-      <div class="field"><label>Cliente SLA</label><div id="comboClienteSLA"></div></div>
-      <div class="field"><label>Ciudad SLA</label><div id="comboCiudadSLA"></div></div>
+      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">🎯 Filtros de Control de Entregas</div>
+      <div class="field"><label>Cliente</label><div id="comboClienteSLA"></div></div>
+      <div class="field"><label>Ciudad</label><div id="comboCiudadSLA"></div></div>
       <div class="field"><label>Estado WMS</label><div id="comboEstadoWmsSLA"></div></div>
-      <div class="field"><label>Nivel de Alerta SLA</label><div id="comboAlertaSLA"></div></div>
+      <div class="field"><label>Nivel de Alerta</label><div id="comboAlertaSLA"></div></div>
       <div class="field"><label>Flag Agotado</label><div id="comboAgotadoSLA"></div></div>
-      <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar SLA</button>
+      <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar Filtros</button>
     </div>
 
     <div class="nav-container">
@@ -281,8 +281,8 @@
           <div class="main-tab-info">
             <span class="main-tab-icon">📦</span>
             <div class="main-tab-text">
-              <span class="main-tab-title">Seguimiento Pedidos</span>
-              <span class="main-tab-sub">Control de Tiempos y Alertas de Incumplimiento SLA</span>
+              <span class="main-tab-title">Control de Entregas y Retrasos</span>
+              <span class="main-tab-sub">Supervisión de Tiempos y Alertas de Vencimiento</span>
             </div>
           </div>
           <span class="main-tab-badge" id="badgePedidos">0 pedidos</span>
@@ -476,7 +476,7 @@
       return { eventos, filtros: { anos: unicos('ano'), clientes: unicos('cliente'), ciudades: unicos('ciudad'), acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') } };
     }
 
-    // APLICACIÓN DE LAS NUEVAS REGLAS SLA DIRECTAMENTE EN EL FRONTEND
+    // APLICACIÓN DE LAS NUEVAS REGLAS DIRECTAMENTE EN EL FRONTEND
     function procesarDatosSLA(rawSLA) {
       const hoyA = new Date();
       hoyA.setHours(0,0,0,0);
@@ -490,7 +490,7 @@
 
         let fechaOriginal = String(e.fechaMontaje || e.fecha || '');
         let diasCalc = Number(e.diasTranscurridos) || 0;
-        let alertaCalc = 'DENTRO_SLA';
+        let alertaCalc = 'A Tiempo';
 
         if (fechaOriginal && fechaOriginal.includes('/')) {
             const p = fechaOriginal.split('/');
@@ -502,11 +502,11 @@
                 diasCalc = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 if(diasCalc < 0) diasCalc = 0;
 
-                if (submod === 'cobrables' && diasCalc > 3) alertaCalc = 'FUERA_SLA';
-                else if (submod === 'ecommerce' && diasCalc > 1) alertaCalc = 'FUERA_SLA';
-                else if (submod === 'especiales' && diasCalc > 4) alertaCalc = 'FUERA_SLA';
+                if (submod === 'cobrables' && diasCalc > 3) alertaCalc = 'Vencido';
+                else if (submod === 'ecommerce' && diasCalc > 1) alertaCalc = 'Vencido';
+                else if (submod === 'especiales' && diasCalc > 4) alertaCalc = 'Vencido';
                 else if (submod === 'permanentes') {
-                    if (fMontaje.getMonth() !== hoyA.getMonth() || fMontaje.getFullYear() !== hoyA.getFullYear()) alertaCalc = 'FUERA_SLA';
+                    if (fMontaje.getMonth() !== hoyA.getMonth() || fMontaje.getFullYear() !== hoyA.getFullYear()) alertaCalc = 'Vencido';
                 }
             }
         }
@@ -562,10 +562,10 @@
     }
 
     function poblarCombosSLA() {
-      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
-      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades');
       crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
-      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todos los niveles');
       crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
     }
 
@@ -677,23 +677,23 @@
 
     function renderVistaAlertasSLA(evsSLA) {
       const totalPedidos = contarPedidosUnicos(evsSLA);
-      const fueraSLA = evsSLA.filter(e => e.alertaSLA === "FUERA_SLA");
-      const dentroSLA = evsSLA.filter(e => e.alertaSLA === "DENTRO_SLA");
+      const fueraSLA = evsSLA.filter(e => e.alertaSLA === "Vencido");
+      const dentroSLA = evsSLA.filter(e => e.alertaSLA === "A Tiempo");
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(fueraSLA)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
-        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen el tiempo límite asignado', 'slaFuera')}
-        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Entregados dentro de la norma', 'slaDentro')}
-        ${cardKPI('Nivel de Servicio (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base procesada', 'slaAll')}
+        ${cardKPI('Pedidos Vencidos / Críticos', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen tiempo límite', 'slaFuera')}
+        ${cardKPI('Pedidos A Tiempo', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Entregados dentro de norma', 'slaDentro')}
+        ${cardKPI('Efectividad de Entrega (%)', pctCumplimiento + '%', 'completados', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Nivel general de oportunidad', 'slaPct')}
       </div>
       <div class="col">
-        ${cardChartBoxToggle('Tendencia de Pedidos Únicos', 'chartTendenciaPedidosSLA')}
-        ${cardChartBox('Causas y Estados SLA', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
+        ${cardChartBoxToggle('Tendencia de Pedidos', 'chartTendenciaPedidosSLA')}
+        ${cardChartBox('Principales Motivos de Retraso', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
       </div>
       <div class="col">
-        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA', 'cliente', '#0082c8')}
-        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
+        ${cardChartBox('Top Clientes con Retrasos', 'chartClientesSLA', 'cliente', '#0082c8')}
+        ${cardChartBox('Cuellos de Botella en Bodega (WMS)', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
       </div>`;
     }
 
@@ -710,7 +710,7 @@
         ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
         ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
         ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
-        ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
+        ${cardKPI('Fuera de Rango (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
         ${cardChartBox('Tendencia de Pedidos Únicos (Mes a Mes)', 'chartTendenciaPedidos')}
@@ -842,6 +842,7 @@
 
     function renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, customHeight) {
       const container = document.getElementById(elId); if (!container) return;
+      
       const options = { series: [{ name: 'Cantidad', data: datos.map(d => d.val) }], chart: { type: 'bar', height: customHeight || 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false }, events: { dataPointSelection: function(event, chartContext, config) { if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) { const valor = datos[config.dataPointIndex].label, tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1); abrirDetalleBarra(tituloModal, campoFiltro, valor); } } } }, plotOptions: { bar: { horizontal: true, borderRadius: 6 } }, colors: [colorHex], dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '12px' } }, xaxis: { categories: datos.map(d => d.label) } };
       CHART_INSTANCES[elId] = new ApexCharts(container, options); CHART_INSTANCES[elId].render();
       container.onclick = function(e) { const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-yaxis-label, .apexcharts-datalabel'); textNodes.forEach((node) => { if (node.contains(e.target)) { const txt = node.textContent || node.innerText, match = datos.find(d => d.label.toLowerCase().includes(txt.toLowerCase()) || txt.toLowerCase().includes(d.label.toLowerCase())); if (match) { const tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1); abrirDetalleBarra(tituloModal, campoFiltro, match.label); } } }); };
@@ -850,8 +851,8 @@
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
       if (ESTADO.vistaPrincipal === 'pedidos') {
         let evs = filtrarEventosSLA();
-        if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'FUERA_SLA');
-        else if (tipo === 'slaDentro') evs = evs.filter(e => e.alertaSLA === 'DENTRO_SLA');
+        if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'Vencido');
+        else if (tipo === 'slaDentro') evs = evs.filter(e => e.alertaSLA === 'A Tiempo');
         mostrarModalConsolidadoSLA(titulo, evs);
         return;
       }
@@ -888,7 +889,7 @@
       if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
-        let tagClase = e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok';
+        let tagClase = e.alertaSLA === 'Vencido' ? 'crit' : 'ok';
         return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${e.fechaMontaje}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}</div></div></div>`;
       }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
