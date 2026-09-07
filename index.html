@@ -59,7 +59,6 @@
       min-height: 100vh;
     }
 
-    /* PANTALLA SIGN IN EN 3D GLASSMORPHISM */
     .signin-overlay {
       position: fixed; inset: 0; z-index: 999999;
       background: radial-gradient(circle at top center, #0082c8 0%, #0a3356 60%, #021427 100%);
@@ -254,6 +253,13 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
+    .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+    .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
+    .tabla-agendador th:hover { background: #0082c8; }
+    .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
+    .tabla-agendador tr:hover { background: #f1f5f9; }
+
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
       background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
@@ -290,7 +296,6 @@
 </head>
 <body class="no-scroll">
 
-  <!-- SIGN IN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
@@ -300,7 +305,6 @@
         <h2 class="signin-title">Iniciar Sesión</h2>
         <p class="signin-sub">Ingrese credenciales autorizadas del Google Sheet</p>
       </div>
-
       <form class="signin-form" onsubmit="event.preventDefault(); ejecutarLogin();">
         <div class="input-group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -308,7 +312,6 @@
           </svg>
           <input type="text" id="loginUser" class="input-field" placeholder="Usuario o Correo" required>
         </div>
-
         <div class="input-group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -316,9 +319,7 @@
           <input type="password" id="loginPass" class="input-field" placeholder="Contraseña" required>
           <span class="toggle-pass" onclick="toggleVisibilidadPassword()">👁️</span>
         </div>
-
         <div id="loginError" class="error-msg"></div>
-
         <button type="submit" class="btn-signin" id="btnSubmitLogin">
           <span>Ingresar al Portal</span> ➔
         </button>
@@ -408,7 +409,6 @@
         </button>
       </div>
 
-      <!-- DOCK SUBMÓDULOS MAQUINARIA -->
       <div class="sub-dock-wrap" id="subDockMaquinaria">
         <button class="sub-dock-item active" onclick="cambiarSubModulo('general')">🧭 Vista 360°</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('mantenimiento')">🛠️ Mantenimiento Correctivo</button>
@@ -418,7 +418,6 @@
         <button class="sub-dock-item" onclick="cambiarSubModulo('agendador')">📋 Tabla de Programación</button>
       </div>
 
-      <!-- DOCK SUBMÓDULOS SEGUIMIENTO PEDIDOS (CLASIFICADOR1) -->
       <div class="sub-dock-wrap" id="subDockPedidos" style="display: none;">
         <button class="sub-dock-item active" onclick="cambiarSubModuloSLA('todos')">🌐 Todos los Pedidos</button>
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('permanentes')">🏢 Permanentes (0)</button>
@@ -453,13 +452,8 @@
     let ESTADO = {
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
-      vistaPrincipal: 'maquinaria',
-      moduloSel: 'general',
-      submoduloSLA: 'todos',
-      agrupacionTendenciaSLA: 'mes',
-      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: '',
-      ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
-      tecnicoFiltroCalendar: 'todos'
+      vistaPrincipal: 'maquinaria', moduloSel: 'general', submoduloSLA: 'todos',
+      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: ''
     };
 
     let ESTADO_SLA = { clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: [] };
@@ -576,21 +570,35 @@
       });
     }
 
+    /* =========================================================================================
+       NUEVA FUNCIÓN DE FETCH SEGURO (LEE DIRECTO EL JSON QUE NOS ENVIASTE EN LA IMAGEN)
+       ========================================================================================= */
+    async function fetchDataSeguro(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('CORS o status no ok');
+        return await response.json(); 
+      } catch (error) {
+        console.warn("Fetch bloqueado o fallido, usando fallback JSONP", error);
+        return await cargarJsonp(url);
+      }
+    }
+
     async function cargarDatos(forzarSinCache) {
       loader(true);
       try {
         const timestamp = Date.now();
         
-        // 1. Carga explícita módulo SLA pasándole modulo=sla al Apps Script
+        // 1. Carga Módulo SLA utilizando la función fetchDataSeguro (lee el Array directamente)
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
-        const rawSLA = await cargarJsonp(urlSLA);
+        const rawSLA = await fetchDataSeguro(urlSLA);
 
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         if (rawSLA && Array.isArray(rawSLA)) dataSLA = procesarDatosSLA(rawSLA);
 
-        // 2. Carga módulo Maquinaria/General
+        // 2. Carga Módulo Maquinaria/General
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
-        const rawBQ = await cargarJsonp(urlGeneral);
+        const rawBQ = await fetchDataSeguro(urlGeneral);
 
         let dataBQ = { eventos: [], filtros: {} };
         if (rawBQ && Array.isArray(rawBQ)) dataBQ = procesarDatosBigQuery(rawBQ);
@@ -629,10 +637,7 @@
         codActivo: String(e.codActivo || e.codigo_activo || ''),
         observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
         esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
-        programado: false,
-        fechaProgramada: '',
-        tecnicoAsignado: ''
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
       }));
 
       function unicos(campo) {
@@ -650,7 +655,6 @@
       };
     }
 
-    // AJUSTE CLAVE 1: Mapeo tolerante e insensible a mayúsculas/minúsculas de clasificador1
     function procesarDatosSLA(rawSLA) {
       const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => {
         const rawClasif = (e.clasificador1 !== undefined && e.clasificador1 !== null) 
@@ -680,12 +684,6 @@
           diasTranscurridos: Number(e.diasTranscurridos) || 0,
           alertaSLA: String(e.alertaSLA || 'DENTRO_SLA'),
           totalItems: Number(e.totalItems) || 1,
-          totalCantSolicitada: Number(e.totalCantSolicitada) || 0,
-          totalCantAlistada: Number(e.totalCantAlistada) || 0,
-          totalCantDespachada: Number(e.totalCantDespachada) || 0,
-          totalCantEntregada: Number(e.totalCantEntregada) || 0,
-          totalPeso: Number(e.totalPeso) || 0,
-          totalVolumen: Number(e.totalVolumen) || 0,
           detalleProductos: String(e.detalleProductos || 'Sin detalle')
         };
       });
@@ -896,24 +894,20 @@
       });
     }
 
-    // AJUSTE CLAVE 2: Filtrado robusto insensible a diferencias de cadenas
     function filtrarEventosSLA() {
       const subSel = String(ESTADO.submoduloSLA || 'todos').toLowerCase();
 
       return ESTADO.eventosSLA.filter(e => {
-        // Comparación de submódulo (Todos los Pedidos vs Específico)
         if (subSel !== 'todos' && subSel !== 'todos los pedidos' && e.submoduloSLA !== subSel) {
           return false;
         }
 
-        // Búsqueda rápida
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
           const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1).toLowerCase();
           if (matchText.indexOf(qRaw) < 0) return false;
         }
 
-        // Filtros desplegables
         if (ESTADO_SLA.clienteSel.length > 0 && !ESTADO_SLA.clienteSel.includes('__NINGUNO__') && !ESTADO_SLA.clienteSel.includes(e.cliente)) return false;
         if (ESTADO_SLA.ciudadSel.length > 0 && !ESTADO_SLA.ciudadSel.includes('__NINGUNO__') && !ESTADO_SLA.ciudadSel.includes(e.ciudad)) return false;
         if (ESTADO_SLA.estadoWmsSel.length > 0 && !ESTADO_SLA.estadoWmsSel.includes('__NINGUNO__') && !ESTADO_SLA.estadoWmsSel.includes(e.estadoWMS)) return false;
