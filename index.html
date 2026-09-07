@@ -14,242 +14,134 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script>
-    // 1. URL Servicio de Autenticación de Usuarios
     const API_URL_AUTH = "https://script.google.com/macros/s/AKfycbwnzuf3tr2X44WdsR1dvTdD654SZZjCoyGX_D868d7he2yLqj7NtiRb46jCsp5qg5YlcQ/exec";
-
-    // 2. URL Módulo Seguimiento Pedidos (alertas_sla_pedidos)
     const API_URL_PEDIDOS = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
-
-    // 3. URL Módulos Operativos de Maquinaria (TBLPedidosMaquinaria)
     const API_URL_MAQUINARIA = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
   </script>
 
   <style>
     :root {
-      --cl-verde: #7ab833;
-      --cl-verde-hover: #69a727;
-      --cl-verde-light: #f1f8e9;
-      --cl-azul: #0082c8;
-      --cl-azul-hover: #006eb3;
-      --cl-azul-dark: #0a3356;
-      --cl-azul-light: #e0f2fe;
-      --bg-main: #f8fafc;
-      --ink: #0f172a;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --verde-ok: #22c55e;
-      --amarillo-warn: #eab308;
-      --rojo-crit: #ef4444;
+      --cl-verde: #7ab833; --cl-verde-hover: #69a727; --cl-verde-light: #f1f8e9;
+      --cl-azul: #0082c8; --cl-azul-hover: #006eb3; --cl-azul-dark: #0a3356; --cl-azul-light: #e0f2fe;
+      --bg-main: #f8fafc; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0;
+      --verde-ok: #22c55e; --amarillo-warn: #eab308; --rojo-crit: #ef4444;
       --ease: cubic-bezier(.16, 1, .3, 1);
     }
-
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
-    html { scroll-behavior: smooth; }
-
+    html { scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-    html, body { -ms-overflow-style: none; scrollbar-width: none; }
-
     body.no-scroll { overflow: hidden !important; height: 100vh; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink); background: #f8fafc; min-height: 100vh; }
 
-    body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      color: var(--ink);
-      background: #f8fafc;
-      min-height: 100vh;
-    }
-
-    .signin-overlay {
-      position: fixed; inset: 0; z-index: 999999;
-      background: radial-gradient(circle at top center, #0082c8 0%, #0a3356 60%, #021427 100%);
-      display: flex; align-items: center; justify-content: center; padding: 20px;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
-    }
+    .signin-overlay { position: fixed; inset: 0; z-index: 999999; background: radial-gradient(circle at top center, #0082c8 0%, #0a3356 60%, #021427 100%); display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.4s ease, visibility 0.4s ease; }
     .signin-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
-    .signin-card {
-      width: 100%; max-width: 400px; background: rgba(10, 51, 86, 0.65);
-      backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 24px; padding: 32px 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      color: #ffffff; position: relative; overflow: hidden; transform-style: preserve-3d;
-      transition: transform 0.1s ease-out;
-    }
-
-    .signin-card::before {
-      content: ''; position: absolute; inset: -1px; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, transparent, var(--cl-verde), transparent);
-    }
-
+    .signin-card { width: 100%; max-width: 400px; background: rgba(10, 51, 86, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 24px; padding: 32px 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); color: #ffffff; position: relative; overflow: hidden; }
+    .signin-card::before { content: ''; position: absolute; inset: -1px; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--cl-verde), transparent); }
     .signin-header { text-align: center; margin-bottom: 24px; }
     .signin-logo { height: 48px; background: #ffffff; padding: 8px 16px; border-radius: 12px; display: inline-block; margin-bottom: 12px; }
     .signin-title { font-size: 20px; font-weight: 800; color: #ffffff; margin: 0; }
     .signin-sub { font-size: 12px; color: #93c5fd; margin-top: 4px; }
-
     .signin-form { display: flex; flex-direction: column; gap: 16px; }
     .input-group { position: relative; display: flex; align-items: center; }
     .input-group svg { position: absolute; left: 14px; width: 18px; height: 18px; color: #93c5fd; }
-    .input-field {
-      width: 100%; height: 44px; background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px;
-      padding: 0 40px 0 42px; color: #ffffff; font-size: 13px; outline: none;
-      transition: all 0.2s ease;
-    }
+    .input-field { width: 100%; height: 44px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 0 40px 0 42px; color: #ffffff; font-size: 13px; outline: none; transition: all 0.2s ease; }
     .input-field:focus { border-color: var(--cl-verde); background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 12px rgba(122, 184, 51, 0.3); }
-    .input-field::placeholder { color: rgba(255, 255, 255, 0.4); }
-
     .toggle-pass { position: absolute; right: 14px; cursor: pointer; color: #93c5fd; }
-
-    .btn-signin {
-      height: 44px; background: var(--cl-verde); color: #ffffff; border: none;
-      border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(122, 184, 51, 0.4);
-    }
+    .btn-signin { height: 44px; background: var(--cl-verde); color: #ffffff; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(122, 184, 51, 0.4); }
     .btn-signin:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
-
     .error-msg { font-size: 12px; color: #fca5a5; text-align: center; display: none; background: rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 8px; }
 
     .user-pill { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; font-size: 12px; }
     .btn-logout { background: transparent; border: none; color: #fca5a5; cursor: pointer; font-weight: 700; font-size: 11px; }
 
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
-
-    header {
-      display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 28px;
-      border-radius: 24px; background: #0a3356; border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: #fff;
-    }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 28px; border-radius: 24px; background: #0a3356; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: #fff; }
     .brand { display: flex; align-items: center; gap: 18px; }
     .logo-header-wrap { display: flex; align-items: center; justify-content: center; background: #ffffff; padding: 8px 16px; border-radius: 16px; }
-    .header-logo { height: 42px; width: auto; object-fit: contain; display: block; }
+    .header-logo { height: 42px; width: auto; object-fit: contain; }
     .titulos h1 { margin: 0; font-weight: 800; font-size: 20px; color: #ffffff; }
     .titulos p { margin: 4px 0 0; font-size: 13px; color: #93c5fd; }
-
     .head-right { display: flex; align-items: center; gap: 18px; }
     .clock { text-align: right; color: #93c5fd; font-size: 12px; display: flex; flex-direction: column; align-items: flex-end; }
     .clock b { color: #ffffff; font-family: 'IBM Plex Mono'; font-size: 13px; }
     .pulse-live { width: 8px; height: 8px; border-radius: 50%; background: var(--cl-verde); display: inline-block; margin-right: 6px; box-shadow: 0 0 10px var(--cl-verde); }
 
-    .controls-glass {
-      display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 18px;
-      padding: 18px 22px; background: #ffffff; border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line); position: relative; z-index: 500;
-    }
-
-    .controls-glass-sla {
-      display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 10px; margin-bottom: 14px;
-      padding: 14px 18px; background: #f0f9ff; border-radius: 16px;
-      box-shadow: 0 4px 14px rgba(0, 130, 200, 0.06); border: 1px solid #bae6fd; position: relative; z-index: 490;
-    }
-
+    .controls-glass { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 18px; padding: 18px 22px; background: #ffffff; border-radius: 20px; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); border: 1px solid var(--line); position: relative; z-index: 500; }
+    .controls-glass-sla { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 10px; margin-bottom: 14px; padding: 14px 18px; background: #f0f9ff; border-radius: 16px; box-shadow: 0 4px 14px rgba(0, 130, 200, 0.06); border: 1px solid #bae6fd; position: relative; z-index: 490; }
     .field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; position: relative; }
     .field.search-field { flex: 2; min-width: 210px; }
     .field label { font-size: 11px; font-weight: 800; color: var(--cl-azul-dark); text-transform: uppercase; letter-spacing: 0.5px; }
-
-    .date-input, .field input[type="text"] {
-      width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px;
-      padding: 0 12px; font-family: inherit; font-size: 13px; color: var(--ink); outline: none;
-    }
-
+    .date-input, .field input[type="text"] { width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 13px; outline: none; }
     .combo-wrap { position: relative; width: 100%; z-index: 501; }
-    .combo-input {
-      width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px;
-      padding: 0 28px 0 12px; font-family: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; text-overflow: ellipsis; outline: none; font-weight: 600;
-    }
+    .combo-input { width: 100%; height: 40px; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px; padding: 0 28px 0 12px; font-size: 12.5px; cursor: pointer; text-overflow: ellipsis; font-weight: 600; outline: none;}
     .combo-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); pointer-events: none; }
-    .combo-panel {
-      position: absolute; left: 0; right: 0; top: 46px; background: #ffffff; border: 1px solid var(--line);
-      border-radius: 16px; box-shadow: 0 15px 35px rgba(15, 23, 42, 0.15); z-index: 9999 !important; display: none; padding: 10px; min-width: 250px;
-    }
+    .combo-panel { position: absolute; left: 0; right: 0; top: 46px; background: #ffffff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 15px 35px rgba(15, 23, 42, 0.15); z-index: 9999 !important; display: none; padding: 10px; min-width: 250px; }
     .combo-panel.show { display: block; }
-    .combo-search { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; margin-bottom: 8px; outline: none; background: #f8fafc; }
+    .combo-search { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; margin-bottom: 8px; background: #f8fafc; outline: none;}
     .combo-actions { display: flex; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
-    .combo-actions button { flex: 1; border: none; background: #f1f5f9; color: var(--ink); font-size: 11px; font-weight: 700; padding: 5px; border-radius: 6px; cursor: pointer; }
+    .combo-actions button { flex: 1; border: none; background: #f1f5f9; font-size: 11px; font-weight: 700; padding: 5px; border-radius: 6px; cursor: pointer; }
     .combo-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
     .combo-item-multi { display: flex; align-items: center; gap: 10px; padding: 7px 10px; font-size: 12.5px; border-radius: 8px; cursor: pointer; }
     .combo-item-multi:hover { background: var(--cl-verde-light); color: var(--cl-verde-hover); }
-
-    .btn-clear {
-      border: 1px solid var(--line); background: #f1f5f9; color: var(--ink); font-size: 12.5px; font-weight: 700;
-      padding: 8px 14px; border-radius: 12px; cursor: pointer; height: 40px; display: inline-flex; align-items: center; gap: 6px;
-    }
+    .btn-clear { border: 1px solid var(--line); background: #f1f5f9; font-size: 12.5px; font-weight: 700; padding: 8px 14px; border-radius: 12px; cursor: pointer; height: 40px; display: inline-flex; align-items: center; gap: 6px; }
     .btn-clear:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
-    .controls-glass .sep { flex: 1; }
-    .chip-group { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .chip-group { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-left:auto;}
     .vista-chip { font-size: 13px; font-weight: 800; color: var(--cl-azul); background: var(--cl-azul-light); border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 999px; }
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
     .nav-container { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
     .main-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .main-tab-btn {
-      appearance: none; border: 2px solid var(--line); background: #ffffff;
-      border-radius: 18px; padding: 16px 24px; cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between;
-      transition: all .2s var(--ease); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
-    }
+    .main-tab-btn { appearance: none; border: 2px solid var(--line); background: #ffffff; border-radius: 18px; padding: 16px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all .2s var(--ease); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); }
     .main-tab-btn:hover { border-color: var(--cl-azul); transform: translateY(-2px); }
-    .main-tab-btn.active {
-      background: linear-gradient(135deg, #0a3356 0%, #0082c8 100%);
-      border-color: #0082c8; color: #ffffff; box-shadow: 0 8px 24px rgba(0, 130, 200, 0.25);
-    }
+    .main-tab-btn.active { background: linear-gradient(135deg, #0a3356 0%, #0082c8 100%); border-color: #0082c8; color: #ffffff; box-shadow: 0 8px 24px rgba(0, 130, 200, 0.25); }
     .main-tab-info { display: flex; align-items: center; gap: 14px; }
     .main-tab-icon { font-size: 26px; }
     .main-tab-text { display: flex; flex-direction: column; text-align: left; }
-    .main-tab-title { font-weight: 800; font-size: 16px; letter-spacing: -0.2px; }
+    .main-tab-title { font-weight: 800; font-size: 16px; }
     .main-tab-btn.active .main-tab-title { color: #ffffff; }
     .main-tab-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
     .main-tab-btn.active .main-tab-sub { color: #93c5fd; }
     .main-tab-badge { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 12px; padding: 4px 12px; border-radius: 999px; background: #f1f5f9; color: var(--ink); }
     .main-tab-btn.active .main-tab-badge { background: rgba(255,255,255,0.2); color: #ffffff; }
 
-    .sub-dock-wrap {
-      background: #ffffff; border-radius: 16px; padding: 6px;
-      border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
-      display: flex; gap: 6px; overflow-x: auto;
-    }
-    .sub-dock-item {
-      flex: 1; border: none; background: transparent; padding: 10px 14px;
-      border-radius: 12px; font-family: inherit; font-size: 12.5px; font-weight: 700;
-      color: var(--muted); cursor: pointer; display: flex; align-items: center;
-      justify-content: center; gap: 8px; white-space: nowrap; transition: all .15s ease;
-    }
+    .sub-dock-wrap { background: #ffffff; border-radius: 16px; padding: 6px; border: 1px solid var(--line); display: flex; gap: 6px; overflow-x: auto; }
+    .sub-dock-item { flex: 1; border: none; background: transparent; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: all .15s ease; font-family: inherit;}
     .sub-dock-item:hover { background: #f1f5f9; color: var(--ink); }
     .sub-dock-item.active { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; }
 
+    .chart-controls-right { display: flex; align-items: center; gap: 6px; }
+    .chart-toggle-group { display: flex; background: #f1f5f9; padding: 3px; border-radius: 10px; gap: 2px; }
+    .btn-toggle-chart { border: none; background: transparent; font-size: 11px; font-weight: 800; color: var(--muted); padding: 4px 10px; border-radius: 8px; cursor: pointer; transition: all .15s ease; }
+    .btn-toggle-chart:hover { color: var(--cl-azul); }
+    .btn-toggle-chart.active { background: var(--cl-azul); color: #ffffff; box-shadow: 0 2px 6px rgba(0, 130, 200, 0.3); }
+    .btn-expand-chart { border: 1px solid var(--line); background: #ffffff; color: var(--cl-azul-dark); font-size: 13px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer; display: inline-flex; transition: all .15s ease; }
+    .btn-expand-chart:hover { background: var(--cl-azul-light); border-color: #bae6fd; color: var(--cl-azul); }
+
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
-    .card-accion-kpi {
-      background: #ffffff; border-radius: 16px; padding: 14px 18px; border: 1px solid var(--line);
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; gap: 4px;
-      cursor: pointer; position: relative; overflow: hidden;
-    }
+    .card-accion-kpi { background: #ffffff; border-radius: 16px; padding: 14px 18px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; cursor: pointer; position: relative; overflow: hidden; }
     .card-accion-kpi:hover { transform: translateY(-2px); border-color: var(--cl-azul); }
     .card-accion-kpi::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent-color, var(--cl-azul)); }
     .card-accion-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
-    .card-accion-val { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 26px; color: var(--ink); line-height: 1.1; margin-top: 2px; }
+    .card-accion-val { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 26px; line-height: 1.1; margin-top: 2px; }
     .card-accion-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
 
     .hint-bar { display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 6px; font-size: 12px; color: #64748b; font-weight: 500; }
 
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; align-items: start; }
     .col { display: flex; flex-direction: column; gap: 16px; }
-
-    .card {
-      background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-      border: 1px solid var(--line); position: relative; overflow: hidden;
-    }
+    .card { background: #ffffff; border-radius: 20px; padding: 20px; border: 1px solid var(--line); position: relative; overflow: hidden; }
     .card:hover { transform: translateY(-3px); border-color: rgba(0,130,200,0.3); }
     .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .card-title { font-weight: 800; font-size: 14px; color: var(--cl-azul-dark); }
     .dot { width: 10px; height: 10px; border-radius: 50%; }
     .dot.verde { background: var(--cl-verde); } .dot.amarillo { background: var(--amarillo-warn); }
     .dot.rojo { background: var(--rojo-crit); } .dot.neu { background: var(--cl-azul); }
-
     .card-body { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; }
-    .big { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 40px; color: var(--ink); line-height: 1; }
+    .big { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 40px; line-height: 1; }
     .u { font-size: 14px; color: var(--muted); font-weight: 700; }
     .card-foot { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
-
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
@@ -259,70 +151,74 @@
     .tabla-agendador th:hover { background: #0082c8; }
     .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
     .tabla-agendador tr:hover { background: #f1f5f9; }
+    .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
+    .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
 
-    .modal {
-      position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
-      background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
-    }
+    .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
+    .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
+    .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
+    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; transition: all .2s ease; }
+    .node-group:hover .area-node { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
+    .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
+    .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
+
+    .modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
     .modal.show { opacity: 1; pointer-events: auto; }
     .modal-card { background: #f8fafc; border-radius: 24px; max-width: 1150px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; transition: all .25s ease; }
     .modal-head { padding: 20px 28px; background: var(--cl-azul-dark); display: flex; justify-content: space-between; align-items: center; color: #fff; }
-    .modal-head h3 { margin: 0; font-size: 16.5px; font-weight: 800; color: #ffffff; }
+    .modal-head h3 { margin: 0; font-size: 16.5px; font-weight: 800; }
     .btn-close { border: none; background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; color: #fff; display: grid; place-items: center; }
     .modal-body { padding: 20px; overflow-y: auto; max-height: 75vh; }
+    .modal-card.modal-fullscreen { max-width: 96vw !important; width: 96vw !important; height: 92vh !important; max-height: 92vh !important; }
+    .fullscreen-chart-wrapper { width: 100%; height: 100%; min-height: 550px; overflow-x: auto; overflow-y: auto; background: #ffffff; border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: flex-start; }
 
     .consolidado-container { display: flex; flex-direction: column; gap: 14px; }
     .pedido-card { background: #ffffff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
     .pedido-head { background: #f1f5f9; padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .badge-pedido { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 13px; color: var(--cl-azul); background: var(--cl-azul-light); padding: 4px 10px; border-radius: 8px; }
     .pedido-cliente { font-weight: 800; font-size: 13.5px; color: var(--cl-azul-dark); }
+    .badge-count { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; padding: 4px 10px; border-radius: 20px; font-size: 11.5px; }
+    .pedido-body { padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 2fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 12.5px; }
+    .code-activo { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--cl-azul); background: var(--cl-azul-light); padding: 2px 7px; border-radius: 6px; font-size: 11px; }
+    .badge-accion { background: #f3f4f6; color: #374151; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
     .tag-dias.ok { background: #dcfce7; color: #15803d; } 
     .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
+    .tag-dias.warn { background: #fef9c3; color: #a16207; }
 
     .vacio { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; }
 
-    #loader {
-      position: fixed; inset: 0; background: rgba(10, 51, 86, 0.55); display: flex;
-      align-items: center; justify-content: center; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity .15s ease;
-    }
+    #loader { position: fixed; inset: 0; background: rgba(10, 51, 86, 0.55); display: flex; align-items: center; justify-content: center; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
     #loader.show { opacity: 1; pointer-events: auto; }
     .spin { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--cl-verde); animation: sp .8s linear infinite; }
     @keyframes sp { to { transform: rotate(360deg); } }
-
     @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .item-row { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="no-scroll">
 
+  <!-- SIGN IN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
-        <div class="signin-logo">
-          <img src="https://lh3.googleusercontent.com/d/1Oad9PEeniRz-nGI6idxfZr7BCBJzKD8C" alt="Logo Casalimpia" style="height:32px;">
-        </div>
+        <div class="signin-logo"><img src="https://lh3.googleusercontent.com/d/1Oad9PEeniRz-nGI6idxfZr7BCBJzKD8C" alt="Logo Casalimpia" style="height:32px;"></div>
         <h2 class="signin-title">Iniciar Sesión</h2>
         <p class="signin-sub">Ingrese credenciales autorizadas del Google Sheet</p>
       </div>
       <form class="signin-form" onsubmit="event.preventDefault(); ejecutarLogin();">
         <div class="input-group">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
           <input type="text" id="loginUser" class="input-field" placeholder="Usuario o Correo" required>
         </div>
         <div class="input-group">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
           <input type="password" id="loginPass" class="input-field" placeholder="Contraseña" required>
           <span class="toggle-pass" onclick="toggleVisibilidadPassword()">👁️</span>
         </div>
         <div id="loginError" class="error-msg"></div>
-        <button type="submit" class="btn-signin" id="btnSubmitLogin">
-          <span>Ingresar al Portal</span> ➔
-        </button>
+        <button type="submit" class="btn-signin" id="btnSubmitLogin"><span>Ingresar al Portal</span> ➔</button>
       </form>
     </div>
   </div>
@@ -330,23 +226,12 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo-header-wrap">
-          <img src="https://lh3.googleusercontent.com/d/1Oad9PEeniRz-nGI6idxfZr7BCBJzKD8C" alt="Logo Casalimpia" class="header-logo">
-        </div>
-        <div class="titulos">
-          <h1>Portal Operativo Casalimpia S.A.</h1>
-          <p>Control Operativo</p>
-        </div>
+        <div class="logo-header-wrap"><img src="https://lh3.googleusercontent.com/d/1Oad9PEeniRz-nGI6idxfZr7BCBJzKD8C" alt="Logo Casalimpia" class="header-logo"></div>
+        <div class="titulos"><h1>Portal Operativo Casalimpia S.A.</h1><p>Control Operativo</p></div>
       </div>
       <div class="head-right">
-        <div class="user-pill" id="userContainer" style="display:none;">
-          <span id="userNameLabel">👤 Usuario</span>
-          <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
-        </div>
-        <div class="clock">
-          <span class="pulse-live"></span> Datos en vivo
-          <b id="actualizado">—</b>
-        </div>
+        <div class="user-pill" id="userContainer" style="display:none;"><span id="userNameLabel">👤 Usuario</span><button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button></div>
+        <div class="clock"><span class="pulse-live"></span> Datos en vivo<b id="actualizado">—</b></div>
         <button class="btn-refresh" id="btnRefresh" onclick="cargarDatos(true)"><span class="ico">🔄</span> Actualizar</button>
       </div>
     </header>
@@ -355,15 +240,12 @@
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
       <div class="field"><label>Fecha exacta (Día)</label><input type="date" id="inputFechaDia" class="date-input"></div>
-      
       <div class="field filter-bq"><label>Cliente</label><div id="comboCliente"></div></div>
       <div class="field filter-bq"><label>Ciudad</label><div id="comboCiudad"></div></div>
       <div class="field filter-bq"><label>Estado</label><div id="comboEstado"></div></div>
       <div class="field filter-bq"><label>Estado Entrega</label><div id="comboEstadoEntrega"></div></div>
       <div class="field filter-bq"><label>Acción</label><div id="comboAccion"></div></div>
-      
       <div class="field search-field"><label>Búsqueda rápida</label><input type="text" id="inputBusqueda" placeholder="🔍 Pedido, Activo, Maquinaria, Cliente..."></div>
-      
       <button class="btn-clear" onclick="limpiarFiltros()">🧹 Limpiar</button>
       <div class="sep"></div>
       <div class="chip-group">
@@ -373,9 +255,7 @@
     </div>
 
     <div class="controls-glass-sla" id="barFiltrosSLA" style="display: none;">
-      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">
-        🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)
-      </div>
+      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: var(--cl-azul); text-transform: uppercase;">🎯 Filtros Independientes Módulo Seguimiento Pedidos (BigQuery)</div>
       <div class="field"><label>Cliente SLA</label><div id="comboClienteSLA"></div></div>
       <div class="field"><label>Ciudad SLA</label><div id="comboCiudadSLA"></div></div>
       <div class="field"><label>Estado WMS</label><div id="comboEstadoWmsSLA"></div></div>
@@ -429,9 +309,7 @@
 
     <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
 
-    <div class="hint-bar">
-      <span>✨ Clic en cualquier tarjeta o barra interactiva para explorar el desglose por pedido</span>
-    </div>
+    <div class="hint-bar"><span>✨ Clic en cualquier tarjeta o barra interactiva para explorar el desglose por pedido</span></div>
 
     <div class="grid" id="grid"></div>
   </div>
@@ -452,18 +330,20 @@
     let ESTADO = {
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
-      vistaPrincipal: 'maquinaria', moduloSel: 'general', submoduloSLA: 'todos',
-      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: ''
+      vistaPrincipal: 'maquinaria', moduloSel: 'general', submoduloSLA: 'todos', agrupacionTendenciaSLA: 'mes',
+      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: '',
+      ordenTablaCol: 'diasProceso', ordenTablaAsc: false, tecnicoFiltroCalendar: 'todos'
     };
 
     let ESTADO_SLA = { clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: [] };
     let CHART_INSTANCES = {};
+    let CALENDARIO_INSTANCE = null;
 
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
       alertasSLA:    { label: 'Seguimiento Pedidos',        icono: '📦', acciones: null },
-      mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo', 'Mantenimiento'] },
-      entregas:      { label: 'Entregas / Iniciaciones',     icono: '🚚', acciones: ['Iniciacion', 'Iniciación', 'Entrega'] },
+      mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo'] },
+      entregas:      { label: 'Entregas / Iniciaciones',     icono: '🚚', acciones: ['Iniciacion', 'Iniciación'] },
       recogidas:     { label: 'Recogidas y Cierres',         icono: '🏁', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
       accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
       agendador:     { label: 'Tabla de Programación',       icono: '📋', acciones: null }
@@ -474,7 +354,6 @@
       'Iniciación':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
       'MantenimientoCorrectivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
       'Mantenimiento Correctivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
-      'Mantenimiento':         { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
       'Recogida':              { icono: '🚚', color: '#eab308', label: 'Recogidas' },
       'TerminacionContrato':   { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
       'Terminación Contrato':  { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
@@ -483,15 +362,8 @@
       'Adicional':             { icono: '➕', color: '#06b6d4', label: 'Adicionales' }
     };
 
-    function normTexto(s) {
-      if (!s) return '';
-      return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-    }
-
-    function toggleVisibilidadPassword() {
-      const input = document.getElementById('loginPass');
-      if (input) input.type = input.type === 'password' ? 'text' : 'password';
-    }
+    function normTexto(s) { return s ? String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '') : ''; }
+    function toggleVisibilidadPassword() { const input = document.getElementById('loginPass'); if (input) input.type = input.type === 'password' ? 'text' : 'password'; }
 
     async function ejecutarLogin() {
       const user = document.getElementById('loginUser').value;
@@ -499,28 +371,17 @@
       const errBox = document.getElementById('loginError');
       const btn = document.getElementById('btnSubmitLogin');
 
-      errBox.style.display = 'none';
-      btn.disabled = true;
-      btn.innerHTML = 'Validando credenciales...';
+      errBox.style.display = 'none'; btn.disabled = true; btn.innerHTML = 'Validando...';
 
       try {
         const urlLogin = `${API_URL_AUTH}?accion=login&usuario=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
-        const data = await cargarJsonp(urlLogin);
+        let data = null;
+        try { const res = await fetch(urlLogin); data = await res.json(); } catch (e) { data = await cargarJsonp(urlLogin); }
 
-        if (data && data.exito) {
-          localStorage.setItem('cmi_usuario_logueado', JSON.stringify(data));
-          desbloquearPortal(data);
-        } else {
-          errBox.textContent = (data && data.mensaje) ? data.mensaje : 'Credenciales inválidas.';
-          errBox.style.display = 'block';
-        }
-      } catch (err) {
-        errBox.textContent = 'Error de conexión con el servidor.';
-        errBox.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span>Ingresar al Portal</span> ➔';
-      }
+        if (data && data.exito) { localStorage.setItem('cmi_usuario_logueado', JSON.stringify(data)); desbloquearPortal(data); } 
+        else { errBox.textContent = data?.mensaje || 'Credenciales inválidas.'; errBox.style.display = 'block'; }
+      } catch (err) { errBox.textContent = 'Error de conexión.'; errBox.style.display = 'block'; } 
+      finally { btn.disabled = false; btn.innerHTML = '<span>Ingresar al Portal</span> ➔'; }
     }
 
     function desbloquearPortal(userData) {
@@ -531,19 +392,8 @@
       cargarDatos(true);
     }
 
-    function cerrarSesion() {
-      localStorage.removeItem('cmi_usuario_logueado');
-      location.reload();
-    }
-
-    function verificarSesionGuardada() {
-      const sesion = localStorage.getItem('cmi_usuario_logueado');
-      if (sesion) {
-        try { desbloquearPortal(JSON.parse(sesion)); return true; } catch(e) {}
-      }
-      return false;
-    }
-
+    function cerrarSesion() { localStorage.removeItem('cmi_usuario_logueado'); location.reload(); }
+    function verificarSesionGuardada() { const sesion = localStorage.getItem('cmi_usuario_logueado'); if (sesion) { try { desbloquearPortal(JSON.parse(sesion)); return true; } catch(e) {} } return false; }
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
     function cargarJsonp(url, timeoutMs = 25000) {
@@ -551,35 +401,20 @@
         const callbackName = 'gvizCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
         const script = document.createElement('script');
         let finalizado = false;
-
-        const limpiar = () => {
-          finalizado = true;
-          delete window[callbackName];
-          if (script.parentNode) script.parentNode.removeChild(script);
-        };
-
+        const limpiar = () => { finalizado = true; delete window[callbackName]; if (script.parentNode) script.parentNode.removeChild(script); };
         setTimeout(() => { if (!finalizado) { limpiar(); resolve(null); } }, timeoutMs);
-
-        window[callbackName] = (json) => {
-          if (!finalizado) { limpiar(); resolve(json); }
-        };
-
-        const separador = url.indexOf('?') >= 0 ? '&' : '?';
-        script.src = url + separador + 'callback=' + callbackName;
+        window[callbackName] = (json) => { if (!finalizado) { limpiar(); resolve(json); } };
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
         document.body.appendChild(script);
       });
     }
 
-    /* =========================================================================================
-       NUEVA FUNCIÓN DE FETCH SEGURO (LEE DIRECTO EL JSON QUE NOS ENVIASTE EN LA IMAGEN)
-       ========================================================================================= */
     async function fetchDataSeguro(url) {
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('CORS o status no ok');
+        if (!response.ok) throw new Error('CORS fail');
         return await response.json(); 
       } catch (error) {
-        console.warn("Fetch bloqueado o fallido, usando fallback JSONP", error);
         return await cargarJsonp(url);
       }
     }
@@ -588,28 +423,19 @@
       loader(true);
       try {
         const timestamp = Date.now();
-        
-        // 1. Carga Módulo SLA utilizando la función fetchDataSeguro (lee el Array directamente)
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         const rawSLA = await fetchDataSeguro(urlSLA);
-
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         if (rawSLA && Array.isArray(rawSLA)) dataSLA = procesarDatosSLA(rawSLA);
 
-        // 2. Carga Módulo Maquinaria/General
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         const rawBQ = await fetchDataSeguro(urlGeneral);
-
         let dataBQ = { eventos: [], filtros: {} };
         if (rawBQ && Array.isArray(rawBQ)) dataBQ = procesarDatosBigQuery(rawBQ);
 
         inicializar(dataBQ, dataSLA);
-
-      } catch (e) {
-        console.error("Error general en la carga de datos:", e);
-      } finally {
-        loader(false);
-      }
+      } catch (e) { console.error("Error general:", e); } 
+      finally { loader(false); }
     }
 
     function procesarDatosBigQuery(eventosRaw) {
@@ -619,157 +445,111 @@
           if (clave === 'general' || clave === 'alertasSLA') continue;
           if (MODULOS[clave].acciones && MODULOS[clave].acciones.some(a => normTexto(a) === normAcc)) return clave;
         }
-        return 'mantenimiento';
+        return 'otros';
       }
 
-      const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => ({
-        pedido: String(e.pedido || e.salida || ''),
-        cliente: String(e.cliente || e.nombre || 'Sin cliente'),
-        ciudad: String(e.ciudad || e.nombre_punto_destino || 'Sin ciudad'),
-        fechaSolicitud: String(e.fechaSolicitud || e.fecha || ''),
-        periodo: String(e.periodo || 'Sin fecha'),
-        ano: String(e.ano || 'Sin fecha'),
-        diasProceso: Number(e.diasProceso) || 0,
-        estado: String(e.estado || 'Sin estado'),
-        accion: String(e.accion || 'Mantenimiento'),
-        modulo: moduloDeAccion(e.accion || e.tipo_accion),
-        maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
-        codActivo: String(e.codActivo || e.codigo_activo || ''),
-        observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
-        esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
-      }));
-
-      function unicos(campo) {
-        const vistos = {};
-        eventos.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
-        return Object.keys(vistos).sort((a, b) => b.localeCompare(a, 'es'));
-      }
-
-      return {
-        eventos,
-        filtros: { 
-          anos: unicos('ano'), clientes: unicos('cliente'), ciudades: unicos('ciudad'), 
-          acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') 
-        }
-      };
-    }
-
-    function procesarDatosSLA(rawSLA) {
-      const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => {
-        const rawClasif = (e.clasificador1 !== undefined && e.clasificador1 !== null) 
-          ? String(e.clasificador1).trim().toUpperCase() 
-          : '0';
-
-        let submod = 'permanentes';
-        if (rawClasif === '1') {
-          submod = 'cobrables';
-        } else if (rawClasif === 'ECOMMERCE') {
-          submod = 'ecommerce';
-        } else if (rawClasif === '6' || rawClasif === '7') {
-          submod = 'especiales';
-        }
+      const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => {
+        const fSol = String(e.fechaSolicitud || e.fecha || '');
+        const per = String(e.periodo || 'Sin fecha');
+        let ano = String(e.ano || 'Sin fecha');
+        if (ano === 'Sin fecha' && per.indexOf('-') === 4) ano = per.split('-')[0];
 
         return {
-          pedido: String(e.pedido || ''),
-          cliente: String(e.cliente || 'Sin cliente'),
-          ciudad: String(e.ciudad || 'Sin ciudad'),
-          estadoWMS: String(e.estadoWMS || 'Sin Estado'),
-          clasificador1: String(e.clasificador1 || '0'),
-          submoduloSLA: submod,
-          flagAgotado: String(e.flagAgotado || 'NO'),
-          fechaMontaje: String(e.fechaMontaje || 'Sin fecha'),
-          ano: String(e.ano || 'Sin fecha'),
-          periodo: String(e.periodo || 'Sin fecha'),
-          diasTranscurridos: Number(e.diasTranscurridos) || 0,
-          alertaSLA: String(e.alertaSLA || 'DENTRO_SLA'),
-          totalItems: Number(e.totalItems) || 1,
-          detalleProductos: String(e.detalleProductos || 'Sin detalle')
+          pedido: String(e.pedido || e.salida || ''),
+          cliente: String(e.cliente || e.nombre || 'Sin cliente'),
+          ciudad: String(e.ciudad || e.nombre_punto_destino || 'Sin ciudad'),
+          fechaSolicitud: fSol, periodo: per, ano: ano,
+          diasProceso: Number(e.diasProceso) || 0,
+          estado: String(e.estado || 'Sin estado'),
+          accion: String(e.accion || e.tipo_accion || 'Sin acción'),
+          modulo: moduloDeAccion(e.accion || e.tipo_accion),
+          maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
+          codActivo: String(e.codActivo || e.codigo_activo || ''),
+          observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
+          esFallaCritica: Boolean(e.esFallaCritica),
+          estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
+          programado: false, fechaProgramada: '', tecnicoAsignado: ''
         };
       });
 
-      function unicosSLA(campo) {
-        const vistos = {};
-        eventosSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
-        return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es'));
-      }
+      function unicos(campo) { const vistos = {}; eventos.forEach(e => { if (e[campo]) vistos[e[campo]] = true; }); return Object.keys(vistos).sort((a, b) => b.localeCompare(a, 'es')); }
+      return { eventos, filtros: { anos: unicos('ano'), clientes: unicos('cliente'), ciudades: unicos('ciudad'), acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') } };
+    }
 
-      return {
-        eventosSLA,
-        filtrosSLA: {
-          clientes: unicosSLA('cliente'),
-          ciudades: unicosSLA('ciudad'),
-          estadosWms: unicosSLA('estadoWMS'),
-          alertas: unicosSLA('alertaSLA'),
-          agotados: unicosSLA('flagAgotado')
+    // APLICACIÓN DE LAS NUEVAS REGLAS SLA DIRECTAMENTE EN EL FRONTEND
+    function procesarDatosSLA(rawSLA) {
+      const hoyA = new Date();
+      hoyA.setHours(0,0,0,0);
+
+      const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => {
+        const rawClasif = (e.clasificador1 !== undefined && e.clasificador1 !== null) ? String(e.clasificador1).trim().toUpperCase() : '0';
+        let submod = 'permanentes';
+        if (rawClasif === '1') submod = 'cobrables';
+        else if (rawClasif === 'ECOMMERCE') submod = 'ecommerce';
+        else if (rawClasif === '6' || rawClasif === '7') submod = 'especiales';
+
+        let fechaOriginal = String(e.fechaMontaje || e.fecha || '');
+        let diasCalc = Number(e.diasTranscurridos) || 0;
+        let alertaCalc = 'DENTRO_SLA';
+
+        if (fechaOriginal && fechaOriginal.includes('/')) {
+            const p = fechaOriginal.split('/');
+            if (p.length === 3) {
+                const fMontaje = new Date(p[2], p[1] - 1, p[0]);
+                fMontaje.setHours(0,0,0,0);
+                
+                const diffTime = hoyA.getTime() - fMontaje.getTime();
+                diasCalc = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                if(diasCalc < 0) diasCalc = 0;
+
+                if (submod === 'cobrables' && diasCalc > 3) alertaCalc = 'FUERA_SLA';
+                else if (submod === 'ecommerce' && diasCalc > 1) alertaCalc = 'FUERA_SLA';
+                else if (submod === 'especiales' && diasCalc > 4) alertaCalc = 'FUERA_SLA';
+                else if (submod === 'permanentes') {
+                    if (fMontaje.getMonth() !== hoyA.getMonth() || fMontaje.getFullYear() !== hoyA.getFullYear()) alertaCalc = 'FUERA_SLA';
+                }
+            }
         }
-      };
+
+        return {
+          pedido: String(e.pedido || ''), cliente: String(e.cliente || 'Sin cliente'), ciudad: String(e.ciudad || 'Sin ciudad'), estadoWMS: String(e.estadoWMS || 'Sin Estado'),
+          clasificador1: rawClasif, submoduloSLA: submod, flagAgotado: String(e.flagAgotado || 'NO'),
+          fechaMontaje: fechaOriginal, ano: String(e.ano || 'Sin fecha'), periodo: String(e.periodo || 'Sin fecha'),
+          diasTranscurridos: diasCalc, alertaSLA: alertaCalc,
+          totalItems: Number(e.totalItems) || 1, totalCantSolicitada: Number(e.totalCantSolicitada) || 0, totalCantAlistada: Number(e.totalCantAlistada) || 0,
+          totalCantDespachada: Number(e.totalCantDespachada) || 0, totalCantEntregada: Number(e.totalCantEntregada) || 0, totalPeso: Number(e.totalPeso) || 0,
+          totalVolumen: Number(e.totalVolumen) || 0, detalleProductos: String(e.detalleProductos || 'Sin detalle')
+        };
+      });
+
+      function unicosSLA(campo) { const vistos = {}; eventosSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; }); return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es')); }
+      return { eventosSLA, filtrosSLA: { clientes: unicosSLA('cliente'), ciudades: unicosSLA('ciudad'), estadosWms: unicosSLA('estadoWMS'), alertas: unicosSLA('alertaSLA'), agotados: unicosSLA('flagAgotado') } };
     }
 
     function inicializar(dataBQ, dataSLA) {
-      ESTADO.eventos = dataBQ.eventos || [];
-      ESTADO.filtros = dataBQ.filtros || {};
-      ESTADO.eventosSLA = dataSLA.eventosSLA || [];
-      ESTADO.filtrosSLA = dataSLA.filtrosSLA || {};
-      
+      ESTADO.eventos = dataBQ.eventos || []; ESTADO.filtros = dataBQ.filtros || {};
+      ESTADO.eventosSLA = dataSLA.eventosSLA || []; ESTADO.filtrosSLA = dataSLA.filtrosSLA || {};
       ESTADO.actualizado = new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true });
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
-      
       document.getElementById('badgeMaquinaria').textContent = contarPedidosUnicos(ESTADO.eventos) + " registros";
       document.getElementById('badgePedidos').textContent = contarPedidosUnicos(ESTADO.eventosSLA) + " pedidos";
-
-      poblarCombos();
-      poblarCombosSLA();
-      render();
+      poblarCombos(); poblarCombosSLA(); render();
     }
 
     function cambiarVistaPrincipal(vista) {
       ESTADO.vistaPrincipal = vista;
-      
-      const btnMaq = document.getElementById('btnMainMaquinaria');
-      const btnPed = document.getElementById('btnMainPedidos');
-      const subDockMaq = document.getElementById('subDockMaquinaria');
-      const subDockPed = document.getElementById('subDockPedidos');
-      const barFiltrosSLA = document.getElementById('barFiltrosSLA');
-
-      if (vista === 'maquinaria') {
-        btnMaq.classList.add('active');
-        btnPed.classList.remove('active');
-        subDockMaq.style.display = 'flex';
-        subDockPed.style.display = 'none';
-        barFiltrosSLA.style.display = 'none';
-        document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'flex');
-        ESTADO.moduloSel = 'general';
-      } else {
-        btnPed.classList.add('active');
-        btnMaq.classList.remove('active');
-        subDockMaq.style.display = 'none';
-        subDockPed.style.display = 'flex';
-        barFiltrosSLA.style.display = 'flex';
-        document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'none');
-        ESTADO.moduloSel = 'alertasSLA';
-      }
-
+      document.getElementById('btnMainMaquinaria').classList.toggle('active', vista === 'maquinaria');
+      document.getElementById('btnMainPedidos').classList.toggle('active', vista === 'pedidos');
+      document.getElementById('subDockMaquinaria').style.display = vista === 'maquinaria' ? 'flex' : 'none';
+      document.getElementById('subDockPedidos').style.display = vista === 'pedidos' ? 'flex' : 'none';
+      document.getElementById('barFiltrosSLA').style.display = vista === 'pedidos' ? 'flex' : 'none';
+      document.querySelectorAll('.filter-bq').forEach(el => el.style.display = vista === 'maquinaria' ? 'flex' : 'none');
+      ESTADO.moduloSel = vista === 'maquinaria' ? 'general' : 'alertasSLA';
       render();
     }
 
-    function cambiarSubModulo(subKey) {
-      ESTADO.moduloSel = subKey;
-      document.querySelectorAll('#subDockMaquinaria .sub-dock-item').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) btn.classList.add('active');
-      });
-      render();
-    }
-
-    function cambiarSubModuloSLA(subKey) {
-      ESTADO.submoduloSLA = subKey;
-      document.querySelectorAll('#subDockPedidos .sub-dock-item').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) btn.classList.add('active');
-      });
-      render();
-    }
+    function cambiarSubModulo(subKey) { ESTADO.moduloSel = subKey; document.querySelectorAll('#subDockMaquinaria .sub-dock-item').forEach(btn => { btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${subKey}'`)); }); render(); }
+    function cambiarSubModuloSLA(subKey) { ESTADO.submoduloSLA = subKey; document.querySelectorAll('#subDockPedidos .sub-dock-item').forEach(btn => { btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${subKey}'`)); }); render(); }
 
     function poblarCombos() {
       crearComboMultiples('comboAno', ESTADO.filtros.anos, ESTADO.anoSel, v => { ESTADO.anoSel = v; render(); }, 'Todos los años');
@@ -790,185 +570,99 @@
     }
 
     function crearComboMultiples(contenedorId, opciones, seleccionados, alCambiar, etiquetaTodos) {
-      const container = document.getElementById(contenedorId);
-      if (!container) return;
+      const container = document.getElementById(contenedorId); if (!container) return;
       const opcionesList = opciones || [];
-
       const obtenerTextoBoton = () => {
-        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length) return etiquetaTodos;
-        if (seleccionados.length === 1) return seleccionados[0];
-        return seleccionados.length + ' seleccionados';
+        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length || seleccionados.indexOf('__NINGUNO__') >= 0) return (seleccionados.indexOf('__NINGUNO__') >= 0) ? '0 seleccionados' : etiquetaTodos;
+        return seleccionados.length === 1 ? seleccionados[0] : seleccionados.length + ' seleccionados';
       };
 
       container.innerHTML = `
         <div class="combo-wrap">
           <input type="text" class="combo-input" value="${obtenerTextoBoton()}" readonly>
           <span class="combo-arrow">▾</span>
-          <div class="combo-panel">
-            <input type="text" class="combo-search" placeholder="🔍 Buscar...">
-            <div class="combo-actions">
-              <button type="button" class="btn-all">Todos</button>
-              <button type="button" class="btn-none">Limpiar</button>
-            </div>
-            <div class="combo-list"></div>
-          </div>
+          <div class="combo-panel"><input type="text" class="combo-search" placeholder="🔍 Buscar..."><div class="combo-actions"><button type="button" class="btn-all">Todos</button><button type="button" class="btn-none">Limpiar</button></div><div class="combo-list"></div></div>
         </div>
       `;
 
-      const wrap = container.querySelector('.combo-wrap');
-      const input = container.querySelector('.combo-input');
-      const panel = container.querySelector('.combo-panel');
-      const search = container.querySelector('.combo-search');
-      const list = container.querySelector('.combo-list');
+      const wrap = container.querySelector('.combo-wrap'), input = container.querySelector('.combo-input'), panel = container.querySelector('.combo-panel'), search = container.querySelector('.combo-search'), list = container.querySelector('.combo-list');
 
       const renderizarLista = (filtro) => {
         const filtrados = opcionesList.filter(it => !filtro || it.toLowerCase().indexOf(filtro.toLowerCase()) >= 0);
-        list.innerHTML = filtrados.map(it => {
-          const isChecked = (seleccionados.length === 0 || seleccionados.indexOf(it) >= 0) ? 'checked' : '';
-          return `<label class="combo-item-multi"><input type="checkbox" value="${it}" ${isChecked}><span>${it}</span></label>`;
-        }).join('');
+        if (!filtrados.length) { list.innerHTML = '<div style="padding:8px;font-size:11px;">Sin resultados</div>'; return; }
+        list.innerHTML = filtrados.map(it => { const isChecked = (seleccionados.length === 0 || (seleccionados.indexOf(it) >= 0 && seleccionados.indexOf('__NINGUNO__') < 0)) ? 'checked' : ''; return `<label class="combo-item-multi"><input type="checkbox" value="${it.replace(/"/g, '"')}" ${isChecked}><span>${it}</span></label>`; }).join('');
       };
 
-      input.addEventListener('click', () => {
-        document.querySelectorAll('.combo-panel.show').forEach(p => { if(p !== panel) p.classList.remove('show'); });
-        panel.classList.toggle('show');
-        if (panel.classList.contains('show')) { search.value = ''; renderizarLista(''); search.focus(); }
-      });
-
+      input.addEventListener('click', () => { document.querySelectorAll('.combo-panel.show').forEach(p => { if(p !== panel) p.classList.remove('show'); }); panel.classList.toggle('show'); if (panel.classList.contains('show')) { search.value = ''; renderizarLista(''); search.focus(); } });
       search.addEventListener('input', () => renderizarLista(search.value));
-
       list.addEventListener('change', (e) => {
         if (e.target.tagName === 'INPUT') {
-          const val = e.target.value;
-          if (e.target.checked) { if (seleccionados.indexOf(val) < 0) seleccionados.push(val); } 
-          else { const idx = seleccionados.indexOf(val); if (idx >= 0) seleccionados.splice(idx, 1); }
-          input.value = obtenerTextoBoton(); 
-          alCambiar(seleccionados);
+          const val = e.target.value, idxNinguno = seleccionados.indexOf('__NINGUNO__');
+          if (idxNinguno >= 0) seleccionados.splice(idxNinguno, 1);
+          if (e.target.checked) { if (seleccionados.indexOf(val) < 0) seleccionados.push(val); } else { const idx = seleccionados.indexOf(val); if (idx >= 0) seleccionados.splice(idx, 1); }
+          if (seleccionados.length === opcionesList.length) seleccionados.length = 0;
+          input.value = obtenerTextoBoton(); alCambiar(seleccionados);
         }
       });
-
-      container.querySelector('.btn-all').addEventListener('click', (e) => {
-        e.stopPropagation(); seleccionados.length = 0; renderizarLista(search.value);
-        input.value = obtenerTextoBoton(); alCambiar(seleccionados);
-      });
-
-      container.querySelector('.btn-none').addEventListener('click', (e) => {
-        e.stopPropagation(); seleccionados.length = 0; seleccionados.push('__NINGUNO__');
-        list.querySelectorAll('input').forEach(c => c.checked = false);
-        input.value = '0 seleccionados'; alCambiar(seleccionados);
-      });
-
+      container.querySelector('.btn-all').addEventListener('click', (e) => { e.stopPropagation(); seleccionados.length = 0; renderizarLista(search.value); input.value = obtenerTextoBoton(); alCambiar(seleccionados); });
+      container.querySelector('.btn-none').addEventListener('click', (e) => { e.stopPropagation(); seleccionados.length = 0; seleccionados.push('__NINGUNO__'); list.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false); input.value = '0 seleccionados'; alCambiar(seleccionados); });
       document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) panel.classList.remove('show'); });
     }
 
-    function limpiarFiltros() {
-      ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
-      ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = '';
-      poblarCombos(); limpiarFiltrosSLA(); render();
-    }
-
-    function limpiarFiltrosSLA() {
-      ESTADO_SLA.clienteSel = []; ESTADO_SLA.ciudadSel = []; ESTADO_SLA.estadoWmsSel = []; ESTADO_SLA.alertaSel = []; ESTADO_SLA.agotadoSel = [];
-      poblarCombosSLA(); render();
-    }
+    function limpiarFiltros() { ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = []; ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = ''; document.getElementById('inputFechaDia').value = ''; document.getElementById('inputBusqueda').value = ''; poblarCombos(); limpiarFiltrosSLA(); render(); }
+    function limpiarFiltrosSLA() { ESTADO_SLA.clienteSel = []; ESTADO_SLA.ciudadSel = []; ESTADO_SLA.estadoWmsSel = []; ESTADO_SLA.alertaSel = []; ESTADO_SLA.agotadoSel = []; poblarCombosSLA(); render(); }
 
     function filtrarEventos() {
       return ESTADO.eventos.filter(e => {
         if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
-        
-        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
-          const qRaw = ESTADO.busqueda.trim().toLowerCase();
-          const txtMatchRaw = (e.pedido + ' ' + e.codActivo + ' ' + e.maquinaria + ' ' + e.cliente + ' ' + e.observacionDetalle).toLowerCase();
-          if (txtMatchRaw.indexOf(qRaw) < 0) return false;
-        }
-
-        if (ESTADO.anoSel.length > 0 && !ESTADO.anoSel.includes('__NINGUNO__') && !ESTADO.anoSel.includes(e.ano)) return false;
-        if (ESTADO.periodoSel.length > 0 && !ESTADO.periodoSel.includes('__NINGUNO__') && !ESTADO.periodoSel.includes(e.periodo)) return false;
-        if (ESTADO.clienteSel.length > 0 && !ESTADO.clienteSel.includes('__NINGUNO__') && !ESTADO.clienteSel.includes(e.cliente)) return false;
-        if (ESTADO.ciudadSel.length > 0 && !ESTADO.ciudadSel.includes('__NINGUNO__') && !ESTADO.ciudadSel.includes(e.ciudad)) return false;
-        if (ESTADO.estadoSel.length > 0 && !ESTADO.estadoSel.includes('__NINGUNO__') && !ESTADO.estadoSel.includes(e.estado)) return false;
-        if (ESTADO.estadoEntregaSel.length > 0 && !ESTADO.estadoEntregaSel.includes('__NINGUNO__') && !ESTADO.estadoEntregaSel.includes(e.estadoEntrega)) return false;
-        if (ESTADO.accionSel.length > 0 && !ESTADO.accionSel.includes('__NINGUNO__') && !ESTADO.accionSel.includes(e.accion)) return false;
-
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { const qRaw = ESTADO.busqueda.trim().toLowerCase(), qClean = qRaw.replace(/[^a-z0-9]/g, ''), strPedRaw = String(e.pedido || '').toLowerCase(), strPedClean = strPedRaw.replace(/[^a-z0-9]/g, ''); const txtMatchRaw = strPedRaw + ' ' + String(e.codActivo || '').toLowerCase() + ' ' + String(e.maquinaria || '').toLowerCase() + ' ' + String(e.cliente || '').toLowerCase() + ' ' + String(e.observacionDetalle || '').toLowerCase(); if (txtMatchRaw.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; }
+        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO.clienteSel.length > 0 && ESTADO.filtros.clientes && ESTADO.clienteSel.length < ESTADO.filtros.clientes.length && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO.ciudadSel.length > 0 && ESTADO.filtros.ciudades && ESTADO.ciudadSel.length < ESTADO.filtros.ciudades.length && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO.estadoSel.length > 0 && ESTADO.filtros.estados && ESTADO.estadoSel.length < ESTADO.filtros.estados.length && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
+        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.filtros.estadosEntrega && ESTADO.estadoEntregaSel.length < ESTADO.filtros.estadosEntrega.length && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
+        if (ESTADO.accionSel.length > 0 && ESTADO.filtros.acciones && ESTADO.accionSel.length < ESTADO.filtros.acciones.length && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.fechaDiaSel) { const partes = e.fechaSolicitud.split('/'); if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false; }
         return true;
       });
     }
 
     function filtrarEventosSLA() {
       const subSel = String(ESTADO.submoduloSLA || 'todos').toLowerCase();
-
       return ESTADO.eventosSLA.filter(e => {
-        if (subSel !== 'todos' && subSel !== 'todos los pedidos' && e.submoduloSLA !== subSel) {
-          return false;
-        }
-
-        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
-          const qRaw = ESTADO.busqueda.trim().toLowerCase();
-          const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1).toLowerCase();
-          if (matchText.indexOf(qRaw) < 0) return false;
-        }
-
-        if (ESTADO_SLA.clienteSel.length > 0 && !ESTADO_SLA.clienteSel.includes('__NINGUNO__') && !ESTADO_SLA.clienteSel.includes(e.cliente)) return false;
-        if (ESTADO_SLA.ciudadSel.length > 0 && !ESTADO_SLA.ciudadSel.includes('__NINGUNO__') && !ESTADO_SLA.ciudadSel.includes(e.ciudad)) return false;
-        if (ESTADO_SLA.estadoWmsSel.length > 0 && !ESTADO_SLA.estadoWmsSel.includes('__NINGUNO__') && !ESTADO_SLA.estadoWmsSel.includes(e.estadoWMS)) return false;
-        if (ESTADO_SLA.alertaSel.length > 0 && !ESTADO_SLA.alertaSel.includes('__NINGUNO__') && !ESTADO_SLA.alertaSel.includes(e.alertaSLA)) return false;
-
+        if (subSel !== 'todos' && subSel !== 'todos los pedidos' && e.submoduloSLA !== subSel) return false;
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { const qRaw = ESTADO.busqueda.trim().toLowerCase(), qClean = qRaw.replace(/[^a-z0-9]/g, ''), strPedRaw = String(e.pedido || '').toLowerCase(), strPedClean = strPedRaw.replace(/[^a-z0-9]/g, ''); const matchText = strPedRaw + ' ' + String(e.cliente || '').toLowerCase() + ' ' + String(e.ciudad || '').toLowerCase(); if (matchText.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; }
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
         return true;
       });
     }
 
-    function contarPedidosUnicos(evs) {
-      const vistos = {}; evs.forEach(e => { if (e.pedido) vistos[e.pedido] = true; });
-      return Object.keys(vistos).length;
-    }
+    function contarPedidosUnicos(evs) { const vistos = {}; evs.forEach(e => { if (e.pedido) vistos[e.pedido] = true; }); return Object.keys(vistos).length; }
 
     function renderTarjetasAcciones(evs) {
-      const wrap = document.getElementById('accionesSummaryWrap');
-      if (!wrap) return;
-
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        wrap.innerHTML = '';
-        return;
-      }
-
+      const wrap = document.getElementById('accionesSummaryWrap'); if (!wrap) return;
+      if (ESTADO.vistaPrincipal === 'pedidos') { wrap.innerHTML = ''; return; }
       const conteoAcciones = {};
-      evs.forEach(e => {
-        const acc = e.accion || 'Sin especificación';
-        if (!conteoAcciones[acc]) conteoAcciones[acc] = { pedidos: {}, totalItems: 0 };
-        if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true;
-        conteoAcciones[acc].totalItems++;
-      });
-
+      evs.forEach(e => { const acc = e.accion || 'Sin especificación'; if (!conteoAcciones[acc]) conteoAcciones[acc] = { pedidos: {}, totalItems: 0 }; if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true; conteoAcciones[acc].totalItems++; });
       const listaAcciones = Object.keys(conteoAcciones).sort((a, b) => Object.keys(conteoAcciones[b].pedidos).length - Object.keys(conteoAcciones[a].pedidos).length);
-
-      wrap.innerHTML = listaAcciones.map(acc => {
-        const numPedidos = Object.keys(conteoAcciones[acc].pedidos).length;
-        const totalItems = conteoAcciones[acc].totalItems;
-        const conf = CONFIG_ACCIONES[acc] || { icono: '⚡', color: '#0082c8', label: acc };
-
-        return `<div class="card-accion-kpi" style="--accent-color:${conf.color}" onclick="abrirDetalleBarra('Acción', 'accion', '${acc.replace(/'/g, "\\'")}')">
-          <div class="card-accion-title"><span>${conf.label}</span><span>${conf.icono}</span></div>
-          <div class="card-accion-val">${numPedidos}</div>
-          <div class="card-accion-sub">Pedidos únicos (${totalItems} ítems)</div>
-        </div>`;
-      }).join('');
+      wrap.innerHTML = listaAcciones.map(acc => { const numPedidos = Object.keys(conteoAcciones[acc].pedidos).length, totalItems = conteoAcciones[acc].totalItems, conf = CONFIG_ACCIONES[acc] || { icono: '⚡', color: '#0082c8', label: acc }; return `<div class="card-accion-kpi" style="--accent-color:${conf.color}" onclick="abrirDetalleBarra('Acción', 'accion', '${acc.replace(/'/g, "\\'")}')"><div class="card-accion-title"><span>${conf.label}</span><span>${conf.icono}</span></div><div class="card-accion-val">${numPedidos}</div><div class="card-accion-sub">Pedidos únicos (${totalItems} ítems)</div></div>`; }).join('');
     }
 
     function render() {
-      Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
-      CHART_INSTANCES = {};
-
-      const esSLA = (ESTADO.vistaPrincipal === 'pedidos');
-      const evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
-
+      Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); }); CHART_INSTANCES = {};
+      const esSLA = (ESTADO.vistaPrincipal === 'pedidos'), evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
       document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
-
       renderTarjetasAcciones(evs);
-
       const grid = document.getElementById('grid');
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
-
       let html = '';
       if (esSLA) html = renderVistaAlertasSLA(evs);
       else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
@@ -977,37 +671,35 @@
       else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
       else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
       else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
-
       grid.innerHTML = html;
-
-      if (ESTADO.moduloSel !== 'agendador') {
-        setTimeout(() => renderizarGraficosApex(evs), 30);
-      }
+      if (ESTADO.moduloSel !== 'agendador') setTimeout(() => renderizarGraficosApex(evs), 30);
     }
 
     function renderVistaAlertasSLA(evsSLA) {
       const totalPedidos = contarPedidosUnicos(evsSLA);
       const fueraSLA = evsSLA.filter(e => e.alertaSLA === "FUERA_SLA");
       const dentroSLA = evsSLA.filter(e => e.alertaSLA === "DENTRO_SLA");
-
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(fueraSLA)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
         ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
-        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen tiempo límite', 'slaFuera')}
-        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos dentro de norma', 'slaDentro')}
-        ${cardKPI('Cumplimiento Global (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
+        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen el tiempo límite asignado', 'slaFuera')}
+        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Entregados dentro de la norma', 'slaDentro')}
+        ${cardKPI('Nivel de Servicio (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
       </div>
       <div class="col">
+        ${cardChartBoxToggle('Tendencia de Pedidos Únicos', 'chartTendenciaPedidosSLA')}
         ${cardChartBox('Causas y Estados SLA', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
       </div>
       <div class="col">
         ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA', 'cliente', '#0082c8')}
-        ${cardChartBox('Distribución por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
+        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
       </div>`;
     }
 
     function renderVista360(evs) {
+      const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
+      const criticos = evs.filter(e => e.diasProceso >= 3);
       const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
       const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
       const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
@@ -1017,8 +709,11 @@
         ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
         ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
         ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
+        ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
+        ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
       </div>
       <div class="col">
+        ${cardChartBox('Tendencia de Pedidos Únicos (Mes a Mes)', 'chartTendenciaPedidos')}
         ${cardChartBox('Top Fallas Frecuentes', 'chartFallas', 'observacionDetalle', '#0082c8')}
       </div>
       <div class="col">
@@ -1027,113 +722,129 @@
       </div>`;
     }
 
-    function renderMantenimiento(evs) {
-      return `<div class="col">
-        ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')}
-      </div>
-      <div class="col">${cardChartBox('Principales Fallas Reportadas', 'chartFallas', 'observacionDetalle', '#0082c8')}</div>
-      <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos', 'maquinaria', '#7ab833')}</div>`;
-    }
-
-    function renderEntregas(evs) {
-      return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div>
-      <div class="col">${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos', 'maquinaria', '#7ab833')}</div>
-      <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
-
-    function renderRecogidas(evs) {
-      return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
-      <div class="col">${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones', 'accion', '#eab308')}</div>
-      <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
-
-    function renderAccesorios(evs) {
-      return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
-      <div class="col">${cardChartBox('Accesorios Más Pedidos', 'chartEquipos', 'maquinaria', '#7ab833')}</div>
-      <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
+    function renderMantenimiento(evs) { const fallasCrit = evs.filter(e => e.esFallaCritica); return `<div class="col">${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')} ${cardKPI('Fallas Críticas ("En Corto")', contarPedidosUnicos(fallasCrit), 'órdenes', 'rojo', fallasCrit.length + ' casos críticos', 'criticas')}</div><div class="col">${cardChartBox('Tendencia Pedidos Únicos Mantenimiento', 'chartTendenciaPedidos')} ${cardChartBox('Principales Fallas Reportadas', 'chartFallas', 'observacionDetalle', '#0082c8')}</div><div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos', 'maquinaria', '#7ab833')}</div>`; }
+    function renderEntregas(evs) { return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div><div class="col">${cardChartBox('Tendencia Pedidos Únicos Entregas', 'chartTendenciaPedidos')} ${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos', 'maquinaria', '#7ab833')}</div><div class="col">${cardChartBox('Destino por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`; }
+    function renderRecogidas(evs) { return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div><div class="col">${cardChartBox('Tendencia Pedidos Únicos Recogidas', 'chartTendenciaPedidos')} ${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones', 'accion', '#eab308')}</div><div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes', 'cliente', '#0a3356')}</div>`; }
+    function renderAccesorios(evs) { return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div><div class="col">${cardChartBox('Tendencia Pedidos Únicos Accesorios', 'chartTendenciaPedidos')} ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos', 'maquinaria', '#7ab833')}</div><div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`; }
 
     function renderTablaAgendador(evs) {
+      const col = ESTADO.ordenTablaCol, asc = ESTADO.ordenTablaAsc, soloEnProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
+      const ordenados = [...soloEnProceso].sort((a, b) => { let valA = a[col] || '', valB = b[col] || ''; if (typeof valA === 'number') return asc ? valA - valB : valB - valA; return asc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA)); });
+
       return `
         <div style="grid-column: span 3;" class="card">
-          <div class="card-top" style="margin-bottom: 15px;">
-            <span class="card-title">📋 Tabla Control y Programación (Solicitudes En Proceso)</span>
-          </div>
+          <div class="card-top" style="margin-bottom: 15px;"><div><span class="card-title">📋 Tabla Control y Programación (Solicitudes En Proceso)</span><p style="margin:4px 0 0; font-size:12px; color:var(--muted);">Filtra por fecha, cliente o acción y presiona 'Programar' para agendar en la vista calendario.</p></div><button class="btn-refresh" onclick="abrirModalCalendarioAgendado()">📅 Ver Vista Calendario (${ESTADO.eventos.filter(e => e.programado).length} Programados)</button></div>
           <div class="tabla-programacion-wrap">
             <table class="tabla-agendador">
-              <thead>
-                <tr>
-                  <th>Pedido</th>
-                  <th>Cliente</th>
-                  <th>Fecha</th>
-                  <th>Acción</th>
-                  <th>Maquinaria</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${evs.map(e => `
-                  <tr>
-                    <td><b>#${e.pedido}</b></td>
-                    <td>${e.cliente} (${e.ciudad})</td>
-                    <td>${e.fechaSolicitud}</td>
-                    <td><span class="badge-accion">${e.accion}</span></td>
-                    <td>${e.maquinaria}</td>
-                    <td><span class="tag-dias ok">${e.estado}</span></td>
-                  </tr>
-                `).join('')}
-              </tbody>
+              <thead><tr><th onclick="cambiarOrdenTabla('pedido')">Pedido ${col === 'pedido' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('cliente')">Cliente / Ciudad ${col === 'cliente' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('fechaSolicitud')">Fecha Solicitud ${col === 'fechaSolicitud' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('accion')">Acción ${col === 'accion' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('maquinaria')">Maquinaria / Activo ${col === 'maquinaria' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('estado')">Estado ${col === 'estado' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('diasProceso')">Días Proceso ${col === 'diasProceso' ? (asc ? '▲' : '▼') : ''}</th><th style="text-align:center;">Acción Operativa</th></tr></thead>
+              <tbody>${ordenados.map(e => `<tr><td><span class="code-activo">#${e.pedido}</span></td><td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.ciudad}</span></td><td>${e.fechaSolicitud}</td><td><span class="badge-accion">${e.accion}</span></td><td><b>${e.maquinaria}</b> <span style="font-size:11px; color:var(--cl-azul);">${e.codActivo ? '('+e.codActivo+')' : ''}</span></td><td><span class="tag-dias ${e.programado ? 'ok' : 'crit'}">${e.programado ? 'Programado' : 'En proceso'}</span></td><td><span class="tag-dias ${e.diasProceso >= 3 ? 'crit' : 'ok'}">${e.diasProceso} días</span></td><td style="text-align:center;"><button class="btn-action-prog" onclick="abrirModalNuevoAgendamientoDirecto('${e.pedido}', '${e.cliente.replace(/'/g, "\\'")}', '${e.maquinaria.replace(/'/g, "\\'")}', '${e.accion}')">📅 Programar</button></td></tr>`).join('')}</tbody>
             </table>
           </div>
-        </div>
-      `;
+        </div>`;
     }
 
-    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) {
-      return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}', '${valorFiltro || ''}')">
-        <div class="card-top"><span class="card-title">${titulo}</span><span class="dot ${semaforo}"></span></div>
-        <div class="card-body"><span class="big">${valor}</span><span class="u">${unidad}</span></div>
-        <div class="card-foot">${sub}</div>
-      </div>`;
+    function cambiarOrdenTabla(columna) { if (ESTADO.ordenTablaCol === columna) ESTADO.ordenTablaAsc = !ESTADO.ordenTablaAsc; else { ESTADO.ordenTablaCol = columna; ESTADO.ordenTablaAsc = true; } render(); }
+
+    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) { return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}', '${valorFiltro || ''}')"><div class="card-top"><span class="card-title">${titulo}</span><span class="dot ${semaforo}"></span></div><div class="card-body"><span class="big">${valor}</span><span class="u">${unidad}</span></div><div class="card-foot">${sub}</div></div>`; }
+    function cardChartBox(titulo, chartId, campoFiltro, colorHex) { return `<div class="card"><div class="card-top"><span class="card-title">${titulo}</span><button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarCualquierGrafico('${titulo.replace(/'/g, "\\'")}', '${chartId}', '${campoFiltro || ''}', '${colorHex || '#0082c8'}')">⛶</button></div><div id="${chartId}" class="chart-container"></div></div>`; }
+    function cardChartBoxToggle(titulo, chartId) { const g = ESTADO.agrupacionTendenciaSLA || 'mes'; return `<div class="card"><div class="card-top"><span class="card-title">${titulo}</span><div class="chart-controls-right"><div class="chart-toggle-group"><button class="btn-toggle-chart ${g === 'mes' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('mes')">Mes</button><button class="btn-toggle-chart ${g === 'semana' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('semana')">Semana</button><button class="btn-toggle-chart ${g === 'dia' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('dia')">Día</button></div><button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarGraficoPantallaCompleta()">⛶</button></div></div><div id="${chartId}" class="chart-container"></div></div>`; }
+
+    function cambiarAgrupacionTendenciaSLA(tipo) { ESTADO.agrupacionTendenciaSLA = tipo; render(); }
+
+    function ampliarCualquierGrafico(titulo, chartId, campoFiltro, colorHex) {
+      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
+      const modalCard = document.querySelector('.modal-card'); if (modalCard) modalCard.classList.add('modal-fullscreen');
+      document.getElementById('modalTitulo').textContent = '📊 ' + titulo + ' (Vista Pantalla Completa - Top 15)';
+      const body = document.getElementById('modalBody');
+      body.innerHTML = `<div class="fullscreen-chart-wrapper"><div id="expandedCustomChartContainer" style="width: 100%; min-height: 550px;"></div></div>`;
+      document.getElementById('modal').classList.add('show');
+      setTimeout(() => { if (campoFiltro) { const datosTop15 = agrupar(evs, campoFiltro, 15); renderBarraHorizontalCustom('expandedCustomChartContainer', datosTop15, campoFiltro, colorHex, 550); } else { const datosTendencia = agruparPedidosUnicosPorPeriodo(evs); renderGraficoLineaCustom('expandedCustomChartContainer', datosTendencia, colorHex, 1600, 500); } }, 60);
     }
 
-    function cardChartBox(titulo, chartId, campoFiltro, colorHex) {
-      return `<div class="card">
-        <div class="card-top"><span class="card-title">${titulo}</span></div>
-        <div id="${chartId}" class="chart-container"></div>
-      </div>`;
+    function ampliarGraficoPantallaCompleta() {
+      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
+      const datos = agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes');
+      const modalCard = document.querySelector('.modal-card'); if (modalCard) modalCard.classList.add('modal-fullscreen');
+      document.getElementById('modalTitulo').textContent = '📈 Tendencia de Pedidos Únicos (Pantalla Completa - ' + (ESTADO.agrupacionTendenciaSLA || 'mes').toUpperCase() + ')';
+      const body = document.getElementById('modalBody'), anchoCalculado = Math.max(1600, datos.length * 45);
+      body.innerHTML = `<div class="fullscreen-chart-wrapper"><div id="expandedChartContainer" style="width: ${anchoCalculado}px; height: 500px;"></div></div>`;
+      document.getElementById('modal').classList.add('show');
+      setTimeout(() => { renderGraficoLineaCustom('expandedChartContainer', datos, '#0082c8', anchoCalculado, 500); }, 60);
     }
 
-    function agrupar(evs, campo, top) {
-      const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; });
-      return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
+    function agrupar(evs, campo, top) { const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; }); return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6); }
+    function formatearPeriodoTexto(p) { if (!p || p === 'Sin fecha') return 'Sin fecha'; const partes = p.split('-'); if (partes.length === 2) { const ano = partes[0].slice(-2), mesNum = parseInt(partes[1], 10), meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']; if (mesNum >= 1 && mesNum <= 12) return meses[mesNum - 1] + ' ' + ano; } return p; }
+    
+    function agruparPedidosUnicosPorPeriodo(evs) {
+      const conteoPedidos = {};
+      evs.forEach(e => { const p = (e.periodo && e.periodo !== 'Sin fecha') ? e.periodo : 'Sin fecha'; if (!conteoPedidos[p]) conteoPedidos[p] = {}; if (e.pedido) conteoPedidos[p][e.pedido] = true; });
+      return Object.keys(conteoPedidos).sort().map(p => ({ label: formatearPeriodoTexto(p), periodoOriginal: p, val: Object.keys(conteoPedidos[p]).length }));
+    }
+
+    function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
+      const conteo = {}, ordenFechas = {};
+      evsSLA.forEach(e => {
+        let claveLabel = 'Sin fecha', sortKey = 0, rawFecha = e.fechaMontaje || e.periodo || '';
+        if (agrupacion === 'mes') { claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha'; sortKey = e.periodo || '0000-00'; } 
+        else if (agrupacion === 'semana') { if (rawFecha.includes('/')) { const p = rawFecha.split('/'); if (p.length === 3) { const f = new Date(p[2], p[1] - 1, p[0]), primerDiaAno = new Date(f.getFullYear(), 0, 1), numSemana = Math.ceil((((f - primerDiaAno) / 86400000) + primerDiaAno.getDay() + 1) / 7); claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')'; sortKey = p[2] + '-' + String(numSemana).padStart(2, '0'); } } else { claveLabel = e.periodo || 'Sin fecha'; sortKey = e.periodo || '0000-00'; } } 
+        else if (agrupacion === 'dia') { if (rawFecha.includes('/')) { const p = rawFecha.split('/'); if (p.length === 3) { claveLabel = p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0'); sortKey = p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0'); } } else { claveLabel = rawFecha || 'Sin fecha'; sortKey = rawFecha; } }
+        if (!conteo[claveLabel]) { conteo[claveLabel] = {}; ordenFechas[claveLabel] = sortKey; }
+        if (e.pedido) conteo[claveLabel][e.pedido] = true;
+      });
+      return Object.keys(conteo).sort((a, b) => ordenFechas[a] < ordenFechas[b] ? -1 : (ordenFechas[a] > ordenFechas[b] ? 1 : 0)).map(k => ({ label: k, periodoOriginal: k, val: Object.keys(conteo[k]).length }));
     }
 
     function renderizarGraficosApex(evs) {
       if (ESTADO.vistaPrincipal === 'pedidos') {
+        if (document.getElementById('chartTendenciaPedidosSLA')) renderGraficoLinea('chartTendenciaPedidosSLA', agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes'), '#0082c8');
         if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
         if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
         if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
         return;
       }
-
+      if (document.getElementById('chartTendenciaPedidos')) renderGraficoLinea('chartTendenciaPedidos', agruparPedidosUnicosPorPeriodo(evs), '#0082c8');
       if (document.getElementById('chartFallas')) renderBarraHorizontal('chartFallas', agrupar(evs, 'observacionDetalle', 5), 'observacionDetalle', '#0082c8');
       if (document.getElementById('chartEquipos')) renderBarraHorizontal('chartEquipos', agrupar(evs, 'maquinaria', 5), 'maquinaria', '#7ab833');
       if (document.getElementById('chartClientes')) renderBarraHorizontal('chartClientes', agrupar(evs, 'cliente', 5), 'cliente', '#0a3356');
       if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
     }
 
-    function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
+    function renderGraficoLinea(elId, datos, colorHex) { renderGraficoLineaCustom(elId, datos, colorHex, 500, 220); }
+
+    function renderGraficoLineaCustom(elId, datos, colorHex, customWidth, customHeight) {
       const container = document.getElementById(elId); if (!container) return;
-      const options = {
-        series: [{ name: 'Cantidad', data: datos.map(d => d.val) }],
-        chart: { type: 'bar', height: 250, toolbar: { show: false } },
-        plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
-        colors: [colorHex],
-        xaxis: { categories: datos.map(d => d.label) }
-      };
-      CHART_INSTANCES[elId] = new ApexCharts(container, options); 
-      CHART_INSTANCES[elId].render();
+      if (!datos || !datos.length) { container.innerHTML = '<div class="vacio" style="padding: 20px;">Sin datos de tendencia</div>'; return; }
+
+      const width = customWidth || 500, height = customHeight || 220, padding = 50, maxVal = Math.max(...datos.map(d => d.val)) || 1, minVal = 0;
+      const getX = (index) => datos.length === 1 ? width / 2 : padding + (index * (width - padding * 2) / (datos.length - 1));
+      const getY = (val) => height - padding - ((val - minVal) * (height - padding * 2) / (maxVal - minVal || 1));
+      const points = datos.map((d, i) => `${getX(i)},${getY(d.val)}`).join(' '), firstX = getX(0), lastX = getX(datos.length - 1), bottomY = height - padding, areaPoints = `${firstX},${bottomY} ${points} ${lastX},${bottomY}`;
+
+      let gridLines = ''; for (let i = 0; i <= 4; i++) { const yPos = padding + (i * (height - padding * 2) / 4); gridLines += `<line x1="${padding}" y1="${yPos}" x2="${width - padding}" y2="${yPos}" class="area-grid-line" />`; }
+      const esLargo = datos.length > 12;
+
+      let nodesSvg = ''; datos.forEach((d, i) => { const x = getX(i), y = getY(d.val); nodesSvg += `<g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;"><circle cx="${x}" cy="${y}" r="22" fill="transparent" /><circle cx="${x}" cy="${y}" r="6" class="area-node" /><text x="${x}" y="${y - 12}" class="area-node-text" style="font-size: 13px; font-weight: 800; fill: #0a3356;">${d.val}</text><text x="${x}" y="${height - 10}" class="area-node-text" style="fill: #475569; font-size: 12px; font-weight: 700;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 10})"` : ''}>${d.label}</text></g>`; });
+
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" class="area-svg-chart" style="width:${width}px; height:${height}px;"><defs><linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${colorHex}" stop-opacity="0.45" /><stop offset="100%" stop-color="${colorHex}" stop-opacity="0.0" /></linearGradient></defs>${gridLines}<polygon points="${areaPoints}" class="area-path" /><polyline points="${points}" class="line-path" />${nodesSvg}</svg>`;
+      container.onclick = function(e) { const group = e.target.closest('.node-group'); if (group) abrirModalPeriodoDirecto(group.getAttribute('data-label'), group.getAttribute('data-periodo')); };
+    }
+
+    function abrirModalPeriodoDirecto(labelPeriodo, periodoOriginal) {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        const evs = filtrarEventosSLA().filter(e => { let rawFecha = e.fechaMontaje || e.periodo || ''; if (ESTADO.agrupacionTendenciaSLA === 'dia') { if (rawFecha.includes('/')) { const p = rawFecha.split('/'); return p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0') === labelPeriodo; } return rawFecha === labelPeriodo; } if (ESTADO.agrupacionTendenciaSLA === 'mes') { return (e.periodo && formatearPeriodoTexto(e.periodo).toLowerCase() === String(labelPeriodo).toLowerCase()); } return true; });
+        mostrarModalConsolidadoSLA('Solicitudes del periodo / fecha: ' + labelPeriodo, evs); return;
+      }
+      const evs = filtrarEventos().filter(e => { if (!e.periodo || e.periodo === 'Sin fecha') return false; if (periodoOriginal && e.periodo === periodoOriginal) return true; return formatearPeriodoTexto(e.periodo).toLowerCase() === String(labelPeriodo).toLowerCase(); });
+      mostrarModalConsolidado('Solicitudes del periodo: ' + labelPeriodo, evs);
+    }
+
+    function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) { renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, 250); }
+
+    function renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, customHeight) {
+      const container = document.getElementById(elId); if (!container) return;
+      const options = { series: [{ name: 'Cantidad', data: datos.map(d => d.val) }], chart: { type: 'bar', height: customHeight || 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false }, events: { dataPointSelection: function(event, chartContext, config) { if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) { const valor = datos[config.dataPointIndex].label, tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1); abrirDetalleBarra(tituloModal, campoFiltro, valor); } } } }, plotOptions: { bar: { horizontal: true, borderRadius: 6 } }, colors: [colorHex], dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '12px' } }, xaxis: { categories: datos.map(d => d.label) } };
+      CHART_INSTANCES[elId] = new ApexCharts(container, options); CHART_INSTANCES[elId].render();
+      container.onclick = function(e) { const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-yaxis-label, .apexcharts-datalabel'); textNodes.forEach((node) => { if (node.contains(e.target)) { const txt = node.textContent || node.innerText, match = datos.find(d => d.label.toLowerCase().includes(txt.toLowerCase()) || txt.toLowerCase().includes(d.label.toLowerCase())); if (match) { const tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1); abrirDetalleBarra(tituloModal, campoFiltro, match.label); } } }); };
     }
 
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
@@ -1145,68 +856,85 @@
         return;
       }
       let evs = filtrarEventos();
+      if (tipo === 'sla') evs = evs.filter(e => e.diasProceso >= 3);
+      else if (tipo === 'criticas') evs = evs.filter(e => e.esFallaCritica);
+      else if (tipo === 'estado' && valFiltro) evs = evs.filter(e => normTexto(e.estado) === normTexto(valFiltro));
       mostrarModalConsolidado(titulo, evs);
     }
 
     function abrirDetalleBarra(titulo, campo, valor) {
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor);
-        mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs);
-        return;
-      }
-      const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor);
-      mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
+      if (ESTADO.vistaPrincipal === 'pedidos') { const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor); mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs); return; }
+      const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor); mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
     }
 
     function mostrarModalConsolidado(titulo, eventosList) {
-      document.getElementById('modalTitulo').textContent = titulo + ' (' + contarPedidosUnicos(eventosList) + ' Pedidos)';
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + contarPedidosUnicos(eventosList) + ' Pedidos / ' + eventosList.length + ' Equipos)';
       const body = document.getElementById('modalBody');
       if (!eventosList.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
-      body.innerHTML = '<div class="consolidado-container">' + eventosList.map(e => `
-        <div class="pedido-card">
-          <div class="pedido-head">
-            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
-            <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
-          </div>
-          <div class="pedido-body">
-            <div><b>Equipo:</b> ${e.maquinaria} | <b>Acción:</b> ${e.accion}</div>
-          </div>
-        </div>
-      `).join('') + '</div>';
-
+      const agrupadosPorPedido = {}; eventosList.forEach(e => { const p = e.pedido || 'Sin Pedido'; if (!agrupadosPorPedido[p]) agrupadosPorPedido[p] = { pedido: p, cliente: e.cliente, ciudad: e.ciudad, fecha: e.fechaSolicitud, items: [] }; agrupadosPorPedido[p].items.push(e); });
+      const pedidosKeys = Object.keys(agrupadosPorPedido);
+      
+      body.innerHTML = '<div class="consolidado-container">' + pedidosKeys.map(numPed => {
+        const grupo = agrupadosPorPedido[numPed];
+        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido: ${grupo.pedido}</span><span class="pedido-cliente">${grupo.cliente} (${grupo.ciudad})</span><span class="badge-count">${grupo.items.length} equipo(s)</span></div><div class="pedido-body">${grupo.items.map((it, idx) => `<div class="item-row"><div>#${idx+1} <b>${it.maquinaria}</b> <span class="code-activo">${it.codActivo || ''}</span></div><div><span class="badge-accion">${it.accion}</span></div><div><span class="tag-dias ${it.diasProceso >= 3 ? 'crit' : 'ok'}">${it.diasProceso} días</span></div><div>${it.observacionDetalle || 'Sin detalle'}</div></div>`).join('')}</div></div>`;
+      }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
     }
 
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
-      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos Únicos)';
       const body = document.getElementById('modalBody');
       if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
-      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => `
-        <div class="pedido-card">
-          <div class="pedido-head">
-            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
-            <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
-            <span class="tag-dias ${e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok'}">${e.alertaSLA}</span>
-          </div>
-          <div class="pedido-body">
-            <div>📅 <b>Fecha:</b> ${e.fechaMontaje} | 📦 <b>Estado WMS:</b> ${e.estadoWMS} | 🏷️ <b>Clasificador:</b> ${e.clasificador1}</div>
-            <div style="margin-top:6px; font-size:11.5px; color:var(--muted);"><b>Ítems:</b> ${e.detalleProductos}</div>
-          </div>
-        </div>
-      `).join('') + '</div>';
-
+      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
+        let tagClase = e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok';
+        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${e.fechaMontaje}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}</div></div></div>`;
+      }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
     }
 
-    function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
+    function cerrarModal() { document.getElementById('modal').classList.remove('show'); const modalCard = document.querySelector('.modal-card'); if (modalCard) modalCard.classList.remove('modal-fullscreen'); }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); });
-      document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); });
-      if (!verificarSesionGuardada()) loader(false);
-    });
+    function abrirModalCalendarioAgendado() {
+      document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
+      const body = document.getElementById('modalBody');
+      body.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding:0 10px;"><div style="display:flex; align-items:center; gap:10px;"><label style="font-size:12px; font-weight:800; color:var(--cl-azul-dark);">Filtrar por Técnico:</label><select id="selectTecnicoCalendar" class="date-input" style="width:200px; height:36px;" onchange="filtrarCalendarioPorTecnico(this.value)"><option value="todos">Todos los técnicos</option><option value="James">James</option><option value="Carlos">Carlos</option></select></div></div><div id="modalCalendarContainer" style="min-height: 550px; padding:10px;"></div>`;
+      document.getElementById('modal').classList.add('show');
+      setTimeout(() => renderizarCalendarModal(), 100);
+    }
+
+    function renderizarCalendarModal() {
+      const calendarEl = document.getElementById('modalCalendarContainer'); if (!calendarEl) return;
+      const agendados = ESTADO.eventos.filter(e => e.programado), tec = ESTADO.tecnicoFiltroCalendar, filtradosPorTec = (tec === 'todos') ? agendados : agendados.filter(e => e.tecnicoAsignado === tec);
+      const eventosCalendario = filtradosPorTec.map(e => { const conf = CONFIG_ACCIONES[e.accion] || { color: '#0082c8' }; return { title: `#${e.pedido} - ${e.cliente} (${e.tecnicoAsignado})`, start: e.fechaProgramada, backgroundColor: conf.color, borderColor: conf.color, extendedProps: e }; });
+      if (CALENDARIO_INSTANCE) CALENDARIO_INSTANCE.destroy();
+      CALENDARIO_INSTANCE = new FullCalendar.Calendar(calendarEl, { initialView: 'dayGridMonth', initialDate: '2026-08-01', locale: 'es', headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' }, buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' }, events: eventosCalendario, eventClick: function(info) { const datos = info.event.extendedProps; alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado: ${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción: ${datos.accion}`); } });
+      CALENDARIO_INSTANCE.render();
+    }
+
+    function filtrarCalendarioPorTecnico(tec) { ESTADO.tecnicoFiltroCalendar = tec; renderizarCalendarModal(); }
+
+    function abrirModalNuevoAgendamientoDirecto(pedido, cliente, maquinaria, accion) {
+      const body = document.getElementById('modalBody'); document.getElementById('modalTitulo').textContent = 'Programar Pedido #' + pedido;
+      body.innerHTML = `
+        <form style="display: flex; flex-direction: column; gap: 14px;" onsubmit="event.preventDefault(); guardarNuevoAgendamiento();">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label><input type="text" id="agPedido" class="date-input" value="${pedido}" readonly required></div><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label><input type="text" id="agCliente" class="date-input" value="${cliente}" readonly required></div></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label><input type="text" id="agAccion" class="date-input" value="${accion}" readonly required></div><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label><input type="date" id="agFecha" class="date-input" value="2026-08-25" required></div></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label><input type="text" id="agMaquinaria" class="date-input" value="${maquinaria}" readonly required></div><div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO ASIGNADO</label><select id="agTecnico" class="date-input" style="height:40px;"><option value="James">James</option><option value="Carlos">Carlos</option></select></div></div>
+          <div><label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NOTAS OPERATIVAS / OBSERVACIONES</label><input type="text" id="agObs" class="date-input" placeholder="Ej: Ruta mañana - Llevar accesorios completos"></div>
+          <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">💾 Guardar Programación Operativa</button>
+        </form>`;
+      document.getElementById('modal').classList.add('show');
+    }
+
+    function guardarNuevoAgendamiento() {
+      const ped = document.getElementById('agPedido').value, fechaProg = document.getElementById('agFecha').value, tec = document.getElementById('agTecnico').value, obs = document.getElementById('agObs').value, idx = ESTADO.eventos.findIndex(e => e.pedido === ped);
+      if (idx >= 0) { ESTADO.eventos[idx].programado = true; ESTADO.eventos[idx].fechaProgramada = fechaProg; ESTADO.eventos[idx].tecnicoAsignado = tec; ESTADO.eventos[idx].observacionDetalle += ' [Programado con ' + tec + ' el ' + fechaProg + ': ' + obs + ']'; }
+      alert('¡Pedido #' + ped + ' asignado a ' + tec + ' para la fecha ' + fechaProg + '!'); cerrarModal(); render();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); }); document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); }); document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); }); if (!verificarSesionGuardada()) { loader(false); } });
   </script>
 </body>
 </html>
