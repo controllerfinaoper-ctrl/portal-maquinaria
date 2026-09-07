@@ -199,7 +199,6 @@
 </head>
 <body class="no-scroll">
 
-  <!-- SIGN IN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
@@ -365,6 +364,15 @@
     function normTexto(s) { return s ? String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '') : ''; }
     function toggleVisibilidadPassword() { const input = document.getElementById('loginPass'); if (input) input.type = input.type === 'password' ? 'text' : 'password'; }
 
+    // Función Helper de Formateo de Fecha dd/MMMM/YYYY
+    function formatearFechaLarga(fechaStr) {
+      if (!fechaStr || !fechaStr.includes('/')) return fechaStr;
+      const p = fechaStr.split('/');
+      if (p.length !== 3) return fechaStr;
+      const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      return `${p[0].padStart(2, '0')}/${meses[parseInt(p[1], 10) - 1]}/${p[2]}`;
+    }
+
     async function ejecutarLogin() {
       const user = document.getElementById('loginUser').value;
       const pass = document.getElementById('loginPass').value;
@@ -476,7 +484,6 @@
       return { eventos, filtros: { anos: unicos('ano'), clientes: unicos('cliente'), ciudades: unicos('ciudad'), acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') } };
     }
 
-    // APLICACIÓN DE LAS NUEVAS REGLAS DIRECTAMENTE EN EL FRONTEND
     function procesarDatosSLA(rawSLA) {
       const hoyA = new Date();
       hoyA.setHours(0,0,0,0);
@@ -562,10 +569,10 @@
     }
 
     function poblarCombosSLA() {
-      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes');
-      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades');
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
       crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
-      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todos los niveles');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
       crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
     }
 
@@ -737,7 +744,7 @@
           <div class="tabla-programacion-wrap">
             <table class="tabla-agendador">
               <thead><tr><th onclick="cambiarOrdenTabla('pedido')">Pedido ${col === 'pedido' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('cliente')">Cliente / Ciudad ${col === 'cliente' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('fechaSolicitud')">Fecha Solicitud ${col === 'fechaSolicitud' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('accion')">Acción ${col === 'accion' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('maquinaria')">Maquinaria / Activo ${col === 'maquinaria' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('estado')">Estado ${col === 'estado' ? (asc ? '▲' : '▼') : ''}</th><th onclick="cambiarOrdenTabla('diasProceso')">Días Proceso ${col === 'diasProceso' ? (asc ? '▲' : '▼') : ''}</th><th style="text-align:center;">Acción Operativa</th></tr></thead>
-              <tbody>${ordenados.map(e => `<tr><td><span class="code-activo">#${e.pedido}</span></td><td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.ciudad}</span></td><td>${e.fechaSolicitud}</td><td><span class="badge-accion">${e.accion}</span></td><td><b>${e.maquinaria}</b> <span style="font-size:11px; color:var(--cl-azul);">${e.codActivo ? '('+e.codActivo+')' : ''}</span></td><td><span class="tag-dias ${e.programado ? 'ok' : 'crit'}">${e.programado ? 'Programado' : 'En proceso'}</span></td><td><span class="tag-dias ${e.diasProceso >= 3 ? 'crit' : 'ok'}">${e.diasProceso} días</span></td><td style="text-align:center;"><button class="btn-action-prog" onclick="abrirModalNuevoAgendamientoDirecto('${e.pedido}', '${e.cliente.replace(/'/g, "\\'")}', '${e.maquinaria.replace(/'/g, "\\'")}', '${e.accion}')">📅 Programar</button></td></tr>`).join('')}</tbody>
+              <tbody>${ordenados.map(e => `<tr><td><span class="code-activo">#${e.pedido}</span></td><td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.ciudad}</span></td><td>${formatearFechaLarga(e.fechaSolicitud)}</td><td><span class="badge-accion">${e.accion}</span></td><td><b>${e.maquinaria}</b> <span style="font-size:11px; color:var(--cl-azul);">${e.codActivo ? '('+e.codActivo+')' : ''}</span></td><td><span class="tag-dias ${e.programado ? 'ok' : 'crit'}">${e.programado ? 'Programado' : 'En proceso'}</span></td><td><span class="tag-dias ${e.diasProceso >= 3 ? 'crit' : 'ok'}">${e.diasProceso} días</span></td><td style="text-align:center;"><button class="btn-action-prog" onclick="abrirModalNuevoAgendamientoDirecto('${e.pedido}', '${e.cliente.replace(/'/g, "\\'")}', '${e.maquinaria.replace(/'/g, "\\'")}', '${e.accion}')">📅 Programar</button></td></tr>`).join('')}</tbody>
             </table>
           </div>
         </div>`;
@@ -890,7 +897,7 @@
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
         let tagClase = e.alertaSLA === 'Vencido' ? 'crit' : 'ok';
-        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${e.fechaMontaje}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}</div></div></div>`;
+        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}</div></div></div>`;
       }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
     }
