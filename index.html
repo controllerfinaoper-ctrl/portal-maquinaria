@@ -112,6 +112,25 @@
     .user-pill { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; font-size: 12px; }
     .btn-logout { background: transparent; border: none; color: #fca5a5; cursor: pointer; font-weight: 700; font-size: 11px; }
 
+    .video-intro-overlay {
+      position: fixed !important; top: 0 !important; left: 0 !important;
+      width: 100vw !important; height: 100vh !important; z-index: 9999999 !important;
+      background: #000000 !important; overflow: hidden !important;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .4s ease, visibility .4s ease;
+    }
+    .video-intro-overlay.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+    .video-intro-overlay video { width: 100vw !important; height: 100vh !important; object-fit: cover !important; display: block !important; }
+
+    .btn-skip-intro {
+      position: absolute !important; top: 24px !important; right: 28px !important; z-index: 10000000 !important;
+      appearance: none; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(10, 51, 86, 0.9);
+      color: #ffffff; padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6); transition: all .2s ease;
+    }
+    .btn-skip-intro:hover { background: var(--cl-verde); border-color: var(--cl-verde); transform: translateY(-2px) scale(1.04); }
+
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
 
     header {
@@ -245,6 +264,8 @@
     .card-accion-val { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 26px; color: var(--ink); line-height: 1.1; margin-top: 2px; }
     .card-accion-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
 
+    .hint-bar { display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 6px; font-size: 12px; color: #64748b; font-weight: 500; }
+
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; align-items: start; }
     .col { display: flex; flex-direction: column; gap: 16px; }
 
@@ -267,6 +288,23 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
+    .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+    .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
+    .tabla-agendador th:hover { background: #0082c8; }
+    .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
+    .tabla-agendador tr:hover { background: #f1f5f9; }
+    .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
+    .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
+
+    .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
+    .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
+    .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
+    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; transition: all .2s ease; }
+    .node-group:hover .area-node { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
+    .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
+    .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
+
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
       background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
@@ -278,14 +316,32 @@
     .btn-close { border: none; background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; color: #fff; display: grid; place-items: center; }
     .modal-body { padding: 20px; overflow-y: auto; max-height: 75vh; }
 
+    .modal-card.modal-fullscreen {
+      max-width: 96vw !important;
+      width: 96vw !important;
+      height: 92vh !important;
+      max-height: 92vh !important;
+    }
+    .fullscreen-chart-wrapper {
+      width: 100%; height: 100%; min-height: 550px; overflow-x: auto; overflow-y: auto;
+      background: #ffffff; border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: flex-start;
+    }
+
     .consolidado-container { display: flex; flex-direction: column; gap: 14px; }
     .pedido-card { background: #ffffff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
     .pedido-head { background: #f1f5f9; padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .badge-pedido { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 13px; color: var(--cl-azul); background: var(--cl-azul-light); padding: 4px 10px; border-radius: 8px; }
     .pedido-cliente { font-weight: 800; font-size: 13.5px; color: var(--cl-azul-dark); }
+    .badge-count { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; padding: 4px 10px; border-radius: 20px; font-size: 11.5px; }
+
+    .pedido-body { padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 2fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 12.5px; }
+    .code-activo { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--cl-azul); background: var(--cl-azul-light); padding: 2px 7px; border-radius: 6px; font-size: 11px; }
+    .badge-accion { background: #f3f4f6; color: #374151; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
     .tag-dias.ok { background: #dcfce7; color: #15803d; } 
     .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
+    .tag-dias.warn { background: #fef9c3; color: #a16207; }
 
     .vacio { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; }
 
@@ -298,12 +354,12 @@
     @keyframes sp { to { transform: rotate(360deg); } }
 
     @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .item-row { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="no-scroll">
 
-  <!-- SIGN IN -->
+  <!-- LOGIN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
@@ -421,16 +477,17 @@
         </button>
       </div>
 
-      <!-- DOCK MAQUINARIA -->
+      <!-- DOCK SUBMÓDULOS MAQUINARIA -->
       <div class="sub-dock-wrap" id="subDockMaquinaria">
         <button class="sub-dock-item active" onclick="cambiarSubModulo('general')">🧭 Vista 360°</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('mantenimiento')">🛠️ Mantenimiento Correctivo</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('entregas')">🚚 Entregas / Iniciaciones</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('recogidas')">🏁 Recogidas y Cierres</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('accesorios')">🧩 Accesorios y Adicionales</button>
+        <button class="sub-dock-item" onclick="cambiarSubModulo('agendador')">📋 Tabla de Programación</button>
       </div>
 
-      <!-- DOCK SUBMÓDULOS PEDIDOS (CLASIFICADOR1) -->
+      <!-- DOCK SUBMÓDULOS SEGUIMIENTO PEDIDOS (CLASIFICADOR1) -->
       <div class="sub-dock-wrap" id="subDockPedidos" style="display: none;">
         <button class="sub-dock-item active" onclick="cambiarSubModuloSLA('todos')">🌐 Todos los Pedidos</button>
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('permanentes')">🏢 Permanentes (0)</button>
@@ -438,6 +495,12 @@
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('ecommerce')">🛒 Ecommerce</button>
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('especiales')">⭐ Especiales (6 y 7)</button>
       </div>
+    </div>
+
+    <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
+
+    <div class="hint-bar">
+      <span>✨ Clic en cualquier tarjeta o barra interactiva para explorar el desglose por pedido</span>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -462,11 +525,44 @@
       vistaPrincipal: 'maquinaria',
       moduloSel: 'general',
       submoduloSLA: 'todos',
-      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: ''
+      agrupacionTendenciaSLA: 'mes',
+      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: '',
+      ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
+      tecnicoFiltroCalendar: 'todos'
     };
 
     let ESTADO_SLA = { clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: [] };
     let CHART_INSTANCES = {};
+    let CALENDARIO_INSTANCE = null;
+
+    const MODULOS = {
+      general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
+      alertasSLA:    { label: 'Seguimiento Pedidos',        icono: '📦', acciones: null },
+      mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo', 'Mantenimiento'] },
+      entregas:      { label: 'Entregas / Iniciaciones',     icono: '🚚', acciones: ['Iniciacion', 'Iniciación', 'Entrega'] },
+      recogidas:     { label: 'Recogidas y Cierres',         icono: '🏁', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
+      accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
+      agendador:     { label: 'Tabla de Programación',       icono: '📋', acciones: null }
+    };
+
+    const CONFIG_ACCIONES = {
+      'Iniciacion':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
+      'Iniciación':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
+      'MantenimientoCorrectivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
+      'Mantenimiento Correctivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
+      'Mantenimiento':         { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
+      'Recogida':              { icono: '🚚', color: '#eab308', label: 'Recogidas' },
+      'TerminacionContrato':   { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
+      'Terminación Contrato':  { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
+      'CambioAccesorio':       { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
+      'Cambio Accesorio':      { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
+      'Adicional':             { icono: '➕', color: '#06b6d4', label: 'Adicionales' }
+    };
+
+    function normTexto(s) {
+      if (!s) return '';
+      return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    }
 
     function toggleVisibilidadPassword() {
       const input = document.getElementById('loginPass');
@@ -555,7 +651,6 @@
       try {
         const timestamp = Date.now();
         
-        // Carga JSONP directa para evitar bloqueos CORS
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         const rawSLA = await cargarJsonp(urlSLA);
 
@@ -578,6 +673,15 @@
     }
 
     function procesarDatosBigQuery(eventosRaw) {
+      function moduloDeAccion(accion) {
+        const normAcc = normTexto(accion);
+        for (const clave of Object.keys(MODULOS)) {
+          if (clave === 'general' || clave === 'alertasSLA') continue;
+          if (MODULOS[clave].acciones && MODULOS[clave].acciones.some(a => normTexto(a) === normAcc)) return clave;
+        }
+        return 'mantenimiento';
+      }
+
       const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => ({
         pedido: String(e.pedido || e.salida || ''),
         cliente: String(e.cliente || e.nombre || 'Sin cliente'),
@@ -588,11 +692,15 @@
         diasProceso: Number(e.diasProceso) || 0,
         estado: String(e.estado || 'Sin estado'),
         accion: String(e.accion || 'Mantenimiento'),
-        maquinaria: String(e.maquinaria || 'Sin especificar'),
-        codActivo: String(e.codActivo || ''),
-        observacionDetalle: String(e.observacionDetalle || ''),
+        modulo: moduloDeAccion(e.accion || e.tipo_accion),
+        maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
+        codActivo: String(e.codActivo || e.codigo_activo || ''),
+        observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
         esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
+        programado: false,
+        fechaProgramada: '',
+        tecnicoAsignado: ''
       }));
 
       function unicos(campo) {
@@ -635,6 +743,12 @@
           diasTranscurridos: Number(e.diasTranscurridos) || 0,
           alertaSLA: String(e.alertaSLA || 'DENTRO_SLA'),
           totalItems: Number(e.totalItems) || 1,
+          totalCantSolicitada: Number(e.totalCantSolicitada) || 0,
+          totalCantAlistada: Number(e.totalCantAlistada) || 0,
+          totalCantDespachada: Number(e.totalCantDespachada) || 0,
+          totalCantEntregada: Number(e.totalCantEntregada) || 0,
+          totalPeso: Number(e.totalPeso) || 0,
+          totalVolumen: Number(e.totalVolumen) || 0,
           detalleProductos: String(e.detalleProductos || 'Sin detalle')
         };
       });
@@ -690,6 +804,7 @@
         subDockPed.style.display = 'none';
         barFiltrosSLA.style.display = 'none';
         document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'flex');
+        ESTADO.moduloSel = 'general';
       } else {
         btnPed.classList.add('active');
         btnMaq.classList.remove('active');
@@ -697,6 +812,7 @@
         subDockPed.style.display = 'flex';
         barFiltrosSLA.style.display = 'flex';
         document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'none');
+        ESTADO.moduloSel = 'alertasSLA';
       }
 
       render();
@@ -821,6 +937,28 @@
       poblarCombosSLA(); render();
     }
 
+    function filtrarEventos() {
+      return ESTADO.eventos.filter(e => {
+        if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
+        
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
+          const qRaw = ESTADO.busqueda.trim().toLowerCase();
+          const txtMatchRaw = (e.pedido + ' ' + e.codActivo + ' ' + e.maquinaria + ' ' + e.cliente + ' ' + e.observacionDetalle).toLowerCase();
+          if (txtMatchRaw.indexOf(qRaw) < 0) return false;
+        }
+
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO.ciudadSel.length > 0 && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
+        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
+        if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+
+        return true;
+      });
+    }
+
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
         if (ESTADO.submoduloSLA !== 'todos' && e.submoduloSLA !== ESTADO.submoduloSLA) return false;
@@ -845,33 +983,67 @@
       return Object.keys(vistos).length;
     }
 
+    function renderTarjetasAcciones(evs) {
+      const wrap = document.getElementById('accionesSummaryWrap');
+      if (!wrap) return;
+
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        wrap.innerHTML = '';
+        return;
+      }
+
+      const conteoAcciones = {};
+      evs.forEach(e => {
+        const acc = e.accion || 'Sin especificación';
+        if (!conteoAcciones[acc]) conteoAcciones[acc] = { pedidos: {}, totalItems: 0 };
+        if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true;
+        conteoAcciones[acc].totalItems++;
+      });
+
+      const listaAcciones = Object.keys(conteoAcciones).sort((a, b) => Object.keys(conteoAcciones[b].pedidos).length - Object.keys(conteoAcciones[a].pedidos).length);
+
+      wrap.innerHTML = listaAcciones.map(acc => {
+        const numPedidos = Object.keys(conteoAcciones[acc].pedidos).length;
+        const totalItems = conteoAcciones[acc].totalItems;
+        const conf = CONFIG_ACCIONES[acc] || { icono: '⚡', color: '#0082c8', label: acc };
+
+        return `<div class="card-accion-kpi" style="--accent-color:${conf.color}" onclick="abrirDetalleBarra('Acción', 'accion', '${acc.replace(/'/g, "\\'")}')">
+          <div class="card-accion-title"><span>${conf.label}</span><span>${conf.icono}</span></div>
+          <div class="card-accion-val">${numPedidos}</div>
+          <div class="card-accion-sub">Pedidos únicos (${totalItems} ítems)</div>
+        </div>`;
+      }).join('');
+    }
+
     function render() {
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
       CHART_INSTANCES = {};
 
       const esSLA = (ESTADO.vistaPrincipal === 'pedidos');
-      const evs = esSLA ? filtrarEventosSLA() : ESTADO.eventos;
+      const evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
 
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
       document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
 
+      renderTarjetasAcciones(evs);
+
       const grid = document.getElementById('grid');
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
 
-      if (esSLA) grid.innerHTML = renderVistaAlertasSLA(evs);
-      else grid.innerHTML = renderVistaMaquinaria(evs);
-    }
+      let html = '';
+      if (esSLA) html = renderVistaAlertasSLA(evs);
+      else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
+      else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
+      else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
+      else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
+      else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
+      else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
 
-    function renderVistaMaquinaria(evs) {
-      return `<div class="col">
-        ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
-      </div>
-      <div class="col">
-        ${cardChartBox('Mantenimientos por Cliente', 'chartMaquinariaClientes', 'cliente', '#0082c8')}
-      </div>
-      <div class="col">
-        ${cardChartBox('Mantenimientos por Estado', 'chartMaquinariaEstados', 'estado', '#7ab833')}
-      </div>`;
+      grid.innerHTML = html;
+
+      if (ESTADO.moduloSel !== 'agendador') {
+        setTimeout(() => renderizarGraficosApex(evs), 30);
+      }
     }
 
     function renderVistaAlertasSLA(evsSLA) {
@@ -882,21 +1054,107 @@
       const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(fueraSLA)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos en Submódulo', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
-        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen el tiempo límite', 'slaFuera')}
-        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos en tiempo límite', 'slaDentro')}
-        ${cardKPI('Cumplimiento Global', pctCumplimiento + '%', 'SLA', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Nivel de servicio alcanzado', 'slaPct')}
+        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
+        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen tiempo límite', 'slaFuera')}
+        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos en norma', 'slaDentro')}
+        ${cardKPI('Nivel de Servicio (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
       </div>
       <div class="col">
         ${cardChartBox('Causas y Estados SLA', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
       </div>
       <div class="col">
+        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA', 'cliente', '#0082c8')}
         ${cardChartBox('Distribución por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
       </div>`;
     }
 
-    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo) {
-      return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}')">
+    function renderVista360(evs) {
+      const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
+      const criticos = evs.filter(e => e.diasProceso >= 3);
+
+      const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
+      const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
+      const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
+
+      return `<div class="col">
+        ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
+        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
+        ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
+        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Top Fallas Frecuentes', 'chartFallas', 'observacionDetalle', '#0082c8')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Equipos Más Solicitados', 'chartEquipos', 'maquinaria', '#7ab833')}
+        ${cardChartBox('Top Clientes con Requerimientos', 'chartClientes', 'cliente', '#0a3356')}
+      </div>`;
+    }
+
+    function renderMantenimiento(evs) {
+      return `<div class="col">
+        ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')}
+      </div>
+      <div class="col">${cardChartBox('Principales Fallas Reportadas', 'chartFallas', 'observacionDetalle', '#0082c8')}</div>
+      <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos', 'maquinaria', '#7ab833')}</div>`;
+    }
+
+    function renderEntregas(evs) {
+      return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div>
+      <div class="col">${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos', 'maquinaria', '#7ab833')}</div>
+      <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
+    }
+
+    function renderRecogidas(evs) {
+      return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
+      <div class="col">${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones', 'accion', '#eab308')}</div>
+      <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes', 'cliente', '#0a3356')}</div>`;
+    }
+
+    function renderAccesorios(evs) {
+      return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
+      <div class="col">${cardChartBox('Accesorios Más Pedidos', 'chartEquipos', 'maquinaria', '#7ab833')}</div>
+      <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
+    }
+
+    function renderTablaAgendador(evs) {
+      return `
+        <div style="grid-column: span 3;" class="card">
+          <div class="card-top" style="margin-bottom: 15px;">
+            <span class="card-title">📋 Tabla Control y Programación (Solicitudes En Proceso)</span>
+          </div>
+          <div class="tabla-programacion-wrap">
+            <table class="tabla-agendador">
+              <thead>
+                <tr>
+                  <th>Pedido</th>
+                  <th>Cliente</th>
+                  <th>Fecha</th>
+                  <th>Acción</th>
+                  <th>Maquinaria</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${evs.map(e => `
+                  <tr>
+                    <td><b>#${e.pedido}</b></td>
+                    <td>${e.cliente} (${e.ciudad})</td>
+                    <td>${e.fechaSolicitud}</td>
+                    <td><span class="badge-accion">${e.accion}</span></td>
+                    <td>${e.maquinaria}</td>
+                    <td><span class="tag-dias ok">${e.estado}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) {
+      return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}', '${valorFiltro || ''}')">
         <div class="card-top"><span class="card-title">${titulo}</span><span class="dot ${semaforo}"></span></div>
         <div class="card-body"><span class="big">${valor}</span><span class="u">${unidad}</span></div>
         <div class="card-foot">${sub}</div>
@@ -910,17 +1168,83 @@
       </div>`;
     }
 
-    function abrirDetalleKpi(titulo, tipo) {
-      let evs = filtrarEventosSLA();
-      if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'FUERA_SLA');
-      else if (tipo === 'slaDentro') evs = evs.filter(e => e.alertaSLA === 'DENTRO_SLA');
-      mostrarModalConsolidadoSLA(titulo, evs);
+    function agrupar(evs, campo, top) {
+      const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; });
+      return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
+    }
+
+    function renderizarGraficosApex(evs) {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
+        if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
+        if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
+        return;
+      }
+
+      if (document.getElementById('chartFallas')) renderBarraHorizontal('chartFallas', agrupar(evs, 'observacionDetalle', 5), 'observacionDetalle', '#0082c8');
+      if (document.getElementById('chartEquipos')) renderBarraHorizontal('chartEquipos', agrupar(evs, 'maquinaria', 5), 'maquinaria', '#7ab833');
+      if (document.getElementById('chartClientes')) renderBarraHorizontal('chartClientes', agrupar(evs, 'cliente', 5), 'cliente', '#0a3356');
+      if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
+    }
+
+    function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
+      const container = document.getElementById(elId); if (!container) return;
+      const options = {
+        series: [{ name: 'Cantidad', data: datos.map(d => d.val) }],
+        chart: { type: 'bar', height: 250, toolbar: { show: false } },
+        plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
+        colors: [colorHex],
+        xaxis: { categories: datos.map(d => d.label) }
+      };
+      CHART_INSTANCES[elId] = new ApexCharts(container, options); 
+      CHART_INSTANCES[elId].render();
+    }
+
+    function abrirDetalleKpi(titulo, tipo, valFiltro) {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        let evs = filtrarEventosSLA();
+        if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'FUERA_SLA');
+        else if (tipo === 'slaDentro') evs = evs.filter(e => e.alertaSLA === 'DENTRO_SLA');
+        mostrarModalConsolidadoSLA(titulo, evs);
+        return;
+      }
+      let evs = filtrarEventos();
+      mostrarModalConsolidado(titulo, evs);
+    }
+
+    function abrirDetalleBarra(titulo, campo, valor) {
+      if (ESTADO.vistaPrincipal === 'pedidos') {
+        const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor);
+        mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs);
+        return;
+      }
+      const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor);
+      mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
+    }
+
+    function mostrarModalConsolidado(titulo, eventosList) {
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + contarPedidosUnicos(eventosList) + ' Pedidos)';
+      const body = document.getElementById('modalBody');
+      if (!eventosList.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
+
+      body.innerHTML = '<div class="consolidado-container">' + eventosList.map(e => `
+        <div class="pedido-card">
+          <div class="pedido-head">
+            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
+            <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
+          </div>
+          <div class="pedido-body">
+            <div><b>Equipo:</b> ${e.maquinaria} | <b>Acción:</b> ${e.accion}</div>
+          </div>
+        </div>
+      `).join('') + '</div>';
+
+      document.getElementById('modal').classList.add('show');
     }
 
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
-      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos Únicos)';
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos)';
       const body = document.getElementById('modalBody');
-
       if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => `
@@ -931,15 +1255,7 @@
             <span class="tag-dias ${e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok'}">${e.alertaSLA}</span>
           </div>
           <div class="pedido-body">
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 12px;">
-              <div>📅 <b>Fecha:</b> ${e.fechaMontaje}</div>
-              <div>⏳ <b>Días:</b> ${e.diasTranscurridos}</div>
-              <div>📦 <b>Estado:</b> ${e.estadoWMS}</div>
-              <div>🏷️ <b>Clasificador:</b> ${e.clasificador1}</div>
-            </div>
-            <div style="margin-top:8px; font-size:11.5px; color:var(--muted); background:#f8fafc; padding:8px; border-radius:8px;">
-              <b>Ítems:</b> ${e.detalleProductos}
-            </div>
+            <div>📅 <b>Fecha:</b> ${e.fechaMontaje} | 📦 <b>Estado:</b> ${e.estadoWMS}</div>
           </div>
         </div>
       `).join('') + '</div>';
