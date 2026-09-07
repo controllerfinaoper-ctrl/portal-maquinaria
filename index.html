@@ -113,25 +113,6 @@
     .user-pill { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; font-size: 12px; }
     .btn-logout { background: transparent; border: none; color: #fca5a5; cursor: pointer; font-weight: 700; font-size: 11px; }
 
-    .video-intro-overlay {
-      position: fixed !important; top: 0 !important; left: 0 !important;
-      width: 100vw !important; height: 100vh !important; z-index: 9999999 !important;
-      background: #000000 !important; overflow: hidden !important;
-      display: flex; align-items: center; justify-content: center;
-      transition: opacity .4s ease, visibility .4s ease;
-    }
-    .video-intro-overlay.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-    .video-intro-overlay video { width: 100vw !important; height: 100vh !important; object-fit: cover !important; display: block !important; }
-
-    .btn-skip-intro {
-      position: absolute !important; top: 24px !important; right: 28px !important; z-index: 10000000 !important;
-      appearance: none; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(10, 51, 86, 0.9);
-      color: #ffffff; padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6); transition: all .2s ease;
-    }
-    .btn-skip-intro:hover { background: var(--cl-verde); border-color: var(--cl-verde); transform: translateY(-2px) scale(1.04); }
-
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
 
     header {
@@ -289,23 +270,6 @@
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
 
-    .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
-    .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
-    .tabla-agendador th:hover { background: #0082c8; }
-    .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
-    .tabla-agendador tr:hover { background: #f1f5f9; }
-    .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
-    .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
-
-    .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
-    .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
-    .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
-    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; transition: all .2s ease; }
-    .node-group:hover .area-node { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
-    .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
-    .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
-
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
       background: rgba(10, 51, 86, 0.7); padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
@@ -324,17 +288,8 @@
       max-height: 92vh !important;
     }
     .fullscreen-chart-wrapper {
-      width: 100%;
-      height: 100%;
-      min-height: 550px;
-      overflow-x: auto;
-      overflow-y: auto;
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
+      width: 100%; height: 100%; min-height: 550px; overflow-x: auto; overflow-y: auto;
+      background: #ffffff; border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: flex-start;
     }
 
     .consolidado-container { display: flex; flex-direction: column; gap: 14px; }
@@ -342,12 +297,6 @@
     .pedido-head { background: #f1f5f9; padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .badge-pedido { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 13px; color: var(--cl-azul); background: var(--cl-azul-light); padding: 4px 10px; border-radius: 8px; }
     .pedido-cliente { font-weight: 800; font-size: 13.5px; color: var(--cl-azul-dark); }
-    .badge-count { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; padding: 4px 10px; border-radius: 20px; font-size: 11.5px; }
-
-    .pedido-body { padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
-    .item-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 2fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 12.5px; }
-    .code-activo { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--cl-azul); background: var(--cl-azul-light); padding: 2px 7px; border-radius: 6px; font-size: 11px; }
-    .badge-accion { background: #f3f4f6; color: #374151; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
     .tag-dias.ok { background: #dcfce7; color: #15803d; } 
     .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
@@ -364,12 +313,12 @@
     @keyframes sp { to { transform: rotate(360deg); } }
 
     @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .item-row { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="no-scroll">
 
-  <!-- MODAL DE INICIO DE SESIÓN EN 3D GLASSMORPHISM -->
+  <!-- SIGN IN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
@@ -403,15 +352,6 @@
         </button>
       </form>
     </div>
-  </div>
-
-  <div id="videoIntroOverlay" class="video-intro-overlay hidden">
-    <button class="btn-skip-intro" onclick="cerrarVideoIntro()">
-      Saltar Video <span>⏭️</span>
-    </button>
-    <video id="introVideoPlayer" muted playsinline onended="cerrarVideoIntro()">
-      <source src="video-introduccion.mp4" type="video/mp4">
-    </video>
   </div>
 
   <div class="wrap">
@@ -481,7 +421,7 @@
               <span class="main-tab-sub">Vista 360°, Mantenimiento, Entregas y Agendador</span>
             </div>
           </div>
-          <span class="main-tab-badge" id="badgeMaquinaria">3,288 registros</span>
+          <span class="main-tab-badge" id="badgeMaquinaria">0 registros</span>
         </button>
 
         <button class="main-tab-btn" id="btnMainPedidos" onclick="cambiarVistaPrincipal('pedidos')">
@@ -492,25 +432,30 @@
               <span class="main-tab-sub">Control de Tiempos y Alertas de Incumplimiento SLA</span>
             </div>
           </div>
-          <span class="main-tab-badge" id="badgePedidos">53 pedidos</span>
+          <span class="main-tab-badge" id="badgePedidos">0 pedidos</span>
         </button>
       </div>
 
+      <!-- DOCK SUBMÓDULOS MAQUINARIA -->
       <div class="sub-dock-wrap" id="subDockMaquinaria">
         <button class="sub-dock-item active" onclick="cambiarSubModulo('general')">🧭 Vista 360°</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('mantenimiento')">🛠️ Mantenimiento Correctivo</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('entregas')">🚚 Entregas / Iniciaciones</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('recogidas')">🏁 Recogidas y Cierres</button>
         <button class="sub-dock-item" onclick="cambiarSubModulo('accesorios')">🧩 Accesorios y Adicionales</button>
-        <button class="sub-dock-item" onclick="cambiarSubModulo('agendador')">📋 Tabla de Programación</button>
+      </div>
+
+      <!-- DOCK SUBMÓDULOS SEGUIMIENTO PEDIDOS (CLASIFICADOR1) -->
+      <div class="sub-dock-wrap" id="subDockPedidos" style="display: none;">
+        <button class="sub-dock-item active" onclick="cambiarSubModuloSLA('todos')">🌐 Todos los Pedidos</button>
+        <button class="sub-dock-item" onclick="cambiarSubModuloSLA('permanentes')">🏢 Permanentes (0)</button>
+        <button class="sub-dock-item" onclick="cambiarSubModuloSLA('cobrables')">💵 Cobrables (1)</button>
+        <button class="sub-dock-item" onclick="cambiarSubModuloSLA('ecommerce')">🛒 Ecommerce</button>
+        <button class="sub-dock-item" onclick="cambiarSubModuloSLA('especiales')">⭐ Especiales (6 y 7)</button>
       </div>
     </div>
 
     <div class="acciones-summary-wrap" id="accionesSummaryWrap"></div>
-
-    <div class="hint-bar">
-      <span>✨ Clic en cualquier tarjeta o barra interactiva para explorar el desglose por pedido</span>
-    </div>
 
     <div class="grid" id="grid"></div>
   </div>
@@ -533,10 +478,9 @@
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
       vistaPrincipal: 'maquinaria',
       moduloSel: 'general',
+      submoduloSLA: 'todos',
       agrupacionTendenciaSLA: 'mes',
-      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, modulos: {}, actualizado: '',
-      ordenTablaCol: 'diasProceso', ordenTablaAsc: false,
-      tecnicoFiltroCalendar: 'todos'
+      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: ''
     };
 
     let ESTADO_SLA = {
@@ -544,39 +488,6 @@
     };
 
     let CHART_INSTANCES = {};
-    let CALENDARIO_INSTANCE = null;
-
-    const MODULOS = {
-      general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
-      alertasSLA:    { label: 'Seguimiento Pedidos',        icono: '📦', acciones: null },
-      mantenimiento: { label: 'Mantenimiento Correctivo',    icono: '🛠️', acciones: ['MantenimientoCorrectivo', 'Mantenimiento Correctivo'] },
-      entregas:      { label: 'Entregas / Iniciaciones',     icono: '🚚', acciones: ['Iniciacion', 'Iniciación'] },
-      recogidas:     { label: 'Recogidas y Cierres',         icono: '🏁', acciones: ['Recogida', 'TerminacionContrato', 'Terminación Contrato'] },
-      accesorios:    { label: 'Accesorios y Adicionales',    icono: '🧩', acciones: ['CambioAccesorio', 'Cambio Accesorio', 'Adicional'] },
-      agendador:     { label: 'Tabla de Programación',       icono: '📋', acciones: null }
-    };
-
-    const CONFIG_ACCIONES = {
-      'Iniciacion':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
-      'Iniciación':            { icono: '📦', color: '#7ab833', label: 'Iniciaciones / Entregas' },
-      'MantenimientoCorrectivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
-      'Mantenimiento Correctivo': { icono: '🛠️', color: '#0082c8', label: 'Mantenimientos' },
-      'Recogida':              { icono: '🚚', color: '#eab308', label: 'Recogidas' },
-      'TerminacionContrato':   { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
-      'Terminación Contrato':  { icono: '🏁', color: '#ef4444', label: 'Terminaciones Contrato' },
-      'CambioAccesorio':       { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
-      'Cambio Accesorio':      { icono: '🧩', color: '#8b5cf6', label: 'Cambio de Accesorios' },
-      'Adicional':             { icono: '➕', color: '#06b6d4', label: 'Adicionales' }
-    };
-
-    // EFECTO 3D DE MOVIMIENTO EN EL LOGIN
-    document.addEventListener('mousemove', (e) => {
-      const card = document.getElementById('signinCard');
-      if (!card || document.getElementById('signinOverlay').classList.contains('hidden')) return;
-      const x = (window.innerWidth / 2 - e.pageX) / 25;
-      const y = (window.innerHeight / 2 - e.pageY) / 25;
-      card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-    });
 
     function toggleVisibilidadPassword() {
       const input = document.getElementById('loginPass');
@@ -596,7 +507,6 @@
       try {
         const urlLogin = `${API_URL_AUTH}?accion=login&usuario=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
         let data = null;
-
         try {
           const res = await fetch(urlLogin);
           data = await res.json();
@@ -625,7 +535,6 @@
       document.body.classList.remove('no-scroll');
       document.getElementById('userContainer').style.display = 'flex';
       document.getElementById('userNameLabel').textContent = '👤 ' + (userData.nombre || userData.usuario);
-      
       cargarDatos(true);
     }
 
@@ -638,35 +547,12 @@
       const sesion = localStorage.getItem('cmi_usuario_logueado');
       if (sesion) {
         try {
-          const userData = JSON.parse(sesion);
-          desbloquearPortal(userData);
+          desbloquearPortal(JSON.parse(sesion));
           return true;
         } catch(e) {}
       }
       return false;
     }
-
-    function cerrarVideoIntro() {
-      const overlay = document.getElementById('videoIntroOverlay');
-      const player = document.getElementById('introVideoPlayer');
-      if (player) player.pause();
-      if (overlay) overlay.classList.add('hidden');
-    }
-
-    function normTexto(s) {
-      if (!s) return '';
-      return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); });
-      document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); });
-      document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); });
-      
-      if (!verificarSesionGuardada()) {
-        loader(false);
-      }
-    });
 
     function loader(show) { document.getElementById('loader').classList.toggle('show', !!show); }
 
@@ -682,33 +568,10 @@
           if (script.parentNode) script.parentNode.removeChild(script);
         };
 
-        const timer = setTimeout(() => {
-          if (!finalizado) {
-            limpiar();
-            console.warn(`Timeout al consultar API: ${url}`);
-            resolve(null);
-          }
-        }, timeoutMs);
+        setTimeout(() => { if (!finalizado) { limpiar(); resolve(null); } }, timeoutMs);
 
         window[callbackName] = (json) => {
-          if (!finalizado) {
-            clearTimeout(timer);
-            limpiar();
-            resolve(json);
-          }
-        };
-
-        script.onerror = () => {
-          if (!finalizado) {
-            limpiar();
-            fetch(url)
-              .then(res => res.json())
-              .then(data => resolve(data))
-              .catch(err => {
-                console.error(`Error de red en API: ${url}`, err);
-                resolve(null);
-              });
-          }
+          if (!finalizado) { limpiar(); resolve(json); }
         };
 
         const separador = url.indexOf('?') >= 0 ? '&' : '?';
@@ -724,31 +587,19 @@
         
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         let rawSLA = null;
-        try {
-          const res = await fetch(urlSLA);
-          rawSLA = await res.json();
-        } catch (e) {
-          rawSLA = await cargarJsonp(urlSLA);
-        }
+        try { const res = await fetch(urlSLA); rawSLA = await res.json(); } 
+        catch (e) { rawSLA = await cargarJsonp(urlSLA); }
 
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
-        if (rawSLA && Array.isArray(rawSLA)) {
-          dataSLA = procesarDatosSLA(rawSLA);
-        }
+        if (rawSLA && Array.isArray(rawSLA)) dataSLA = procesarDatosSLA(rawSLA);
 
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         let rawBQ = null;
-        try {
-          const resGen = await fetch(urlGeneral);
-          rawBQ = await resGen.json();
-        } catch (e) {
-          rawBQ = await cargarJsonp(urlGeneral);
-        }
+        try { const resGen = await fetch(urlGeneral); rawBQ = await resGen.json(); } 
+        catch (e) { rawBQ = await cargarJsonp(urlGeneral); }
 
         let dataBQ = { eventos: [], filtros: {} };
-        if (rawBQ && Array.isArray(rawBQ)) {
-          dataBQ = procesarDatosBigQuery(rawBQ);
-        }
+        if (rawBQ && Array.isArray(rawBQ)) dataBQ = procesarDatosBigQuery(rawBQ);
 
         inicializar(dataBQ, dataSLA);
 
@@ -760,48 +611,25 @@
     }
 
     function procesarDatosBigQuery(eventosRaw) {
-      function moduloDeAccion(accion) {
-        const normAcc = normTexto(accion);
-        for (const clave of Object.keys(MODULOS)) {
-          if (clave === 'general' || clave === 'alertasSLA') continue;
-          if (MODULOS[clave].acciones && MODULOS[clave].acciones.some(a => normTexto(a) === normAcc)) return clave;
-        }
-        return 'otros';
-      }
-
-      const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => {
-        const fSol = String(e.fechaSolicitud || e.fecha || '');
-        const per = String(e.periodo || 'Sin fecha');
-        let ano = String(e.ano || 'Sin fecha');
-        
-        if (ano === 'Sin fecha' && per.indexOf('-') === 4) {
-          ano = per.split('-')[0];
-        }
-
-        return {
-          pedido: String(e.pedido || e.salida || ''),
-          cliente: String(e.cliente || e.nombre || 'Sin cliente'),
-          ciudad: String(e.ciudad || e.nombre_punto_destino || 'Sin ciudad'),
-          fechaSolicitud: fSol,
-          periodo: per,
-          ano: ano,
-          diasProceso: Number(e.diasProceso) || 0,
-          estado: String(e.estado || 'Sin estado'),
-          accion: String(e.accion || e.tipo_accion || 'Sin acción'),
-          modulo: moduloDeAccion(e.accion || e.tipo_accion),
-          maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
-          codActivo: String(e.codActivo || e.codigo_activo || ''),
-          observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
-          esFallaCritica: Boolean(e.esFallaCritica),
-          estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
-          programado: false,
-          fechaProgramada: '',
-          tecnicoAsignado: ''
-        };
-      });
+      const eventos = (Array.isArray(eventosRaw) ? eventosRaw : []).map(e => ({
+        pedido: String(e.pedido || e.salida || ''),
+        cliente: String(e.cliente || e.nombre || 'Sin cliente'),
+        ciudad: String(e.ciudad || e.nombre_punto_destino || 'Sin ciudad'),
+        fechaSolicitud: String(e.fechaSolicitud || e.fecha || ''),
+        periodo: String(e.periodo || 'Sin fecha'),
+        ano: String(e.ano || 'Sin fecha'),
+        diasProceso: Number(e.diasProceso) || 0,
+        estado: String(e.estado || 'Sin estado'),
+        accion: String(e.accion || e.tipo_accion || 'Sin acción'),
+        maquinaria: String(e.maquinaria || e.descripcion_producto || 'Sin especificar'),
+        codActivo: String(e.codActivo || e.codigo_activo || ''),
+        observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
+        esFallaCritica: Boolean(e.esFallaCritica),
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
+      }));
 
       function unicos(campo) {
-        const vistos = {}; 
+        const vistos = {};
         eventos.forEach(e => { if (e[campo]) vistos[e[campo]] = true; });
         return Object.keys(vistos).sort((a, b) => b.localeCompare(a, 'es'));
       }
@@ -809,38 +637,46 @@
       return {
         eventos,
         filtros: { 
-          anos: unicos('ano'),
-          clientes: unicos('cliente'), 
-          ciudades: unicos('ciudad'), 
-          acciones: unicos('accion'), 
-          estados: unicos('estado'), 
-          estadosEntrega: unicos('estadoEntrega'), 
-          periodos: unicos('periodo') 
+          anos: unicos('ano'), clientes: unicos('cliente'), ciudades: unicos('ciudad'), 
+          acciones: unicos('accion'), estados: unicos('estado'), estadosEntrega: unicos('estadoEntrega'), periodos: unicos('periodo') 
         }
       };
     }
 
     function procesarDatosSLA(rawSLA) {
-      const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => ({
-        pedido: String(e.pedido || ''),
-        cliente: String(e.cliente || 'Sin cliente'),
-        ciudad: String(e.ciudad || 'Sin ciudad'),
-        estadoWMS: String(e.estadoWMS || 'Sin Estado'),
-        flagAgotado: String(e.flagAgotado || 'No'),
-        fechaMontaje: String(e.fechaMontaje || 'Sin fecha'),
-        ano: String(e.ano || 'Sin fecha'),
-        periodo: String(e.periodo || 'Sin fecha'),
-        diasTranscurridos: Number(e.diasTranscurridos) || 0,
-        alertaSLA: String(e.alertaSLA || 'En plazo / Agotado'),
-        totalItems: Number(e.totalItems) || 1,
-        totalCantSolicitada: Number(e.totalCantSolicitada) || 0,
-        totalCantAlistada: Number(e.totalCantAlistada) || 0,
-        totalCantDespachada: Number(e.totalCantDespachada) || 0,
-        totalCantEntregada: Number(e.totalCantEntregada) || 0,
-        totalPeso: Number(e.totalPeso) || 0,
-        totalVolumen: Number(e.totalVolumen) || 0,
-        detalleProductos: String(e.detalleProductos || 'Sin detalle de productos')
-      }));
+      const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => {
+        const clasif1 = (e.clasificador1 !== undefined && e.clasificador1 !== null && String(e.clasificador1).trim() !== '') 
+          ? String(e.clasificador1).trim() 
+          : '0';
+
+        let submod = 'permanentes';
+        if (clasif1 === '1') submod = 'cobrables';
+        else if (clasif1.toUpperCase() === 'ECOMMERCE') submod = 'ecommerce';
+        else if (clasif1 === '6' || clasif1 === '7') submod = 'especiales';
+
+        return {
+          pedido: String(e.pedido || ''),
+          cliente: String(e.cliente || 'Sin cliente'),
+          ciudad: String(e.ciudad || 'Sin ciudad'),
+          estadoWMS: String(e.estadoWMS || 'Sin Estado'),
+          clasificador1: clasif1,
+          submoduloSLA: submod,
+          flagAgotado: String(e.flagAgotado || 'NO'),
+          fechaMontaje: String(e.fechaMontaje || 'Sin fecha'),
+          ano: String(e.ano || 'Sin fecha'),
+          periodo: String(e.periodo || 'Sin fecha'),
+          diasTranscurridos: Number(e.diasTranscurridos) || 0,
+          alertaSLA: String(e.alertaSLA || 'DENTRO_SLA'),
+          totalItems: Number(e.totalItems) || 1,
+          totalCantSolicitada: Number(e.totalCantSolicitada) || 0,
+          totalCantAlistada: Number(e.totalCantAlistada) || 0,
+          totalCantDespachada: Number(e.totalCantDespachada) || 0,
+          totalCantEntregada: Number(e.totalCantEntregada) || 0,
+          totalPeso: Number(e.totalPeso) || 0,
+          totalVolumen: Number(e.totalVolumen) || 0,
+          detalleProductos: String(e.detalleProductos || 'Sin detalle')
+        };
+      });
 
       function unicosSLA(campo) {
         const vistos = {};
@@ -863,13 +699,10 @@
     function inicializar(dataBQ, dataSLA) {
       ESTADO.eventos = dataBQ.eventos || [];
       ESTADO.filtros = dataBQ.filtros || {};
-      
       ESTADO.eventosSLA = dataSLA.eventosSLA || [];
       ESTADO.filtrosSLA = dataSLA.filtrosSLA || {};
       
-      ESTADO.modulos = MODULOS;
       ESTADO.actualizado = new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true });
-
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
       
       document.getElementById('badgeMaquinaria').textContent = contarPedidosUnicos(ESTADO.eventos) + " registros";
@@ -885,23 +718,24 @@
       
       const btnMaq = document.getElementById('btnMainMaquinaria');
       const btnPed = document.getElementById('btnMainPedidos');
-      const subDock = document.getElementById('subDockMaquinaria');
+      const subDockMaq = document.getElementById('subDockMaquinaria');
+      const subDockPed = document.getElementById('subDockPedidos');
       const barFiltrosSLA = document.getElementById('barFiltrosSLA');
 
       if (vista === 'maquinaria') {
         btnMaq.classList.add('active');
         btnPed.classList.remove('active');
-        subDock.style.display = 'flex';
+        subDockMaq.style.display = 'flex';
+        subDockPed.style.display = 'none';
         barFiltrosSLA.style.display = 'none';
         document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'flex');
-        ESTADO.moduloSel = 'general';
       } else {
         btnPed.classList.add('active');
         btnMaq.classList.remove('active');
-        subDock.style.display = 'none';
+        subDockMaq.style.display = 'none';
+        subDockPed.style.display = 'flex';
         barFiltrosSLA.style.display = 'flex';
         document.querySelectorAll('.filter-bq').forEach(el => el.style.display = 'none');
-        ESTADO.moduloSel = 'alertasSLA';
       }
 
       render();
@@ -909,15 +743,38 @@
 
     function cambiarSubModulo(subKey) {
       ESTADO.moduloSel = subKey;
-      
-      document.querySelectorAll('.sub-dock-item').forEach(btn => {
+      document.querySelectorAll('#subDockMaquinaria .sub-dock-item').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) {
-          btn.classList.add('active');
-        }
+        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) btn.classList.add('active');
       });
-
       render();
+    }
+
+    function cambiarSubModuloSLA(subKey) {
+      ESTADO.submoduloSLA = subKey;
+      document.querySelectorAll('#subDockPedidos .sub-dock-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(`'${subKey}'`)) btn.classList.add('active');
+      });
+      render();
+    }
+
+    function poblarCombos() {
+      crearComboMultiples('comboAno', ESTADO.filtros.anos, ESTADO.anoSel, v => { ESTADO.anoSel = v; render(); }, 'Todos los años');
+      crearComboMultiples('comboPeriodo', ESTADO.filtros.periodos, ESTADO.periodoSel, v => { ESTADO.periodoSel = v; render(); }, 'Todos los periodos');
+      crearComboMultiples('comboCliente', ESTADO.filtros.clientes, ESTADO.clienteSel, v => { ESTADO.clienteSel = v; render(); }, 'Todos los clientes');
+      crearComboMultiples('comboCiudad', ESTADO.filtros.ciudades, ESTADO.ciudadSel, v => { ESTADO.ciudadSel = v; render(); }, 'Todas las ciudades');
+      crearComboMultiples('comboEstado', ESTADO.filtros.estados, ESTADO.estadoSel, v => { ESTADO.estadoSel = v; render(); }, 'Todos los estados');
+      crearComboMultiples('comboEstadoEntrega', ESTADO.filtros.estadosEntrega, ESTADO.estadoEntregaSel, v => { ESTADO.estadoEntregaSel = v; render(); }, 'Todos los estados entrega');
+      crearComboMultiples('comboAccion', ESTADO.filtros.acciones, ESTADO.accionSel, v => { ESTADO.accionSel = v; render(); }, 'Todas las acciones');
+    }
+
+    function poblarCombosSLA() {
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
+      crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
+      crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
     }
 
     function crearComboMultiples(contenedorId, opciones, seleccionados, alCambiar, etiquetaTodos) {
@@ -926,10 +783,7 @@
       const opcionesList = opciones || [];
 
       const obtenerTextoBoton = () => {
-        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length || seleccionados.indexOf('__NINGUNO__') >= 0) {
-          if (seleccionados.indexOf('__NINGUNO__') >= 0) return '0 seleccionados';
-          return etiquetaTodos;
-        }
+        if (!seleccionados || seleccionados.length === 0 || seleccionados.length === opcionesList.length) return etiquetaTodos;
         if (seleccionados.length === 1) return seleccionados[0];
         return seleccionados.length + ' seleccionados';
       };
@@ -957,10 +811,9 @@
 
       const renderizarLista = (filtro) => {
         const filtrados = opcionesList.filter(it => !filtro || it.toLowerCase().indexOf(filtro.toLowerCase()) >= 0);
-        if (!filtrados.length) { list.innerHTML = '<div style="padding:8px;font-size:11px;">Sin resultados</div>'; return; }
         list.innerHTML = filtrados.map(it => {
-          const isChecked = (seleccionados.length === 0 || (seleccionados.indexOf(it) >= 0 && seleccionados.indexOf('__NINGUNO__') < 0)) ? 'checked' : '';
-          return `<label class="combo-item-multi"><input type="checkbox" value="${it.replace(/"/g, '"')}" ${isChecked}><span>${it}</span></label>`;
+          const isChecked = (seleccionados.length === 0 || seleccionados.indexOf(it) >= 0) ? 'checked' : '';
+          return `<label class="combo-item-multi"><input type="checkbox" value="${it}" ${isChecked}><span>${it}</span></label>`;
         }).join('');
       };
 
@@ -975,175 +828,52 @@
       list.addEventListener('change', (e) => {
         if (e.target.tagName === 'INPUT') {
           const val = e.target.value;
-          const idxNinguno = seleccionados.indexOf('__NINGUNO__');
-          if (idxNinguno >= 0) seleccionados.splice(idxNinguno, 1);
-
-          if (e.target.checked) { 
-            if (seleccionados.indexOf(val) < 0) seleccionados.push(val); 
-          } else { 
-            const idx = seleccionados.indexOf(val); 
-            if (idx >= 0) seleccionados.splice(idx, 1); 
-          }
-          
-          if (seleccionados.length === opcionesList.length) seleccionados.length = 0;
+          if (e.target.checked) { if (seleccionados.indexOf(val) < 0) seleccionados.push(val); } 
+          else { const idx = seleccionados.indexOf(val); if (idx >= 0) seleccionados.splice(idx, 1); }
           input.value = obtenerTextoBoton(); 
           alCambiar(seleccionados);
         }
       });
 
       container.querySelector('.btn-all').addEventListener('click', (e) => {
-        e.stopPropagation();
-        seleccionados.length = 0;
-        renderizarLista(search.value); 
-        input.value = obtenerTextoBoton(); 
-        alCambiar(seleccionados);
+        e.stopPropagation(); seleccionados.length = 0; renderizarLista(search.value);
+        input.value = obtenerTextoBoton(); alCambiar(seleccionados);
       });
 
       container.querySelector('.btn-none').addEventListener('click', (e) => {
-        e.stopPropagation();
-        seleccionados.length = 0;
-        seleccionados.push('__NINGUNO__'); 
-        list.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false);
-        input.value = '0 seleccionados'; 
-        alCambiar(seleccionados);
+        e.stopPropagation(); seleccionados.length = 0; seleccionados.push('__NINGUNO__');
+        list.querySelectorAll('input').forEach(c => c.checked = false);
+        input.value = '0 seleccionados'; alCambiar(seleccionados);
       });
 
       document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) panel.classList.remove('show'); });
     }
 
-    function poblarCombos() {
-      crearComboMultiples('comboAno', ESTADO.filtros.anos, ESTADO.anoSel, v => { ESTADO.anoSel = v; render(); }, 'Todos los años');
-      crearComboMultiples('comboPeriodo', ESTADO.filtros.periodos, ESTADO.periodoSel, v => { ESTADO.periodoSel = v; render(); }, 'Todos los periodos');
-      crearComboMultiples('comboCliente', ESTADO.filtros.clientes, ESTADO.clienteSel, v => { ESTADO.clienteSel = v; render(); }, 'Todos los clientes');
-      crearComboMultiples('comboCiudad', ESTADO.filtros.ciudades, ESTADO.ciudadSel, v => { ESTADO.ciudadSel = v; render(); }, 'Todas las ciudades');
-      crearComboMultiples('comboEstado', ESTADO.filtros.estados, ESTADO.estadoSel, v => { ESTADO.estadoSel = v; render(); }, 'Todos los estados');
-      crearComboMultiples('comboEstadoEntrega', ESTADO.filtros.estadosEntrega, ESTADO.estadoEntregaSel, v => { ESTADO.estadoEntregaSel = v; render(); }, 'Todos los estados entrega');
-      crearComboMultiples('comboAccion', ESTADO.filtros.acciones, ESTADO.accionSel, v => { ESTADO.accionSel = v; render(); }, 'Todas las acciones');
-    }
-
-    function poblarCombosSLA() {
-      ESTADO_SLA.clienteSel = [];
-      ESTADO_SLA.ciudadSel = [];
-      ESTADO_SLA.estadoWmsSel = [];
-      ESTADO_SLA.alertaSel = [];
-      ESTADO_SLA.agotadoSel = [];
-
-      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
-      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
-      crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
-      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
-      crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
-    }
-
     function limpiarFiltros() {
       ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = [];
       ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = '';
-      document.getElementById('inputFechaDia').value = '';
-      document.getElementById('inputBusqueda').value = '';
-      poblarCombos(); 
-      limpiarFiltrosSLA();
-      render();
+      poblarCombos(); limpiarFiltrosSLA(); render();
     }
 
     function limpiarFiltrosSLA() {
-      ESTADO_SLA.clienteSel = [];
-      ESTADO_SLA.ciudadSel = [];
-      ESTADO_SLA.estadoWmsSel = [];
-      ESTADO_SLA.alertaSel = [];
-      ESTADO_SLA.agotadoSel = [];
-      poblarCombosSLA();
-      render();
-    }
-
-    function filtrarEventos() {
-      return ESTADO.eventos.filter(e => {
-        if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
-        
-        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
-          const qRaw = ESTADO.busqueda.trim().toLowerCase();
-          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
-
-          const strPedRaw = String(e.pedido || '').toLowerCase();
-          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
-          const strActivo = String(e.codActivo || '').toLowerCase();
-          const strMaquinaria = String(e.maquinaria || '').toLowerCase();
-          const strCliente = String(e.cliente || '').toLowerCase();
-          const strObs = String(e.observacionDetalle || '').toLowerCase();
-
-          const txtMatchRaw = strPedRaw + ' ' + strActivo + ' ' + strMaquinaria + ' ' + strCliente + ' ' + strObs;
-          return (txtMatchRaw.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
-        }
-
-        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
-          if (ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        }
-        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
-          if (ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        }
-        if (ESTADO.clienteSel.length > 0 && ESTADO.filtros.clientes && ESTADO.clienteSel.length < ESTADO.filtros.clientes.length) {
-          if (ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
-        }
-        if (ESTADO.ciudadSel.length > 0 && ESTADO.filtros.ciudades && ESTADO.ciudadSel.length < ESTADO.filtros.ciudades.length) {
-          if (ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        }
-        if (ESTADO.estadoSel.length > 0 && ESTADO.filtros.estados && ESTADO.estadoSel.length < ESTADO.filtros.estados.length) {
-          if (ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
-        }
-        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.filtros.estadosEntrega && ESTADO.estadoEntregaSel.length < ESTADO.filtros.estadosEntrega.length) {
-          if (ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
-        }
-        if (ESTADO.accionSel.length > 0 && ESTADO.filtros.acciones && ESTADO.accionSel.length < ESTADO.filtros.acciones.length) {
-          if (ESTADO.accionSel.indexOf(e.accion) < 0) return false;
-        }
-
-        if (ESTADO.fechaDiaSel) {
-          const partes = e.fechaSolicitud.split('/');
-          if (partes.length === 3) {
-            const fechaNorm = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-            if (fechaNorm !== ESTADO.fechaDiaSel) return false;
-          }
-        }
-        return true;
-      });
+      ESTADO_SLA.clienteSel = []; ESTADO_SLA.ciudadSel = []; ESTADO_SLA.estadoWmsSel = []; ESTADO_SLA.alertaSel = []; ESTADO_SLA.agotadoSel = [];
+      poblarCombosSLA(); render();
     }
 
     function filtrarEventosSLA() {
       return ESTADO.eventosSLA.filter(e => {
+        if (ESTADO.submoduloSLA !== 'todos' && e.submoduloSLA !== ESTADO.submoduloSLA) return false;
+
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
-          const qClean = qRaw.replace(/[^a-z0-9]/g, '');
-
-          const strPedRaw = String(e.pedido || '').toLowerCase();
-          const strPedClean = strPedRaw.replace(/[^a-z0-9]/g, '');
-          const strCli = String(e.cliente || '').toLowerCase();
-          const strCiu = String(e.ciudad || '').toLowerCase();
-
-          const matchText = strPedRaw + ' ' + strCli + ' ' + strCiu;
-          return (matchText.indexOf(qRaw) >= 0 || strPedClean.indexOf(qClean) >= 0);
+          const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1).toLowerCase();
+          if (matchText.indexOf(qRaw) < 0) return false;
         }
 
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length) {
-          if (e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        }
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length) {
-          if (e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        }
-
-        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length) {
-          if (ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
-        }
-        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length) {
-          if (ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        }
-        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length) {
-          if (ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
-        }
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length) {
-          if (ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
-        }
-        if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length) {
-          if (ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
-        }
+        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
 
         return true;
       });
@@ -1154,231 +884,45 @@
       return Object.keys(vistos).length;
     }
 
-    function renderTarjetasAcciones(evs) {
-      const wrap = document.getElementById('accionesSummaryWrap');
-      if (!wrap) return;
-
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        wrap.innerHTML = '';
-        return;
-      }
-
-      const conteoAcciones = {};
-      evs.forEach(e => {
-        const acc = e.accion || 'Sin especificación';
-        if (!conteoAcciones[acc]) conteoAcciones[acc] = { pedidos: {}, totalItems: 0 };
-        if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true;
-        conteoAcciones[acc].totalItems++;
-      });
-
-      const listaAcciones = Object.keys(conteoAcciones).sort((a, b) => Object.keys(conteoAcciones[b].pedidos).length - Object.keys(conteoAcciones[a].pedidos).length);
-
-      wrap.innerHTML = listaAcciones.map(acc => {
-        const numPedidos = Object.keys(conteoAcciones[acc].pedidos).length;
-        const totalItems = conteoAcciones[acc].totalItems;
-        const conf = CONFIG_ACCIONES[acc] || { icono: '⚡', color: '#0082c8', label: acc };
-
-        return `<div class="card-accion-kpi" style="--accent-color:${conf.color}" onclick="abrirDetalleBarra('Acción', 'accion', '${acc.replace(/'/g, "\\'")}')">
-          <div class="card-accion-title"><span>${conf.label}</span><span>${conf.icono}</span></div>
-          <div class="card-accion-val">${numPedidos}</div>
-          <div class="card-accion-sub">Pedidos únicos (${totalItems} ítems)</div>
-        </div>`;
-      }).join('');
-    }
-
     function render() {
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); });
       CHART_INSTANCES = {};
 
       const esSLA = (ESTADO.vistaPrincipal === 'pedidos');
-      const evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
+      const evs = esSLA ? filtrarEventosSLA() : ESTADO.eventos;
 
       document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
       document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
 
-      renderTarjetasAcciones(evs);
-
       const grid = document.getElementById('grid');
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
 
-      let html = '';
-      if (esSLA) html = renderVistaAlertasSLA(evs);
-      else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
-      else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
-      else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
-      else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
-      else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
-      else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
-
-      grid.innerHTML = html;
-
-      if (ESTADO.moduloSel !== 'agendador') {
-        setTimeout(() => renderizarGraficosApex(evs), 30);
-      }
+      if (esSLA) grid.innerHTML = renderVistaAlertasSLA(evs);
     }
 
     function renderVistaAlertasSLA(evsSLA) {
       const totalPedidos = contarPedidosUnicos(evsSLA);
-      const incumplimientos = evsSLA.filter(e => e.alertaSLA === "ALERTA: Incumplimiento");
-      const retrasosAgotados = evsSLA.filter(e => e.alertaSLA === "Retraso por Agotado");
+      const fueraSLA = evsSLA.filter(e => e.alertaSLA === "FUERA_SLA");
+      const dentroSLA = evsSLA.filter(e => e.alertaSLA === "DENTRO_SLA");
 
-      const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(incumplimientos)) / totalPedidos) * 100) : 100;
+      const pctCumplimiento = totalPedidos > 0 ? Math.round(((totalPedidos - contarPedidosUnicos(fueraSLA)) / totalPedidos) * 100) : 100;
 
       return `<div class="col">
-        ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
-        ${cardKPI('Alertas de Incumplimiento (>3d)', contarPedidosUnicos(incumplimientos), 'órdenes', 'rojo', 'Retraso real sin justificación de stock', 'slaIncumplimiento')}
-        ${cardKPI('Retrasos por Agotado en Stock', contarPedidosUnicos(retrasosAgotados), 'órdenes', 'amarillo', 'Retrasos justificados por inventario', 'slaAgotados')}
-        ${cardKPI('Nivel de Servicio (SLA 3 Días)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaSLA')}
+        ${cardKPI('Total Pedidos en Submódulo', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
+        ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen el tiempo límite', 'slaFuera')}
+        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos en tiempo límite', 'slaDentro')}
+        ${cardKPI('Cumplimiento Global', pctCumplimiento + '%', 'SLA', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Nivel de servicio alcanzado', 'slaPct')}
       </div>
       <div class="col">
-        ${cardChartBoxToggle('Tendencia de Pedidos Únicos', 'chartTendenciaPedidosSLA')}
-        ${cardChartBox('Causas de Retraso e Incumplimiento', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
+        ${cardChartBox('Causas y Estados SLA', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
       </div>
       <div class="col">
-        ${cardChartBox('Top Clientes con Pedidos en Alerta', 'chartClientesSLA', 'cliente', '#0082c8')}
-        ${cardChartBox('Distribución de Pedidos por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
+        ${cardChartBox('Distribución por Estado WMS', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
       </div>`;
     }
 
-    function renderVista360(evs) {
-      const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
-      const criticos = evs.filter(e => e.diasProceso >= 3);
-
-      const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
-      const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
-      const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
-
-      return `<div class="col">
-        ${cardKPI('Total Pedidos Únicos', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' ítems en total', 'general')}
-        ${cardKPI('Total Pedidos En Proceso', contarPedidosUnicos(enProceso), 'órdenes', 'amarillo', enProceso.length + ' ítems pendientes', 'estado', 'En proceso')}
-        ${cardKPI('Total Pedidos Cerrados', contarPedidosUnicos(cerrados), 'órdenes', 'verde', cerrados.length + ' ítems finalizados', 'estado', 'Cerrado')}
-        ${cardKPI('Total Pedidos Rechazados', contarPedidosUnicos(rechazados), 'órdenes', 'rojo', rechazados.length + ' ítems rechazados', 'estado', 'Rechazado')}
-        ${cardKPI('Promedio Días en Proceso', promDias, 'días', 'neu', 'Tiempo promedio acumulado', 'general')}
-        ${cardKPI('Fuera de SLA (≥ 3 días)', contarPedidosUnicos(criticos), 'órdenes', criticos.length > 0 ? 'rojo' : 'verde', criticos.length + ' ítems con retraso', 'sla')}
-      </div>
-      <div class="col">
-        ${cardChartBox('Tendencia de Pedidos Únicos (Mes a Mes)', 'chartTendenciaPedidos')}
-        ${cardChartBox('Top Fallas Frecuentes', 'chartFallas', 'observacionDetalle', '#0082c8')}
-      </div>
-      <div class="col">
-        ${cardChartBox('Equipos Más Solicitados', 'chartEquipos', 'maquinaria', '#7ab833')}
-        ${cardChartBox('Top Clientes con Requerimientos', 'chartClientes', 'cliente', '#0a3356')}
-      </div>`;
-    }
-
-    function renderMantenimiento(evs) {
-      const fallasCrit = evs.filter(e => e.esFallaCritica);
-      return `<div class="col">
-        ${cardKPI('Mantenimientos Correctivos', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' averías reportadas', 'general')}
-        ${cardKPI('Fallas Críticas ("En Corto")', contarPedidosUnicos(fallasCrit), 'órdenes', 'rojo', fallasCrit.length + ' casos críticos', 'criticas')}
-      </div>
-      <div class="col">
-        ${cardChartBox('Tendencia Pedidos Únicos Mantenimiento', 'chartTendenciaPedidos')}
-        ${cardChartBox('Principales Fallas Reportadas', 'chartFallas', 'observacionDetalle', '#0082c8')}
-      </div>
-      <div class="col">${cardChartBox('Equipos con Mayor Tasa de Falla', 'chartEquipos', 'maquinaria', '#7ab833')}</div>`;
-    }
-
-    function renderEntregas(evs) {
-      return `<div class="col">${cardKPI('Solicitudes de Entrega', contarPedidosUnicos(evs), 'órdenes', 'verde', evs.length + ' asignados', 'general')}</div>
-      <div class="col">
-        ${cardChartBox('Tendencia Pedidos Únicos Entregas', 'chartTendenciaPedidos')}
-        ${cardChartBox('Equipos Entregados por Tipo', 'chartEquipos', 'maquinaria', '#7ab833')}
-      </div>
-      <div class="col">${cardChartBox('Destino por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
-
-    function renderRecogidas(evs) {
-      return `<div class="col">${cardKPI('Recogidas y Terminaciones', contarPedidosUnicos(evs), 'órdenes', 'amarillo', evs.length + ' retiros', 'general')}</div>
-      <div class="col">
-        ${cardChartBox('Tendencia Pedidos Únicos Recogidas', 'chartTendenciaPedidos')}
-        ${cardChartBox('Motivo de Retiro / Cierre', 'chartAcciones', 'accion', '#eab308')}
-      </div>
-      <div class="col">${cardChartBox('Sedes en Recogida', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
-
-    function renderAccesorios(evs) {
-      return `<div class="col">${cardKPI('Requerimiento de Accesorios', contarPedidosUnicos(evs), 'órdenes', 'neu', evs.length + ' insumos pedidos', 'general')}</div>
-      <div class="col">
-        ${cardChartBox('Tendencia Pedidos Únicos Accesorios', 'chartTendenciaPedidos')}
-        ${cardChartBox('Accesorios Más Pedidos', 'chartEquipos', 'maquinaria', '#7ab833')}
-      </div>
-      <div class="col">${cardChartBox('Consumo por Cliente', 'chartClientes', 'cliente', '#0a3356')}</div>`;
-    }
-
-    function renderTablaAgendador(evs) {
-      const col = ESTADO.ordenTablaCol;
-      const asc = ESTADO.ordenTablaAsc;
-
-      const soloEnProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
-
-      const ordenados = [...soloEnProceso].sort((a, b) => {
-        let valA = a[col] || '';
-        let valB = b[col] || '';
-        if (typeof valA === 'number') return asc ? valA - valB : valB - valA;
-        return asc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
-      });
-
-      return `
-        <div style="grid-column: span 3;" class="card">
-          <div class="card-top" style="margin-bottom: 15px;">
-            <div>
-              <span class="card-title">📋 Tabla Control y Programación (Solicitudes En Proceso)</span>
-              <p style="margin:4px 0 0; font-size:12px; color:var(--muted);">Filtra por fecha, cliente o acción y presiona 'Programar' para agendar en la vista calendario.</p>
-            </div>
-            <button class="btn-refresh" onclick="abrirModalCalendarioAgendado()">📅 Ver Vista Calendario (${ESTADO.eventos.filter(e => e.programado).length} Programados)</button>
-          </div>
-
-          <div class="tabla-programacion-wrap">
-            <table class="tabla-agendador">
-              <thead>
-                <tr>
-                  <th onclick="cambiarOrdenTabla('pedido')">Pedido ${col === 'pedido' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('cliente')">Cliente / Ciudad ${col === 'cliente' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('fechaSolicitud')">Fecha Solicitud ${col === 'fechaSolicitud' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('accion')">Acción ${col === 'accion' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('maquinaria')">Maquinaria / Activo ${col === 'maquinaria' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('estado')">Estado ${col === 'estado' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th onclick="cambiarOrdenTabla('diasProceso')">Días Proceso ${col === 'diasProceso' ? (asc ? '▲' : '▼') : ''}</th>
-                  <th style="text-align:center;">Acción Operativa</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${ordenados.map(e => `
-                  <tr>
-                    <td><span class="code-activo">#${e.pedido}</span></td>
-                    <td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.ciudad}</span></td>
-                    <td>${e.fechaSolicitud}</td>
-                    <td><span class="badge-accion">${e.accion}</span></td>
-                    <td><b>${e.maquinaria}</b> <span style="font-size:11px; color:var(--cl-azul);">${e.codActivo ? '('+e.codActivo+')' : ''}</span></td>
-                    <td><span class="tag-dias ${e.programado ? 'ok' : 'crit'}">${e.programado ? 'Programado' : 'En proceso'}</span></td>
-                    <td><span class="tag-dias ${e.diasProceso >= 3 ? 'crit' : 'ok'}">${e.diasProceso} días</span></td>
-                    <td style="text-align:center;">
-                      <button class="btn-action-prog" onclick="abrirModalNuevoAgendamientoDirecto('${e.pedido}', '${e.cliente.replace(/'/g, "\\'")}', '${e.maquinaria.replace(/'/g, "\\'")}', '${e.accion}')">
-                        📅 Programar
-                      </button>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    function cambiarOrdenTabla(columna) {
-      if (ESTADO.ordenTablaCol === columna) {
-        ESTADO.ordenTablaAsc = !ESTADO.ordenTablaAsc;
-      } else {
-        ESTADO.ordenTablaCol = columna;
-        ESTADO.ordenTablaAsc = true;
-      }
-      render();
-    }
-
-    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo, valorFiltro) {
-      return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}', '${valorFiltro || ''}')">
+    function cardKPI(titulo, valor, unidad, semaforo, sub, filtroTipo) {
+      return `<div class="card clickable" onclick="abrirDetalleKpi('${titulo}', '${filtroTipo}')">
         <div class="card-top"><span class="card-title">${titulo}</span><span class="dot ${semaforo}"></span></div>
         <div class="card-body"><span class="big">${valor}</span><span class="u">${unidad}</span></div>
         <div class="card-foot">${sub}</div>
@@ -1387,635 +931,55 @@
 
     function cardChartBox(titulo, chartId, campoFiltro, colorHex) {
       return `<div class="card">
-        <div class="card-top">
-          <span class="card-title">${titulo}</span>
-          <button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarCualquierGrafico('${titulo.replace(/'/g, "\\'")}', '${chartId}', '${campoFiltro || ''}', '${colorHex || '#0082c8'}')">⛶</button>
-        </div>
+        <div class="card-top"><span class="card-title">${titulo}</span></div>
         <div id="${chartId}" class="chart-container"></div>
       </div>`;
     }
 
-    function cardChartBoxToggle(titulo, chartId) {
-      const g = ESTADO.agrupacionTendenciaSLA || 'mes';
-      return `<div class="card">
-        <div class="card-top">
-          <span class="card-title">${titulo}</span>
-          <div class="chart-controls-right">
-            <div class="chart-toggle-group">
-              <button class="btn-toggle-chart ${g === 'mes' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('mes')">Mes</button>
-              <button class="btn-toggle-chart ${g === 'semana' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('semana')">Semana</button>
-              <button class="btn-toggle-chart ${g === 'dia' ? 'active' : ''}" onclick="cambiarAgrupacionTendenciaSLA('dia')">Día</button>
-            </div>
-            <button class="btn-expand-chart" title="Ver en pantalla completa" onclick="ampliarGraficoPantallaCompleta()">⛶</button>
-          </div>
-        </div>
-        <div id="${chartId}" class="chart-container"></div>
-      </div>`;
-    }
-
-    function cambiarAgrupacionTendenciaSLA(tipo) {
-      ESTADO.agrupacionTendenciaSLA = tipo;
-      render();
-    }
-
-    function ampliarCualquierGrafico(titulo, chartId, campoFiltro, colorHex) {
-      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
-      
-      const modalCard = document.querySelector('.modal-card');
-      if (modalCard) modalCard.classList.add('modal-fullscreen');
-
-      document.getElementById('modalTitulo').textContent = '📊 ' + titulo + ' (Vista Pantalla Completa - Top 15)';
-      const body = document.getElementById('modalBody');
-
-      body.innerHTML = `
-        <div class="fullscreen-chart-wrapper">
-          <div id="expandedCustomChartContainer" style="width: 100%; min-height: 550px;"></div>
-        </div>
-      `;
-
-      document.getElementById('modal').classList.add('show');
-
-      setTimeout(() => {
-        if (campoFiltro) {
-          const datosTop15 = agrupar(evs, campoFiltro, 15);
-          renderBarraHorizontalCustom('expandedCustomChartContainer', datosTop15, campoFiltro, colorHex, 550);
-        } else {
-          const datosTendencia = agruparPedidosUnicosPorPeriodo(evs);
-          renderGraficoLineaCustom('expandedCustomChartContainer', datosTendencia, colorHex, 1600, 500);
-        }
-      }, 60);
-    }
-
-    function ampliarGraficoPantallaCompleta() {
-      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
-      const datos = agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes');
-
-      const modalCard = document.querySelector('.modal-card');
-      if (modalCard) modalCard.classList.add('modal-fullscreen');
-
-      document.getElementById('modalTitulo').textContent = '📈 Tendencia de Pedidos Únicos (Pantalla Completa - ' + (ESTADO.agrupacionTendenciaSLA || 'mes').toUpperCase() + ')';
-      const body = document.getElementById('modalBody');
-
-      const anchoCalculado = Math.max(1600, datos.length * 45);
-
-      body.innerHTML = `
-        <div class="fullscreen-chart-wrapper">
-          <div id="expandedChartContainer" style="width: ${anchoCalculado}px; height: 500px;"></div>
-        </div>
-      `;
-
-      document.getElementById('modal').classList.add('show');
-
-      setTimeout(() => {
-        renderGraficoLineaCustom('expandedChartContainer', datos, '#0082c8', anchoCalculado, 500);
-      }, 60);
-    }
-
-    function agrupar(evs, campo, top) {
-      const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; });
-      return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6);
-    }
-
-    function formatearPeriodoTexto(p) {
-      if (!p || p === 'Sin fecha') return 'Sin fecha';
-      const partes = p.split('-');
-      if (partes.length === 2) {
-        const ano = partes[0].slice(-2);
-        const mesNum = parseInt(partes[1], 10);
-        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        if (mesNum >= 1 && mesNum <= 12) {
-          return meses[mesNum - 1] + ' ' + ano;
-        }
-      }
-      return p;
-    }
-
-    function agruparPedidosUnicosPorPeriodo(evs) {
-      const conteoPedidos = {};
-      evs.forEach(e => {
-        const p = (e.periodo && e.periodo !== 'Sin fecha') ? e.periodo : 'Sin fecha';
-        if (!conteoPedidos[p]) conteoPedidos[p] = {};
-        if (e.pedido) conteoPedidos[p][e.pedido] = true;
-      });
-      const periodos = Object.keys(conteoPedidos).sort();
-      return periodos.map(p => ({ 
-        label: formatearPeriodoTexto(p), 
-        periodoOriginal: p,
-        val: Object.keys(conteoPedidos[p]).length 
-      }));
-    }
-
-    function agruparPedidosSLAEvolutivo(evsSLA, agrupacion) {
-      const conteo = {};
-      const ordenFechas = {};
-
-      evsSLA.forEach(e => {
-        let claveLabel = 'Sin fecha';
-        let sortKey = 0;
-        let rawFecha = e.fechaMontaje || e.periodo || '';
-
-        if (agrupacion === 'mes') {
-          claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha';
-          sortKey = e.periodo || '0000-00';
-        } else if (agrupacion === 'semana') {
-          if (rawFecha.includes('/')) {
-            const p = rawFecha.split('/');
-            if (p.length === 3) {
-              const f = new Date(p[2], p[1] - 1, p[0]);
-              const primerDiaAno = new Date(f.getFullYear(), 0, 1);
-              const numSemana = Math.ceil((((f - primerDiaAno) / 86400000) + primerDiaAno.getDay() + 1) / 7);
-              claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')';
-              sortKey = p[2] + '-' + String(numSemana).padStart(2, '0');
-            }
-          } else {
-            claveLabel = e.periodo || 'Sin fecha';
-            sortKey = e.periodo || '0000-00';
-          }
-        } else if (agrupacion === 'dia') {
-          if (rawFecha.includes('/')) {
-            const p = rawFecha.split('/');
-            if (p.length === 3) {
-              claveLabel = p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0');
-              sortKey = p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0');
-            }
-          } else {
-            claveLabel = rawFecha || 'Sin fecha';
-            sortKey = rawFecha;
-          }
-        }
-
-        if (!conteo[claveLabel]) {
-          conteo[claveLabel] = {};
-          ordenFechas[claveLabel] = sortKey;
-        }
-        if (e.pedido) conteo[claveLabel][e.pedido] = true;
-      });
-
-      const clavesOrdenadas = Object.keys(conteo).sort((a, b) => {
-        if (ordenFechas[a] < ordenFechas[b]) return -1;
-        if (ordenFechas[a] > ordenFechas[b]) return 1;
-        return 0;
-      });
-
-      return clavesOrdenadas.map(k => ({
-        label: k,
-        periodoOriginal: k,
-        val: Object.keys(conteo[k]).length
-      }));
-    }
-
-    function renderizarGraficosApex(evs) {
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        if (document.getElementById('chartTendenciaPedidosSLA')) {
-          const datosTendenciaSLA = agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes');
-          renderGraficoLinea('chartTendenciaPedidosSLA', datosTendenciaSLA, '#0082c8');
-        }
-        if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
-        if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
-        if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
-        return;
-      }
-
-      if (document.getElementById('chartTendenciaPedidos')) {
-        const datosTendencia = agruparPedidosUnicosPorPeriodo(evs);
-        renderGraficoLinea('chartTendenciaPedidos', datosTendencia, '#0082c8');
-      }
-
-      if (document.getElementById('chartFallas')) renderBarraHorizontal('chartFallas', agrupar(evs, 'observacionDetalle', 5), 'observacionDetalle', '#0082c8');
-      if (document.getElementById('chartEquipos')) renderBarraHorizontal('chartEquipos', agrupar(evs, 'maquinaria', 5), 'maquinaria', '#7ab833');
-      if (document.getElementById('chartClientes')) renderBarraHorizontal('chartClientes', agrupar(evs, 'cliente', 5), 'cliente', '#0a3356');
-      if (document.getElementById('chartAcciones')) renderBarraHorizontal('chartAcciones', agrupar(evs, 'accion', 5), 'accion', '#eab308');
-    }
-
-    function renderGraficoLinea(elId, datos, colorHex) {
-      renderGraficoLineaCustom(elId, datos, colorHex, 500, 220);
-    }
-
-    function renderGraficoLineaCustom(elId, datos, colorHex, customWidth, customHeight) {
-      const container = document.getElementById(elId);
-      if (!container) return;
-
-      if (!datos || !datos.length) {
-        container.innerHTML = '<div class="vacio" style="padding: 20px;">Sin datos de tendencia</div>';
-        return;
-      }
-
-      const width = customWidth || 500;
-      const height = customHeight || 220;
-      const padding = 50;
-
-      const maxVal = Math.max(...datos.map(d => d.val)) || 1;
-      const minVal = 0;
-
-      const getX = (index) => {
-        if (datos.length === 1) return width / 2;
-        return padding + (index * (width - padding * 2) / (datos.length - 1));
-      };
-
-      const getY = (val) => {
-        return height - padding - ((val - minVal) * (height - padding * 2) / (maxVal - minVal || 1));
-      };
-
-      const points = datos.map((d, i) => `${getX(i)},${getY(d.val)}`).join(' ');
-      
-      const firstX = getX(0);
-      const lastX = getX(datos.length - 1);
-      const bottomY = height - padding;
-      const areaPoints = `${firstX},${bottomY} ${points} ${lastX},${bottomY}`;
-
-      let gridLines = '';
-      for (let i = 0; i <= 4; i++) {
-        const yPos = padding + (i * (height - padding * 2) / 4);
-        gridLines += `<line x1="${padding}" y1="${yPos}" x2="${width - padding}" y2="${yPos}" class="area-grid-line" />`;
-      }
-
-      const esLargo = datos.length > 12;
-
-      let nodesSvg = '';
-      datos.forEach((d, i) => {
-        const x = getX(i);
-        const y = getY(d.val);
-        
-        nodesSvg += `
-          <g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;">
-            <circle cx="${x}" cy="${y}" r="22" fill="transparent" />
-            <circle cx="${x}" cy="${y}" r="6" class="area-node" />
-            <text x="${x}" y="${y - 12}" class="area-node-text" style="font-size: 13px; font-weight: 800; fill: #0a3356;">${d.val}</text>
-            <text x="${x}" y="${height - 10}" class="area-node-text" style="fill: #475569; font-size: 12px; font-weight: 700;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 10})"` : ''}>${d.label}</text>
-          </g>
-        `;
-      });
-
-      const svgContent = `
-        <svg viewBox="0 0 ${width} ${height}" class="area-svg-chart" style="width:${width}px; height:${height}px;">
-          <defs>
-            <linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#0082c8" stop-opacity="0.45" />
-              <stop offset="100%" stop-color="#0082c8" stop-opacity="0.0" />
-            </linearGradient>
-          </defs>
-          ${gridLines}
-          <polygon points="${areaPoints}" class="area-path" />
-          <polyline points="${points}" class="line-path" />
-          ${nodesSvg}
-        </svg>
-      `;
-
-      container.innerHTML = svgContent;
-
-      container.onclick = function(e) {
-        const group = e.target.closest('.node-group');
-        if (group) {
-          const periodo = group.getAttribute('data-periodo');
-          const label = group.getAttribute('data-label');
-          abrirModalPeriodoDirecto(label, periodo);
-        }
-      };
-    }
-
-    function abrirModalPeriodoDirecto(labelPeriodo, periodoOriginal) {
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        const evs = filtrarEventosSLA().filter(e => {
-          let rawFecha = e.fechaMontaje || e.periodo || '';
-          
-          if (ESTADO.agrupacionTendenciaSLA === 'dia') {
-            if (rawFecha.includes('/')) {
-              const p = rawFecha.split('/');
-              const diaMes = p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0');
-              return diaMes === labelPeriodo;
-            }
-            return rawFecha === labelPeriodo;
-          }
-          
-          if (ESTADO.agrupacionTendenciaSLA === 'mes') {
-            return (e.periodo && formatearPeriodoTexto(e.periodo).toLowerCase() === String(labelPeriodo).toLowerCase());
-          }
-
-          return true;
-        });
-
-        mostrarModalConsolidadoSLA('Solicitudes del periodo / fecha: ' + labelPeriodo, evs);
-        return;
-      }
-
-      const evs = filtrarEventos().filter(e => {
-        if (!e.periodo || e.periodo === 'Sin fecha') return false;
-        if (periodoOriginal && e.periodo === periodoOriginal) return true;
-        return formatearPeriodoTexto(e.periodo).toLowerCase() === String(labelPeriodo).toLowerCase();
-      });
-      
-      mostrarModalConsolidado('Solicitudes del periodo: ' + labelPeriodo, evs);
-    }
-
-    function renderBarraHorizontal(elId, datos, campoFiltro, colorHex) {
-      renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, 250);
-    }
-
-    function renderBarraHorizontalCustom(elId, datos, campoFiltro, colorHex, customHeight) {
-      const container = document.getElementById(elId); if (!container) return;
-      
-      const options = {
-        series: [{ name: 'Cantidad', data: datos.map(d => d.val) }],
-        chart: { 
-          type: 'bar', height: customHeight || 250, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false },
-          events: {
-            dataPointSelection: function(event, chartContext, config) {
-              if (config.dataPointIndex >= 0 && datos[config.dataPointIndex]) {
-                const valor = datos[config.dataPointIndex].label;
-                const tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1);
-                abrirDetalleBarra(tituloModal, campoFiltro, valor);
-              }
-            }
-          }
-        },
-        plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
-        colors: [colorHex],
-        dataLabels: { enabled: true, style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '12px' } },
-        xaxis: { categories: datos.map(d => d.label) }
-      };
-      
-      CHART_INSTANCES[elId] = new ApexCharts(container, options); 
-      CHART_INSTANCES[elId].render();
-
-      container.onclick = function(e) {
-        const textNodes = container.querySelectorAll('.apexcharts-text.apexcharts-yaxis-label, .apexcharts-datalabel');
-        textNodes.forEach((node) => {
-          if (node.contains(e.target)) {
-            const txt = node.textContent || node.innerText;
-            const match = datos.find(d => d.label.toLowerCase().includes(txt.toLowerCase()) || txt.toLowerCase().includes(d.label.toLowerCase()));
-            if (match) {
-              const tituloModal = campoFiltro.charAt(0).toUpperCase() + campoFiltro.slice(1);
-              abrirDetalleBarra(tituloModal, campoFiltro, match.label);
-            }
-          }
-        });
-      };
-    }
-
-    function abrirDetalleKpi(titulo, tipo, valFiltro) {
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        let evs = filtrarEventosSLA();
-        if (tipo === 'slaIncumplimiento') evs = evs.filter(e => e.alertaSLA === 'ALERTA: Incumplimiento');
-        else if (tipo === 'slaAgotados') evs = evs.filter(e => e.alertaSLA === 'Retraso por Agotado');
-        mostrarModalConsolidadoSLA(titulo, evs);
-        return;
-      }
-
-      let evs = filtrarEventos();
-      if (tipo === 'sla') evs = evs.filter(e => e.diasProceso >= 3);
-      else if (tipo === 'criticas') evs = evs.filter(e => e.esFallaCritica);
-      else if (tipo === 'estado' && valFiltro) evs = evs.filter(e => normTexto(e.estado) === normTexto(valFiltro));
-      mostrarModalConsolidado(titulo, evs);
-    }
-
-    function abrirDetalleBarra(titulo, campo, valor) {
-      if (ESTADO.vistaPrincipal === 'pedidos') {
-        const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor);
-        mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs);
-        return;
-      }
-
-      const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor);
-      mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
-    }
-
-    function mostrarModalConsolidado(titulo, eventosList) {
-      document.getElementById('modalTitulo').textContent = titulo + ' (' + contarPedidosUnicos(eventosList) + ' Pedidos / ' + eventosList.length + ' Equipos)';
-      const body = document.getElementById('modalBody');
-
-      if (!eventosList.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
-
-      const agrupadosPorPedido = {};
-      eventosList.forEach(e => {
-        const p = e.pedido || 'Sin Pedido';
-        if (!agrupadosPorPedido[p]) agrupadosPorPedido[p] = { pedido: p, cliente: e.cliente, ciudad: e.ciudad, fecha: e.fechaSolicitud, items: [] };
-        agrupadosPorPedido[p].items.push(e);
-      });
-
-      const pedidosKeys = Object.keys(agrupadosPorPedido);
-      
-      body.innerHTML = '<div class="consolidado-container">' + pedidosKeys.map(numPed => {
-        const grupo = agrupadosPorPedido[numPed];
-
-        return `<div class="pedido-card">
-          <div class="pedido-head">
-            <span class="badge-pedido"># Pedido: ${grupo.pedido}</span>
-            <span class="pedido-cliente">${grupo.cliente} (${grupo.ciudad})</span>
-            <span class="badge-count">${grupo.items.length} equipo(s)</span>
-          </div>
-          <div class="pedido-body">
-            ${grupo.items.map((it, idx) => `
-              <div class="item-row">
-                <div>#${idx+1} <b>${it.maquinaria}</b> <span class="code-activo">${it.codActivo || ''}</span></div>
-                <div><span class="badge-accion">${it.accion}</span></div>
-                <div><span class="tag-dias ${it.diasProceso >= 3 ? 'crit' : 'ok'}">${it.diasProceso} días</span></div>
-                <div>${it.observacionDetalle || 'Sin detalle'}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>`;
-      }).join('') + '</div>';
-
-      document.getElementById('modal').classList.add('show');
+    function abrirDetalleKpi(titulo, tipo) {
+      let evs = filtrarEventosSLA();
+      if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'FUERA_SLA');
+      else if (tipo === 'slaDentro') evs = evs.filter(e => e.alertaSLA === 'DENTRO_SLA');
+      mostrarModalConsolidadoSLA(titulo, evs);
     }
 
     function mostrarModalConsolidadoSLA(titulo, eventosListSLA) {
       document.getElementById('modalTitulo').textContent = titulo + ' (' + eventosListSLA.length + ' Pedidos Únicos)';
       const body = document.getElementById('modalBody');
 
-      if (!eventosListSLA.length) { 
-        body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; 
-        return; 
-      }
+      if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
-      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
-        let tagClase = 'ok';
-        if (e.alertaSLA === 'ALERTA: Incumplimiento') tagClase = 'crit';
-        else if (e.alertaSLA === 'Retraso por Agotado') tagClase = 'warn';
-
-        return `<div class="pedido-card">
+      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => `
+        <div class="pedido-card">
           <div class="pedido-head">
-            <span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span>
+            <span class="badge-pedido"># Pedido: ${e.pedido}</span>
             <span class="pedido-cliente">${e.cliente} (${e.ciudad})</span>
-            <span class="tag-dias ${tagClase}">${e.alertaSLA}</span>
+            <span class="tag-dias ${e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok'}">${e.alertaSLA}</span>
           </div>
           <div class="pedido-body">
-            <div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-              <div>📅 <b>Fecha Montaje:</b> ${e.fechaMontaje}</div>
-              <div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div>
-              <div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div>
-              <div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 12px;">
+              <div>📅 <b>Fecha:</b> ${e.fechaMontaje}</div>
+              <div>⏳ <b>Días:</b> ${e.diasTranscurridos}</div>
+              <div>📦 <b>Estado:</b> ${e.estadoWMS}</div>
+              <div>🏷️ <b>Clasificador:</b> ${e.clasificador1}</div>
             </div>
-
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;">
-              <div><b>Ítems:</b><br>${e.totalItems || 1}</div>
-              <div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div>
-              <div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div>
-              <div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div>
-              <div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div>
-              <div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div>
+            <div style="margin-top:8px; font-size:11.5px; color:var(--muted); background:#f8fafc; padding:8px; border-radius:8px;">
+              <b>Ítems:</b> ${e.detalleProductos}
             </div>
-
-            <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
-              <b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}
-            </div>
-          </div>
-        </div>`;
-      }).join('') + '</div>';
-
-      document.getElementById('modal').classList.add('show');
-    }
-
-    function cerrarModal() {
-      document.getElementById('modal').classList.remove('show');
-      const modalCard = document.querySelector('.modal-card');
-      if (modalCard) modalCard.classList.remove('modal-fullscreen');
-    }
-
-    function abrirModalCalendarioAgendado() {
-      document.getElementById('modalTitulo').textContent = '📅 Vista Calendario de Programación Operativa';
-      const body = document.getElementById('modalBody');
-      
-      body.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding:0 10px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <label style="font-size:12px; font-weight:800; color:var(--cl-azul-dark);">Filtrar por Técnico:</label>
-            <select id="selectTecnicoCalendar" class="date-input" style="width:200px; height:36px;" onchange="filtrarCalendarioPorTecnico(this.value)">
-              <option value="todos">Todos los técnicos</option>
-              <option value="James">James</option>
-              <option value="Carlos">Carlos</option>
-            </select>
           </div>
         </div>
-        <div id="modalCalendarContainer" style="min-height: 550px; padding:10px;"></div>
-      `;
-      
-      document.getElementById('modal').classList.add('show');
-      setTimeout(() => renderizarCalendarModal(), 100);
-    }
-
-    function renderizarCalendarModal() {
-      const calendarEl = document.getElementById('modalCalendarContainer');
-      if (!calendarEl) return;
-
-      const agendados = ESTADO.eventos.filter(e => e.programado);
-      const tec = ESTADO.tecnicoFiltroCalendar;
-      const filtradosPorTec = (tec === 'todos') ? agendados : agendados.filter(e => e.tecnicoAsignado === tec);
-
-      const eventosCalendario = filtradosPorTec.map(e => {
-        const conf = CONFIG_ACCIONES[e.accion] || { color: '#0082c8' };
-
-        return {
-          title: `#${e.pedido} - ${e.cliente} (${e.tecnicoAsignado})`,
-          start: e.fechaProgramada,
-          backgroundColor: conf.color,
-          borderColor: conf.color,
-          extendedProps: e
-        };
-      });
-
-      if (CALENDARIO_INSTANCE) CALENDARIO_INSTANCE.destroy();
-
-      CALENDARIO_INSTANCE = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        initialDate: '2026-08-01',
-        locale: 'es',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' },
-        events: eventosCalendario,
-        eventClick: function(info) {
-          const datos = info.event.extendedProps;
-          alert(`Pedido: #${datos.pedido}\nCliente: ${datos.cliente}\nTécnico Asignado: ${datos.tecnicoAsignado}\nFecha Programada: ${datos.fechaProgramada}\nAcción: ${datos.accion}`);
-        }
-      });
-
-      CALENDARIO_INSTANCE.render();
-    }
-
-    function filtrarCalendarioPorTecnico(tec) {
-      ESTADO.tecnicoFiltroCalendar = tec;
-      renderizarCalendarModal();
-    }
-
-    function abrirModalNuevoAgendamientoDirecto(pedido, cliente, maquinaria, accion) {
-      const body = document.getElementById('modalBody');
-      document.getElementById('modalTitulo').textContent = 'Programar Pedido #' + pedido;
-
-      body.innerHTML = `
-        <form style="display: flex; flex-direction: column; gap: 14px;" onsubmit="event.preventDefault(); guardarNuevoAgendamiento();">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NÚMERO PEDIDO / ACTIVO</label>
-              <input type="text" id="agPedido" class="date-input" value="${pedido}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">CLIENTE</label>
-              <input type="text" id="agCliente" class="date-input" value="${cliente}" readonly required>
-            </div>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TIPO DE ACCIÓN</label>
-              <input type="text" id="agAccion" class="date-input" value="${accion}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">FECHA PROGRAMADA</label>
-              <input type="date" id="agFecha" class="date-input" value="2026-08-25" required>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">MAQUINARIA / EQUIPO</label>
-              <input type="text" id="agMaquinaria" class="date-input" value="${maquinaria}" readonly required>
-            </div>
-            <div>
-              <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">TÉCNICO ASIGNADO</label>
-              <select id="agTecnico" class="date-input" style="height:40px;">
-                <option value="James">James</option>
-                <option value="Carlos">Carlos</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style="font-size: 11px; font-weight: 800; color: var(--cl-azul-dark);">NOTAS OPERATIVAS / OBSERVACIONES</label>
-            <input type="text" id="agObs" class="date-input" placeholder="Ej: Ruta mañana - Llevar accesorios completos">
-          </div>
-
-          <button type="submit" class="btn-refresh" style="margin-top: 10px; justify-content: center; height: 44px;">
-            💾 Guardar Programación Operativa
-          </button>
-        </form>
-      `;
+      `).join('') + '</div>';
 
       document.getElementById('modal').classList.add('show');
     }
 
-    function guardarNuevoAgendamiento() {
-      const ped = document.getElementById('agPedido').value;
-      const fechaProg = document.getElementById('agFecha').value;
-      const tec = document.getElementById('agTecnico').value;
-      const obs = document.getElementById('agObs').value;
+    function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
 
-      const idx = ESTADO.eventos.findIndex(e => e.pedido === ped);
-      
-      if (idx >= 0) {
-        ESTADO.eventos[idx].programado = true;
-        ESTADO.eventos[idx].fechaProgramada = fechaProg;
-        ESTADO.eventos[idx].tecnicoAsignado = tec;
-        ESTADO.eventos[idx].observacionDetalle += ' [Programado con ' + tec + ' el ' + fechaProg + ': ' + obs + ']';
-      }
-
-      alert('¡Pedido #' + ped + ' asignado a ' + tec + ' para la fecha ' + fechaProg + '!');
-      cerrarModal();
-      render();
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); });
+      document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); });
+      if (!verificarSesionGuardada()) loader(false);
+    });
   </script>
 </body>
 </html>
