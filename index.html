@@ -59,6 +59,7 @@
       min-height: 100vh;
     }
 
+    /* PANTALLA SIGN IN EN 3D GLASSMORPHISM */
     .signin-overlay {
       position: fixed; inset: 0; z-index: 999999;
       background: radial-gradient(circle at top center, #0082c8 0%, #0a3356 60%, #021427 100%);
@@ -252,13 +253,6 @@
 
     .chart-container { margin-top: 10px; min-height: 250px; }
     .clickable { cursor: pointer; }
-
-    .tabla-programacion-wrap { overflow-x: auto; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
-    .tabla-agendador { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    .tabla-agendador th { background: #0a3356; color: #ffffff; padding: 12px 14px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; cursor: pointer; user-select: none; }
-    .tabla-agendador th:hover { background: #0082c8; }
-    .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
-    .tabla-agendador tr:hover { background: #f1f5f9; }
 
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
@@ -587,7 +581,7 @@
       try {
         const timestamp = Date.now();
         
-        // 1. Carga explícita módulo SLA pasándole modulo=sla al AppScript
+        // 1. Carga explícita módulo SLA pasándole modulo=sla al Apps Script
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         const rawSLA = await cargarJsonp(urlSLA);
 
@@ -635,7 +629,10 @@
         codActivo: String(e.codActivo || e.codigo_activo || ''),
         observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
         esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
+        programado: false,
+        fechaProgramada: '',
+        tecnicoAsignado: ''
       }));
 
       function unicos(campo) {
@@ -653,23 +650,28 @@
       };
     }
 
+    // AJUSTE CLAVE 1: Mapeo tolerante e insensible a mayúsculas/minúsculas de clasificador1
     function procesarDatosSLA(rawSLA) {
       const eventosSLA = (Array.isArray(rawSLA) ? rawSLA : []).map(e => {
-        const clasif1 = (e.clasificador1 !== undefined && e.clasificador1 !== null && String(e.clasificador1).trim() !== '') 
-          ? String(e.clasificador1).trim() 
+        const rawClasif = (e.clasificador1 !== undefined && e.clasificador1 !== null) 
+          ? String(e.clasificador1).trim().toUpperCase() 
           : '0';
 
         let submod = 'permanentes';
-        if (clasif1 === '1') submod = 'cobrables';
-        else if (clasif1.toUpperCase() === 'ECOMMERCE') submod = 'ecommerce';
-        else if (clasif1 === '6' || clasif1 === '7') submod = 'especiales';
+        if (rawClasif === '1') {
+          submod = 'cobrables';
+        } else if (rawClasif === 'ECOMMERCE') {
+          submod = 'ecommerce';
+        } else if (rawClasif === '6' || rawClasif === '7') {
+          submod = 'especiales';
+        }
 
         return {
           pedido: String(e.pedido || ''),
           cliente: String(e.cliente || 'Sin cliente'),
           ciudad: String(e.ciudad || 'Sin ciudad'),
           estadoWMS: String(e.estadoWMS || 'Sin Estado'),
-          clasificador1: clasif1,
+          clasificador1: String(e.clasificador1 || '0'),
           submoduloSLA: submod,
           flagAgotado: String(e.flagAgotado || 'NO'),
           fechaMontaje: String(e.fechaMontaje || 'Sin fecha'),
@@ -882,32 +884,40 @@
           if (txtMatchRaw.indexOf(qRaw) < 0) return false;
         }
 
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
-        if (ESTADO.ciudadSel.length > 0 && ESTADO.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
-        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf('__NINGUNO__') < 0 && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
-        if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf('__NINGUNO__') < 0 && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.anoSel.length > 0 && !ESTADO.anoSel.includes('__NINGUNO__') && !ESTADO.anoSel.includes(e.ano)) return false;
+        if (ESTADO.periodoSel.length > 0 && !ESTADO.periodoSel.includes('__NINGUNO__') && !ESTADO.periodoSel.includes(e.periodo)) return false;
+        if (ESTADO.clienteSel.length > 0 && !ESTADO.clienteSel.includes('__NINGUNO__') && !ESTADO.clienteSel.includes(e.cliente)) return false;
+        if (ESTADO.ciudadSel.length > 0 && !ESTADO.ciudadSel.includes('__NINGUNO__') && !ESTADO.ciudadSel.includes(e.ciudad)) return false;
+        if (ESTADO.estadoSel.length > 0 && !ESTADO.estadoSel.includes('__NINGUNO__') && !ESTADO.estadoSel.includes(e.estado)) return false;
+        if (ESTADO.estadoEntregaSel.length > 0 && !ESTADO.estadoEntregaSel.includes('__NINGUNO__') && !ESTADO.estadoEntregaSel.includes(e.estadoEntrega)) return false;
+        if (ESTADO.accionSel.length > 0 && !ESTADO.accionSel.includes('__NINGUNO__') && !ESTADO.accionSel.includes(e.accion)) return false;
 
         return true;
       });
     }
 
+    // AJUSTE CLAVE 2: Filtrado robusto insensible a diferencias de cadenas
     function filtrarEventosSLA() {
-      return ESTADO.eventosSLA.filter(e => {
-        if (ESTADO.submoduloSLA !== 'todos' && e.submoduloSLA !== ESTADO.submoduloSLA) return false;
+      const subSel = String(ESTADO.submoduloSLA || 'todos').toLowerCase();
 
+      return ESTADO.eventosSLA.filter(e => {
+        // Comparación de submódulo (Todos los Pedidos vs Específico)
+        if (subSel !== 'todos' && subSel !== 'todos los pedidos' && e.submoduloSLA !== subSel) {
+          return false;
+        }
+
+        // Búsqueda rápida
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') {
           const qRaw = ESTADO.busqueda.trim().toLowerCase();
           const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1).toLowerCase();
           if (matchText.indexOf(qRaw) < 0) return false;
         }
 
-        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
-        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        // Filtros desplegables
+        if (ESTADO_SLA.clienteSel.length > 0 && !ESTADO_SLA.clienteSel.includes('__NINGUNO__') && !ESTADO_SLA.clienteSel.includes(e.cliente)) return false;
+        if (ESTADO_SLA.ciudadSel.length > 0 && !ESTADO_SLA.ciudadSel.includes('__NINGUNO__') && !ESTADO_SLA.ciudadSel.includes(e.ciudad)) return false;
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && !ESTADO_SLA.estadoWmsSel.includes('__NINGUNO__') && !ESTADO_SLA.estadoWmsSel.includes(e.estadoWMS)) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && !ESTADO_SLA.alertaSel.includes('__NINGUNO__') && !ESTADO_SLA.alertaSel.includes(e.alertaSLA)) return false;
 
         return true;
       });
@@ -1004,9 +1014,6 @@
     }
 
     function renderVista360(evs) {
-      const promDias = evs.length ? Math.round(evs.reduce((a, b) => a + b.diasProceso, 0) / evs.length) : 0;
-      const criticos = evs.filter(e => e.diasProceso >= 3);
-
       const enProceso = evs.filter(e => normTexto(e.estado) === 'enproceso');
       const cerrados = evs.filter(e => normTexto(e.estado) === 'cerrado');
       const rechazados = evs.filter(e => normTexto(e.estado) === 'rechazado');
