@@ -112,25 +112,6 @@
     .user-pill { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; font-size: 12px; }
     .btn-logout { background: transparent; border: none; color: #fca5a5; cursor: pointer; font-weight: 700; font-size: 11px; }
 
-    .video-intro-overlay {
-      position: fixed !important; top: 0 !important; left: 0 !important;
-      width: 100vw !important; height: 100vh !important; z-index: 9999999 !important;
-      background: #000000 !important; overflow: hidden !important;
-      display: flex; align-items: center; justify-content: center;
-      transition: opacity .4s ease, visibility .4s ease;
-    }
-    .video-intro-overlay.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-    .video-intro-overlay video { width: 100vw !important; height: 100vh !important; object-fit: cover !important; display: block !important; }
-
-    .btn-skip-intro {
-      position: absolute !important; top: 24px !important; right: 28px !important; z-index: 10000000 !important;
-      appearance: none; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(10, 51, 86, 0.9);
-      color: #ffffff; padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6); transition: all .2s ease;
-    }
-    .btn-skip-intro:hover { background: var(--cl-verde); border-color: var(--cl-verde); transform: translateY(-2px) scale(1.04); }
-
     .wrap { max-width: 1750px; margin: 0 auto; padding: 20px 24px 60px; position: relative; z-index: 1; }
 
     header {
@@ -236,22 +217,6 @@
     .sub-dock-item:hover { background: #f1f5f9; color: var(--ink); }
     .sub-dock-item.active { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; }
 
-    .chart-controls-right { display: flex; align-items: center; gap: 6px; }
-    .chart-toggle-group { display: flex; background: #f1f5f9; padding: 3px; border-radius: 10px; gap: 2px; }
-    .btn-toggle-chart {
-      border: none; background: transparent; font-size: 11px; font-weight: 800;
-      color: var(--muted); padding: 4px 10px; border-radius: 8px; cursor: pointer; transition: all .15s ease;
-    }
-    .btn-toggle-chart:hover { color: var(--cl-azul); }
-    .btn-toggle-chart.active { background: var(--cl-azul); color: #ffffff; box-shadow: 0 2px 6px rgba(0, 130, 200, 0.3); }
-
-    .btn-expand-chart {
-      border: 1px solid var(--line); background: #ffffff; color: var(--cl-azul-dark);
-      font-size: 13px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center; transition: all .15s ease;
-    }
-    .btn-expand-chart:hover { background: var(--cl-azul-light); border-color: #bae6fd; color: var(--cl-azul); }
-
     .acciones-summary-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
     .card-accion-kpi {
       background: #ffffff; border-radius: 16px; padding: 14px 18px; border: 1px solid var(--line);
@@ -294,16 +259,6 @@
     .tabla-agendador th:hover { background: #0082c8; }
     .tabla-agendador td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
     .tabla-agendador tr:hover { background: #f1f5f9; }
-    .btn-action-prog { background: var(--cl-verde); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s ease; }
-    .btn-action-prog:hover { background: var(--cl-verde-hover); transform: translateY(-1px); }
-
-    .area-svg-chart { width: 100%; height: 250px; overflow: visible; }
-    .area-path { fill: url(#area-gradient-cl); transition: all .3s ease; }
-    .line-path { fill: none; stroke: var(--cl-azul); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 10px rgba(0, 130, 200, 0.35)); }
-    .area-node { fill: #ffffff; stroke: var(--cl-azul); stroke-width: 3; transition: all .2s ease; }
-    .node-group:hover .area-node { transform: scale(1.4); fill: var(--cl-verde); stroke: #ffffff; }
-    .area-node-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; fill: var(--cl-azul-dark); text-anchor: middle; pointer-events: none; }
-    .area-grid-line { stroke: #e2e8f0; stroke-dasharray: 4 4; }
 
     .modal {
       position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
@@ -316,32 +271,14 @@
     .btn-close { border: none; background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; color: #fff; display: grid; place-items: center; }
     .modal-body { padding: 20px; overflow-y: auto; max-height: 75vh; }
 
-    .modal-card.modal-fullscreen {
-      max-width: 96vw !important;
-      width: 96vw !important;
-      height: 92vh !important;
-      max-height: 92vh !important;
-    }
-    .fullscreen-chart-wrapper {
-      width: 100%; height: 100%; min-height: 550px; overflow-x: auto; overflow-y: auto;
-      background: #ffffff; border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: flex-start;
-    }
-
     .consolidado-container { display: flex; flex-direction: column; gap: 14px; }
     .pedido-card { background: #ffffff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
     .pedido-head { background: #f1f5f9; padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .badge-pedido { font-family: 'IBM Plex Mono'; font-weight: 700; font-size: 13px; color: var(--cl-azul); background: var(--cl-azul-light); padding: 4px 10px; border-radius: 8px; }
     .pedido-cliente { font-weight: 800; font-size: 13.5px; color: var(--cl-azul-dark); }
-    .badge-count { background: var(--cl-verde-light); color: var(--cl-verde-hover); font-weight: 800; padding: 4px 10px; border-radius: 20px; font-size: 11.5px; }
-
-    .pedido-body { padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
-    .item-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 2fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 12.5px; }
-    .code-activo { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--cl-azul); background: var(--cl-azul-light); padding: 2px 7px; border-radius: 6px; font-size: 11px; }
-    .badge-accion { background: #f3f4f6; color: #374151; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
     .tag-dias { font-family: 'IBM Plex Mono'; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-align: center; }
     .tag-dias.ok { background: #dcfce7; color: #15803d; } 
     .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
-    .tag-dias.warn { background: #fef9c3; color: #a16207; }
 
     .vacio { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; }
 
@@ -354,12 +291,12 @@
     @keyframes sp { to { transform: rotate(360deg); } }
 
     @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .item-row { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="no-scroll">
 
-  <!-- LOGIN -->
+  <!-- SIGN IN -->
   <div id="signinOverlay" class="signin-overlay">
     <div class="signin-card" id="signinCard">
       <div class="signin-header">
@@ -533,7 +470,6 @@
 
     let ESTADO_SLA = { clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: [] };
     let CHART_INSTANCES = {};
-    let CALENDARIO_INSTANCE = null;
 
     const MODULOS = {
       general:       { label: 'Vista 360°',                 icono: '🧭', acciones: null },
@@ -651,12 +587,14 @@
       try {
         const timestamp = Date.now();
         
+        // 1. Carga explícita módulo SLA pasándole modulo=sla al AppScript
         const urlSLA = `${API_URL_PEDIDOS}?modulo=sla&_nc=${timestamp}`;
         const rawSLA = await cargarJsonp(urlSLA);
 
         let dataSLA = { eventosSLA: [], filtrosSLA: {} };
         if (rawSLA && Array.isArray(rawSLA)) dataSLA = procesarDatosSLA(rawSLA);
 
+        // 2. Carga módulo Maquinaria/General
         const urlGeneral = `${API_URL_MAQUINARIA}?modulo=general&_nc=${timestamp}`;
         const rawBQ = await cargarJsonp(urlGeneral);
 
@@ -697,10 +635,7 @@
         codActivo: String(e.codActivo || e.codigo_activo || ''),
         observacionDetalle: String(e.observacionDetalle || e.observacion || ''),
         esFallaCritica: Boolean(e.esFallaCritica),
-        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega'),
-        programado: false,
-        fechaProgramada: '',
-        tecnicoAsignado: ''
+        estadoEntrega: String(e.estadoEntrega || 'Sin estado entrega')
       }));
 
       function unicos(campo) {
@@ -947,13 +882,13 @@
           if (txtMatchRaw.indexOf(qRaw) < 0) return false;
         }
 
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
-        if (ESTADO.ciudadSel.length > 0 && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
-        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
-        if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO.ciudadSel.length > 0 && ESTADO.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
+        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf('__NINGUNO__') < 0 && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
+        if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf('__NINGUNO__') < 0 && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
 
         return true;
       });
@@ -969,10 +904,10 @@
           if (matchText.indexOf(qRaw) < 0) return false;
         }
 
-        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
-        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
 
         return true;
       });
@@ -1056,8 +991,8 @@
       return `<div class="col">
         ${cardKPI('Total Pedidos Registrados', totalPedidos, 'órdenes', 'neu', 'Base cargada desde BigQuery', 'slaAll')}
         ${cardKPI('Pedidos Fuera de SLA', contarPedidosUnicos(fueraSLA), 'órdenes', 'rojo', 'Incumplen tiempo límite', 'slaFuera')}
-        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos en norma', 'slaDentro')}
-        ${cardKPI('Nivel de Servicio (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
+        ${cardKPI('Pedidos Dentro de SLA', contarPedidosUnicos(dentroSLA), 'órdenes', 'verde', 'Atendidos dentro de norma', 'slaDentro')}
+        ${cardKPI('Cumplimiento Global (SLA)', pctCumplimiento + '%', 'cumplimiento', pctCumplimiento >= 90 ? 'verde' : 'rojo', 'Porcentaje global de entregas en regla', 'slaPct')}
       </div>
       <div class="col">
         ${cardChartBox('Causas y Estados SLA', 'chartCausasSLA', 'alertaSLA', '#ef4444')}
@@ -1255,7 +1190,8 @@
             <span class="tag-dias ${e.alertaSLA === 'FUERA_SLA' ? 'crit' : 'ok'}">${e.alertaSLA}</span>
           </div>
           <div class="pedido-body">
-            <div>📅 <b>Fecha:</b> ${e.fechaMontaje} | 📦 <b>Estado:</b> ${e.estadoWMS}</div>
+            <div>📅 <b>Fecha:</b> ${e.fechaMontaje} | 📦 <b>Estado WMS:</b> ${e.estadoWMS} | 🏷️ <b>Clasificador:</b> ${e.clasificador1}</div>
+            <div style="margin-top:6px; font-size:11.5px; color:var(--muted);"><b>Ítems:</b> ${e.detalleProductos}</div>
           </div>
         </div>
       `).join('') + '</div>';
