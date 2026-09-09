@@ -244,7 +244,7 @@
       <div class="field filter-bq"><label>Estado</label><div id="comboEstado"></div></div>
       <div class="field filter-bq"><label>Estado Entrega</label><div id="comboEstadoEntrega"></div></div>
       <div class="field filter-bq"><label>Acción</label><div id="comboAccion"></div></div>
-      <div class="field search-field"><label>Búsqueda rápida</label><input type="text" id="inputBusqueda" placeholder="🔍 Pedido, Activo, Maquinaria, Cliente..."></div>
+      <div class="field search-field"><label>Búsqueda rápida</label><input type="text" id="inputBusqueda" placeholder="🔍 Pedido, Activo, Artículo, Cliente..."></div>
       <button class="btn-clear" onclick="limpiarFiltros()">🧹 Limpiar</button>
       <div class="sep"></div>
       <div class="chip-group">
@@ -303,6 +303,7 @@
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('cobrables')">💵 Cobrables (1)</button>
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('ecommerce')">🛒 Ecommerce</button>
         <button class="sub-dock-item" onclick="cambiarSubModuloSLA('especiales')">⭐ Especiales (6 y 7)</button>
+        <button class="sub-dock-item" onclick="cambiarSubModuloSLA('articulos')">📦 Análisis de Artículos</button>
       </div>
     </div>
 
@@ -364,7 +365,6 @@
     function normTexto(s) { return s ? String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '') : ''; }
     function toggleVisibilidadPassword() { const input = document.getElementById('loginPass'); if (input) input.type = input.type === 'password' ? 'text' : 'password'; }
 
-    // Función Helper de Formateo de Fecha dd/MMMM/YYYY
     function formatearFechaLarga(fechaStr) {
       if (!fechaStr || !fechaStr.includes('/')) return fechaStr;
       const p = fechaStr.split('/');
@@ -518,6 +518,8 @@
             }
         }
 
+        const nombreArt = String(e.nombre_articulo || e.detalleProductos || 'Sin artículo').trim();
+
         return {
           pedido: String(e.pedido || ''), cliente: String(e.cliente || 'Sin cliente'), ciudad: String(e.ciudad || 'Sin ciudad'), estadoWMS: String(e.estadoWMS || 'Sin Estado'),
           clasificador1: rawClasif, submoduloSLA: submod, flagAgotado: String(e.flagAgotado || 'NO'),
@@ -525,7 +527,8 @@
           diasTranscurridos: diasCalc, alertaSLA: alertaCalc,
           totalItems: Number(e.totalItems) || 1, totalCantSolicitada: Number(e.totalCantSolicitada) || 0, totalCantAlistada: Number(e.totalCantAlistada) || 0,
           totalCantDespachada: Number(e.totalCantDespachada) || 0, totalCantEntregada: Number(e.totalCantEntregada) || 0, totalPeso: Number(e.totalPeso) || 0,
-          totalVolumen: Number(e.totalVolumen) || 0, detalleProductos: String(e.detalleProductos || 'Sin detalle')
+          totalVolumen: Number(e.totalVolumen) || 0, detalleProductos: String(e.detalleProductos || 'Sin detalle'),
+          nombre_articulo: nombreArt
         };
       });
 
@@ -569,10 +572,10 @@
     }
 
     function poblarCombosSLA() {
-      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes SLA');
-      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades SLA');
+      crearComboMultiples('comboClienteSLA', ESTADO.filtrosSLA.clientes || [], ESTADO_SLA.clienteSel, v => { ESTADO_SLA.clienteSel = v; render(); }, 'Todos los clientes');
+      crearComboMultiples('comboCiudadSLA', ESTADO.filtrosSLA.ciudades || [], ESTADO_SLA.ciudadSel, v => { ESTADO_SLA.ciudadSel = v; render(); }, 'Todas las ciudades');
       crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
-      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todas las Alertas');
+      crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todos los niveles');
       crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
     }
 
@@ -638,8 +641,12 @@
     function filtrarEventosSLA() {
       const subSel = String(ESTADO.submoduloSLA || 'todos').toLowerCase();
       return ESTADO.eventosSLA.filter(e => {
-        if (subSel !== 'todos' && subSel !== 'todos los pedidos' && e.submoduloSLA !== subSel) return false;
-        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { const qRaw = ESTADO.busqueda.trim().toLowerCase(), qClean = qRaw.replace(/[^a-z0-9]/g, ''), strPedRaw = String(e.pedido || '').toLowerCase(), strPedClean = strPedRaw.replace(/[^a-z0-9]/g, ''); const matchText = strPedRaw + ' ' + String(e.cliente || '').toLowerCase() + ' ' + String(e.ciudad || '').toLowerCase(); if (matchText.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; }
+        if (subSel !== 'todos' && subSel !== 'todos los pedidos' && subSel !== 'articulos' && e.submoduloSLA !== subSel) return false;
+        if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { 
+          const qRaw = ESTADO.busqueda.trim().toLowerCase(); 
+          const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1 + ' ' + e.nombre_articulo).toLowerCase(); 
+          if (matchText.indexOf(qRaw) < 0) return false; 
+        }
         if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
@@ -671,7 +678,10 @@
       const grid = document.getElementById('grid');
       if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
       let html = '';
-      if (esSLA) html = renderVistaAlertasSLA(evs);
+      if (esSLA) {
+        if (ESTADO.submoduloSLA === 'articulos') html = renderVistaAnalisisArticulos(evs);
+        else html = renderVistaAlertasSLA(evs);
+      }
       else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
       else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
       else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
@@ -680,6 +690,41 @@
       else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
       grid.innerHTML = html;
       if (ESTADO.moduloSel !== 'agendador') setTimeout(() => renderizarGraficosApex(evs), 30);
+    }
+
+    function renderVistaAnalisisArticulos(evsSLA) {
+      const totalCantSolicitada = evsSLA.reduce((acc, e) => acc + (e.totalCantSolicitada || 0), 0);
+      const totalCantEntregada = evsSLA.reduce((acc, e) => acc + (e.totalCantEntregada || 0), 0);
+      const totalTiposArticulos = new Set(evsSLA.map(e => e.nombre_articulo)).size;
+
+      const resumenPorTipificacion = {
+        'Permanentes': evsSLA.filter(e => e.submoduloSLA === 'permanentes').length,
+        'Cobrables': evsSLA.filter(e => e.submoduloSLA === 'cobrables').length,
+        'Ecommerce': evsSLA.filter(e => e.submoduloSLA === 'ecommerce').length,
+        'Especiales': evsSLA.filter(e => e.submoduloSLA === 'especiales').length
+      };
+
+      return `<div class="col">
+        ${cardKPI('Variedad de Artículos', totalTiposArticulos, 'referencias', 'neu', 'Diversidad de artículos en catálogo', 'articulos')}
+        ${cardKPI('Total Unidades Solicitadas', totalCantSolicitada.toLocaleString('es-CO'), 'unidades', 'verde', 'Volumen total pedido', 'articulos')}
+        ${cardKPI('Total Unidades Entregadas', totalCantEntregada.toLocaleString('es-CO'), 'unidades', 'amarillo', 'Volumen despachado', 'articulos')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Top 10 Artículos Más Solicitados', 'chartArticulosTop', 'nombre_articulo', '#0082c8')}
+        ${cardChartBox('Demanda de Artículos por Tipificación', 'chartArticulosPorClasificador', 'submoduloSLA', '#8b5cf6')}
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="card-top"><span class="card-title">📊 Resumen de Pedidos por Categoría</span></div>
+          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+            <div style="display:flex; justify-content:space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px;"><span>🏢 <b>Permanentes (0):</b></span><span style="font-family:'IBM Plex Mono'; font-weight:700;">${resumenPorTipificacion['Permanentes']} pedidos</span></div>
+            <div style="display:flex; justify-content:space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px;"><span>💵 <b>Cobrables (1):</b></span><span style="font-family:'IBM Plex Mono'; font-weight:700;">${resumenPorTipificacion['Cobrables']} pedidos</span></div>
+            <div style="display:flex; justify-content:space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px;"><span>🛒 <b>Ecommerce:</b></span><span style="font-family:'IBM Plex Mono'; font-weight:700;">${resumenPorTipificacion['Ecommerce']} pedidos</span></div>
+            <div style="display:flex; justify-content:space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px;"><span>⭐ <b>Especiales (6 y 7):</b></span><span style="font-family:'IBM Plex Mono'; font-weight:700;">${resumenPorTipificacion['Especiales']} pedidos</span></div>
+          </div>
+        </div>
+        ${cardChartBox('Cuellos de Botella en Bodega (WMS)', 'chartEstadoWmsSLA', 'estadoWMS', '#7ab833')}
+      </div>`;
     }
 
     function renderVistaAlertasSLA(evsSLA) {
@@ -779,7 +824,7 @@
       setTimeout(() => { renderGraficoLineaCustom('expandedChartContainer', datos, '#0082c8', anchoCalculado, 500); }, 60);
     }
 
-    function agrupar(evs, campo, top) { const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; }); return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 6); }
+    function agrupar(evs, campo, top) { const conteo = {}; evs.forEach(e => { const val = e[campo] || 'Sin especificar'; conteo[val] = (conteo[val] || 0) + 1; }); return Object.keys(conteo).map(k => ({ label: k, val: conteo[k] })).sort((a,b) => b.val - a.val).slice(0, top || 10); }
     function formatearPeriodoTexto(p) { if (!p || p === 'Sin fecha') return 'Sin fecha'; const partes = p.split('-'); if (partes.length === 2) { const ano = partes[0].slice(-2), mesNum = parseInt(partes[1], 10), meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']; if (mesNum >= 1 && mesNum <= 12) return meses[mesNum - 1] + ' ' + ano; } return p; }
     
     function agruparPedidosUnicosPorPeriodo(evs) {
@@ -803,10 +848,16 @@
 
     function renderizarGraficosApex(evs) {
       if (ESTADO.vistaPrincipal === 'pedidos') {
-        if (document.getElementById('chartTendenciaPedidosSLA')) renderGraficoLinea('chartTendenciaPedidosSLA', agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes'), '#0082c8');
-        if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
-        if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
-        if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
+        if (ESTADO.submoduloSLA === 'articulos') {
+          if (document.getElementById('chartArticulosTop')) renderBarraHorizontal('chartArticulosTop', agrupar(evs, 'nombre_articulo', 10), 'nombre_articulo', '#0082c8');
+          if (document.getElementById('chartArticulosPorClasificador')) renderBarraHorizontal('chartArticulosPorClasificador', agrupar(evs, 'submoduloSLA', 4), 'submoduloSLA', '#8b5cf6');
+          if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
+        } else {
+          if (document.getElementById('chartTendenciaPedidosSLA')) renderGraficoLinea('chartTendenciaPedidosSLA', agruparPedidosSLAEvolutivo(evs, ESTADO.agrupacionTendenciaSLA || 'mes'), '#0082c8');
+          if (document.getElementById('chartCausasSLA')) renderBarraHorizontal('chartCausasSLA', agrupar(evs, 'alertaSLA', 5), 'alertaSLA', '#ef4444');
+          if (document.getElementById('chartClientesSLA')) renderBarraHorizontal('chartClientesSLA', agrupar(evs, 'cliente', 5), 'cliente', '#0082c8');
+          if (document.getElementById('chartEstadoWmsSLA')) renderBarraHorizontal('chartEstadoWmsSLA', agrupar(evs, 'estadoWMS', 5), 'estadoWMS', '#7ab833');
+        }
         return;
       }
       if (document.getElementById('chartTendenciaPedidos')) renderGraficoLinea('chartTendenciaPedidos', agruparPedidosUnicosPorPeriodo(evs), '#0082c8');
@@ -897,7 +948,7 @@
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
         let tagClase = e.alertaSLA === 'Vencido' ? 'crit' : 'ok';
-        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>🛠️ Productos / Ítems del pedido:</b><br>${e.detalleProductos || 'Sin detalle de productos'}</div></div></div>`;
+        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>📦 Artículo / Producto:</b><br>${e.nombre_articulo}</div></div></div>`;
       }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
     }
