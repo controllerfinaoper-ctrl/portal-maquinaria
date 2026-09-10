@@ -642,11 +642,13 @@
       const subSel = String(ESTADO.submoduloSLA || 'todos').toLowerCase();
       return ESTADO.eventosSLA.filter(e => {
         if (subSel !== 'todos' && subSel !== 'todos los pedidos' && subSel !== 'articulos' && e.submoduloSLA !== subSel) return false;
+        
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { 
-          const qRaw = ESTADO.busqueda.trim().toLowerCase(); 
-          const matchText = (e.pedido + ' ' + e.cliente + ' ' + e.ciudad + ' ' + e.clasificador1 + ' ' + e.nombre_articulo).toLowerCase(); 
-          if (matchText.indexOf(qRaw) < 0) return false; 
+          const qRaw = ESTADO.busqueda.trim().toLowerCase(), qClean = qRaw.replace(/[^a-z0-9]/g, ''), strPedRaw = String(e.pedido || '').toLowerCase(), strPedClean = strPedRaw.replace(/[^a-z0-9]/g, ''); 
+          const matchText = (strPedRaw + ' ' + String(e.cliente || '').toLowerCase() + ' ' + String(e.ciudad || '').toLowerCase() + ' ' + String(e.clasificador1 || '').toLowerCase() + ' ' + String(e.nombre_articulo || '').toLowerCase()); 
+          if (matchText.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; 
         }
+        
         if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
         if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
@@ -654,6 +656,12 @@
         if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
         if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
+        
+        if (ESTADO.fechaDiaSel) { 
+          const partes = e.fechaMontaje.split('/'); 
+          if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false; 
+        }
+
         return true;
       });
     }
