@@ -528,7 +528,8 @@
           totalItems: Number(e.totalItems) || 1, totalCantSolicitada: Number(e.totalCantSolicitada) || 0, totalCantAlistada: Number(e.totalCantAlistada) || 0,
           totalCantDespachada: Number(e.totalCantDespachada) || 0, totalCantEntregada: Number(e.totalCantEntregada) || 0, totalPeso: Number(e.totalPeso) || 0,
           totalVolumen: Number(e.totalVolumen) || 0, detalleProductos: String(e.detalleProductos || 'Sin detalle'),
-          nombre_articulo: nombreArt
+          nombre_articulo: nombreArt,
+          detalle_articulos_json: String(e.detalle_articulos_json || '[]')
         };
       });
 
@@ -654,7 +655,7 @@
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
         if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertas.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
         
         if (ESTADO.fechaDiaSel) { 
@@ -956,14 +957,22 @@
 
       body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map((e, index) => {
         let tagClase = e.alertaSLA === 'Vencido' ? 'crit' : 'ok';
-        let articulosArray = e.nombre_articulo.split(',').map(item => item.trim()).filter(item => item.length > 0);
-        let argArticulos = e.nombre_articulo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
+        let cantidadArticulos = 0;
+        let b64Json = '';
+        try {
+          let parseado = JSON.parse(e.detalle_articulos_json || '[]');
+          cantidadArticulos = parseado.length;
+          b64Json = btoa(unescape(encodeURIComponent(e.detalle_articulos_json || '[]')));
+        } catch(err) {
+          cantidadArticulos = 0;
+        }
 
         return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div>
           
           <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span><b>📦 Artículos / Productos:</b> ${articulosArray.length} referencias asociadas</span>
-            <button class="btn-expand-chart" onclick="abrirModalArticulosFullscreen('${e.pedido}', \`${argArticulos}\`)">⛶ Expandir Detalle</button>
+            <span><b>📦 Artículos / Productos:</b> ${cantidadArticulos} referencias asociadas</span>
+            <button class="btn-expand-chart" onclick="abrirModalArticulosFullscreen('${e.pedido}', '${b64Json}')">⛶ Expandir Detalle</button>
           </div>
           
         </div></div>`;
@@ -971,14 +980,20 @@
       document.getElementById('modal').classList.add('show');
     }
 
-    function abrirModalArticulosFullscreen(pedido, articulosStr) {
+    function abrirModalArticulosFullscreen(pedido, b64Json) {
       const modalCard = document.querySelector('.modal-card');
       if (modalCard) modalCard.classList.add('modal-fullscreen');
 
       document.getElementById('modalTitulo').textContent = '📦 Detalle de Artículos - Pedido #' + pedido;
       const body = document.getElementById('modalBody');
 
-      const articulosArray = articulosStr.split(',').map(item => item.trim()).filter(item => item.length > 0);
+      let articulosArray = [];
+      try {
+        const decodedJson = decodeURIComponent(escape(atob(b64Json)));
+        articulosArray = JSON.parse(decodedJson);
+      } catch (e) {
+        articulosArray = [];
+      }
 
       body.innerHTML = `
         <div class="fullscreen-chart-wrapper" style="align-items: flex-start; flex-direction: column;">
@@ -995,18 +1010,15 @@
             <tbody>
               ${articulosArray.map(art => `
                 <tr>
-                  <td><b>${art}</b></td>
-                  <td style="text-align:center; color: var(--muted);"><em>Pendiente BD</em></td>
-                  <td style="text-align:center; color: var(--muted);"><em>Pendiente BD</em></td>
-                  <td style="text-align:center; color: var(--muted);"><em>Pendiente BD</em></td>
-                  <td style="text-align:center; color: var(--muted);"><em>Pendiente BD</em></td>
+                  <td><b>${art.articulo || 'Desconocido'}</b></td>
+                  <td style="text-align:center;">${art.solicitada || 0}</td>
+                  <td style="text-align:center; ${art.alistada > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${art.alistada || 0}</td>
+                  <td style="text-align:center; ${art.despachada > 0 ? 'color: var(--cl-azul); font-weight: 800;' : ''}">${art.despachada || 0}</td>
+                  <td style="text-align:center; ${art.entregada > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${art.entregada || 0}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
-          <div style="margin-top: 15px; font-size: 12px; color: #a16207; background: #fef9c3; padding: 10px 14px; border-radius: 8px; width: 100%;">
-            ⚠️ <b>Nota técnica:</b> Actualmente la base de datos envía el total consolidado por pedido. Para que estas columnas muestren el valor individual exacto por cada ítem, se requiere modificar la vista en BigQuery para que envíe un desglose estructurado.
-          </div>
         </div>
       `;
       document.getElementById('modal').classList.add('show');
