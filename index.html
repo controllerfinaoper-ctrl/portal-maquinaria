@@ -17,6 +17,8 @@
     const API_URL_AUTH = "https://script.google.com/macros/s/AKfycbwnzuf3tr2X44WdsR1dvTdD654SZZjCoyGX_D868d7he2yLqj7NtiRb46jCsp5qg5YlcQ/exec";
     const API_URL_PEDIDOS = "https://script.google.com/macros/s/AKfycbx_TZYzsaGLnvLzSIaIPxFPaynkFENgno51jAaFJOBfAGFy1MExvmRhGZyFxd40h0DI/exec";
     const API_URL_MAQUINARIA = "https://script.google.com/macros/s/AKfycbxy2LWhm91ANHDdhqX-h_rrXoTl1cu3kyR8_8Q4Hlx_7cpM2QmDDT79IfzGzqYtC0ex/exec";
+    // NUEVO SCRIPT INTEGRADO
+    const API_URL_RECURRENCIA = "https://script.google.com/macros/s/AKfycbzq0xBITApHZukWpr-0Pym1yN_Z21v0Bk2OitzSkjqlI-WAQ8-jVsY6O6Eq0Dk9m8e9Rw/exec";
   </script>
 
   <style>
@@ -92,7 +94,7 @@
     .vista-subchip { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
     .nav-container { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .main-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .main-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
     .main-tab-btn { appearance: none; border: 2px solid var(--line); background: #ffffff; border-radius: 18px; padding: 16px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all .2s var(--ease); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); }
     .main-tab-btn:hover { border-color: var(--cl-azul); transform: translateY(-2px); }
     .main-tab-btn.active { background: linear-gradient(135deg, #0a3356 0%, #0082c8 100%); border-color: #0082c8; color: #ffffff; box-shadow: 0 8px 24px rgba(0, 130, 200, 0.25); }
@@ -235,7 +237,7 @@
       </div>
     </header>
 
-    <div class="controls-glass">
+    <div class="controls-glass" id="barFiltrosMaquinaria">
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
       <div class="field"><label>Fecha exacta (Día)</label><input type="date" id="inputFechaDia" class="date-input"></div>
@@ -262,6 +264,15 @@
       <div class="field"><label>Flag Agotado</label><div id="comboAgotadoSLA"></div></div>
       <button class="btn-clear" onclick="limpiarFiltrosSLA()">🧹 Limpiar Filtros</button>
     </div>
+    
+    <div class="controls-glass-sla" id="barFiltrosRecurrencia" style="display: none; background: #fdf4ff; border-color: #f5d0fe;">
+      <div style="width: 100%; margin-bottom: 4px; font-size: 11px; font-weight: 800; color: #a21caf; text-transform: uppercase;">⚙️ Filtros de Indicadores de Recurrencia</div>
+      <div class="field"><label>Año</label><div id="comboAnoRecurrencia"></div></div>
+      <div class="field"><label>Mes</label><div id="comboMesRecurrencia"></div></div>
+      <div class="field"><label>Acción</label><div id="comboAccionRecurrencia"></div></div>
+      <div class="field"><label>Categoría Máquina</label><div id="comboCategoriaRecurrencia"></div></div>
+      <button class="btn-clear" onclick="limpiarFiltrosRecurrencia()" style="background: #fdf4ff; border-color: #f5d0fe; color: #a21caf;">🧹 Limpiar Filtros</button>
+    </div>
 
     <div class="nav-container">
       <div class="main-tabs">
@@ -285,6 +296,17 @@
             </div>
           </div>
           <span class="main-tab-badge" id="badgePedidos">0 pedidos</span>
+        </button>
+        
+        <button class="main-tab-btn" id="btnMainRecurrencia" onclick="cambiarVistaPrincipal('recurrencia')">
+          <div class="main-tab-info">
+            <span class="main-tab-icon">📈</span>
+            <div class="main-tab-text">
+              <span class="main-tab-title">Indicadores de Recurrencia</span>
+              <span class="main-tab-sub">Análisis de Fallas, Placas y Clientes</span>
+            </div>
+          </div>
+          <span class="main-tab-badge" id="badgeRecurrencia" style="background: rgba(162, 28, 175, 0.1); color: #a21caf;">0 casos</span>
         </button>
       </div>
 
@@ -331,8 +353,9 @@
       anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '', 
       vistaPrincipal: 'maquinaria', moduloSel: 'general', submoduloSLA: 'todos', agrupacionTendenciaSLA: 'mes',
-      eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: '',
-      ordenTablaCol: 'diasProceso', ordenTablaAsc: false, tecnicoFiltroCalendar: 'todos'
+      eventos: [], eventosSLA: [], eventosRecurrencia: [], filtros: {}, filtrosSLA: {}, filtrosRecurrencia: {}, actualizado: '',
+      ordenTablaCol: 'diasProceso', ordenTablaAsc: false, tecnicoFiltroCalendar: 'todos',
+      anoRecurrenciaSel: [], mesRecurrenciaSel: [], accionRecurrenciaSel: [], categoriaRecurrenciaSel: []
     };
 
     let ESTADO_SLA = { clienteSel: [], ciudadSel: [], estadoWmsSel: [], alertaSel: [], agotadoSel: [] };
@@ -440,8 +463,13 @@
         const rawBQ = await fetchDataSeguro(urlGeneral);
         let dataBQ = { eventos: [], filtros: {} };
         if (rawBQ && Array.isArray(rawBQ)) dataBQ = procesarDatosBigQuery(rawBQ);
+        
+        const urlRecurrencia = `${API_URL_RECURRENCIA}?modulo=indicadores_recurrencia&_nc=${timestamp}`;
+        const rawRecurrencia = await fetchDataSeguro(urlRecurrencia);
+        let dataRecurrencia = { eventosRecurrencia: [], filtrosRecurrencia: {} };
+        if (rawRecurrencia && Array.isArray(rawRecurrencia)) dataRecurrencia = procesarDatosRecurrencia(rawRecurrencia);
 
-        inicializar(dataBQ, dataSLA);
+        inicializar(dataBQ, dataSLA, dataRecurrencia);
       } catch (e) { console.error("Error general:", e); } 
       finally { loader(false); }
     }
@@ -536,26 +564,54 @@
       function unicosSLA(campo) { const vistos = {}; eventosSLA.forEach(e => { if (e[campo]) vistos[e[campo]] = true; }); return Object.keys(vistos).sort((a, b) => a.localeCompare(b, 'es')); }
       return { eventosSLA, filtrosSLA: { clientes: unicosSLA('cliente'), ciudades: unicosSLA('ciudad'), estadosWms: unicosSLA('estadoWMS'), alertas: unicosSLA('alertaSLA'), agotados: unicosSLA('flagAgotado') } };
     }
+    
+    function procesarDatosRecurrencia(rawRecurrencia) {
+      const eventosRecurrencia = (Array.isArray(rawRecurrencia) ? rawRecurrencia : []).map(e => {
+        return {
+          placa: String(e.placa || 'Sin placa'),
+          categoria_maquina: String(e.categoria_maquina || 'Sin categoría'),
+          cliente: String(e.cliente || 'Sin cliente'),
+          sucursal: String(e.sucursal || 'Sin sucursal'),
+          cantidad: Number(e.cantidad) || 0,
+          mes_anio: String(e.mes_anio || 'Sin mes'),
+          ano: String(e.ano || 'Sin año'),
+          accion: String(e.accion || 'Sin acción'),
+          observaciones: String(e.observaciones || '')
+        };
+      });
+      function unicosRec(campo) { const vistos = {}; eventosRecurrencia.forEach(e => { if (e[campo]) vistos[e[campo]] = true; }); return Object.keys(vistos).sort((a, b) => b.localeCompare(a, 'es')); }
+      return { eventosRecurrencia, filtrosRecurrencia: { anos: unicosRec('ano'), meses: unicosRec('mes_anio'), acciones: unicosRec('accion'), categorias: unicosRec('categoria_maquina') } };
+    }
 
-    function inicializar(dataBQ, dataSLA) {
+    function inicializar(dataBQ, dataSLA, dataRecurrencia) {
       ESTADO.eventos = dataBQ.eventos || []; ESTADO.filtros = dataBQ.filtros || {};
       ESTADO.eventosSLA = dataSLA.eventosSLA || []; ESTADO.filtrosSLA = dataSLA.filtrosSLA || {};
+      ESTADO.eventosRecurrencia = dataRecurrencia.eventosRecurrencia || []; ESTADO.filtrosRecurrencia = dataRecurrencia.filtrosRecurrencia || {};
       ESTADO.actualizado = new Date().toLocaleString('es-CO', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true });
       document.getElementById('actualizado').textContent = ESTADO.actualizado;
       document.getElementById('badgeMaquinaria').textContent = contarPedidosUnicos(ESTADO.eventos) + " registros";
       document.getElementById('badgePedidos').textContent = contarPedidosUnicos(ESTADO.eventosSLA) + " pedidos";
-      poblarCombos(); poblarCombosSLA(); render();
+      
+      let totalCasosRecurrencia = ESTADO.eventosRecurrencia.reduce((acc, e) => acc + e.cantidad, 0);
+      document.getElementById('badgeRecurrencia').textContent = totalCasosRecurrencia + " casos";
+
+      poblarCombos(); poblarCombosSLA(); poblarCombosRecurrencia(); render();
     }
 
     function cambiarVistaPrincipal(vista) {
       ESTADO.vistaPrincipal = vista;
       document.getElementById('btnMainMaquinaria').classList.toggle('active', vista === 'maquinaria');
       document.getElementById('btnMainPedidos').classList.toggle('active', vista === 'pedidos');
+      document.getElementById('btnMainRecurrencia').classList.toggle('active', vista === 'recurrencia');
+      
       document.getElementById('subDockMaquinaria').style.display = vista === 'maquinaria' ? 'flex' : 'none';
       document.getElementById('subDockPedidos').style.display = vista === 'pedidos' ? 'flex' : 'none';
+      
+      document.getElementById('barFiltrosMaquinaria').style.display = vista === 'maquinaria' ? 'flex' : 'none';
       document.getElementById('barFiltrosSLA').style.display = vista === 'pedidos' ? 'flex' : 'none';
-      document.querySelectorAll('.filter-bq').forEach(el => el.style.display = vista === 'maquinaria' ? 'flex' : 'none');
-      ESTADO.moduloSel = vista === 'maquinaria' ? 'general' : 'alertasSLA';
+      document.getElementById('barFiltrosRecurrencia').style.display = vista === 'recurrencia' ? 'flex' : 'none';
+      
+      ESTADO.moduloSel = vista === 'maquinaria' ? 'general' : (vista === 'pedidos' ? 'alertasSLA' : 'recurrencia');
       render();
     }
 
@@ -578,6 +634,13 @@
       crearComboMultiples('comboEstadoWmsSLA', ESTADO.filtrosSLA.estadosWms || [], ESTADO_SLA.estadoWmsSel, v => { ESTADO_SLA.estadoWmsSel = v; render(); }, 'Todos los estados WMS');
       crearComboMultiples('comboAlertaSLA', ESTADO.filtrosSLA.alertas || [], ESTADO_SLA.alertaSel, v => { ESTADO_SLA.alertaSel = v; render(); }, 'Todos los niveles');
       crearComboMultiples('comboAgotadoSLA', ESTADO.filtrosSLA.agotados || [], ESTADO_SLA.agotadoSel, v => { ESTADO_SLA.agotadoSel = v; render(); }, 'Agotado (Sí/No)');
+    }
+    
+    function poblarCombosRecurrencia() {
+      crearComboMultiples('comboAnoRecurrencia', ESTADO.filtrosRecurrencia.anos || [], ESTADO.anoRecurrenciaSel, v => { ESTADO.anoRecurrenciaSel = v; render(); }, 'Todos los años');
+      crearComboMultiples('comboMesRecurrencia', ESTADO.filtrosRecurrencia.meses || [], ESTADO.mesRecurrenciaSel, v => { ESTADO.mesRecurrenciaSel = v; render(); }, 'Todos los meses');
+      crearComboMultiples('comboAccionRecurrencia', ESTADO.filtrosRecurrencia.acciones || [], ESTADO.accionRecurrenciaSel, v => { ESTADO.accionRecurrenciaSel = v; render(); }, 'Todas las acciones');
+      crearComboMultiples('comboCategoriaRecurrencia', ESTADO.filtrosRecurrencia.categorias || [], ESTADO.categoriaRecurrenciaSel, v => { ESTADO.categoriaRecurrenciaSel = v; render(); }, 'Todas las categorías');
     }
 
     function crearComboMultiples(contenedorId, opciones, seleccionados, alCambiar, etiquetaTodos) {
@@ -622,18 +685,19 @@
 
     function limpiarFiltros() { ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = []; ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = ''; document.getElementById('inputFechaDia').value = ''; document.getElementById('inputBusqueda').value = ''; poblarCombos(); limpiarFiltrosSLA(); render(); }
     function limpiarFiltrosSLA() { ESTADO_SLA.clienteSel = []; ESTADO_SLA.ciudadSel = []; ESTADO_SLA.estadoWmsSel = []; ESTADO_SLA.alertaSel = []; ESTADO_SLA.agotadoSel = []; poblarCombosSLA(); render(); }
+    function limpiarFiltrosRecurrencia() { ESTADO.anoRecurrenciaSel = []; ESTADO.mesRecurrenciaSel = []; ESTADO.accionRecurrenciaSel = []; ESTADO.categoriaRecurrenciaSel = []; poblarCombosRecurrencia(); render(); }
 
     function filtrarEventos() {
       return ESTADO.eventos.filter(e => {
         if (ESTADO.moduloSel !== 'general' && ESTADO.moduloSel !== 'agendador' && e.modulo !== ESTADO.moduloSel) return false;
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { const qRaw = ESTADO.busqueda.trim().toLowerCase(), qClean = qRaw.replace(/[^a-z0-9]/g, ''), strPedRaw = String(e.pedido || '').toLowerCase(), strPedClean = strPedRaw.replace(/[^a-z0-9]/g, ''); const txtMatchRaw = strPedRaw + ' ' + String(e.codActivo || '').toLowerCase() + ' ' + String(e.maquinaria || '').toLowerCase() + ' ' + String(e.cliente || '').toLowerCase() + ' ' + String(e.observacionDetalle || '').toLowerCase(); if (txtMatchRaw.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; }
-        if (ESTADO.anoSel.length > 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        if (ESTADO.periodoSel.length > 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
-        if (ESTADO.clienteSel.length > 0 && ESTADO.filtros.clientes && ESTADO.clienteSel.length < ESTADO.filtros.clientes.length && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
-        if (ESTADO.ciudadSel.length > 0 && ESTADO.filtros.ciudades && ESTADO.ciudadSel.length < ESTADO.filtros.ciudades.length && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
-        if (ESTADO.estadoSel.length > 0 && ESTADO.filtros.estados && ESTADO.estadoSel.length < ESTADO.filtros.estados.length && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
-        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.filtros.estadosEntrega && ESTADO.estadoEntregaSel.length < ESTADO.filtros.estadosEntrega.length && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
-        if (ESTADO.accionSel.length > 0 && ESTADO.filtros.acciones && ESTADO.accionSel.length < ESTADO.filtros.acciones.length && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
+        if (ESTADO.clienteSel.length > 0 && ESTADO.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.clientes && ESTADO.clienteSel.length < ESTADO.filtros.clientes.length && ESTADO.clienteSel.indexOf(e.cliente) < 0) return false;
+        if (ESTADO.ciudadSel.length > 0 && ESTADO.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.ciudades && ESTADO.ciudadSel.length < ESTADO.filtros.ciudades.length && ESTADO.ciudadSel.indexOf(e.ciudad) < 0) return false;
+        if (ESTADO.estadoSel.length > 0 && ESTADO.estadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.estados && ESTADO.estadoSel.length < ESTADO.filtros.estados.length && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
+        if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.estadoEntregaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.estadosEntrega && ESTADO.estadoEntregaSel.length < ESTADO.filtros.estadosEntrega.length && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
+        if (ESTADO.accionSel.length > 0 && ESTADO.accionSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.acciones && ESTADO.accionSel.length < ESTADO.filtros.acciones.length && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
         if (ESTADO.fechaDiaSel) { const partes = e.fechaSolicitud.split('/'); if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false; }
         return true;
       });
@@ -650,19 +714,22 @@
           if (matchText.indexOf(qRaw) < 0 && strPedClean.indexOf(qClean) < 0) return false; 
         }
         
-        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.anos && ESTADO.anoSel.length < ESTADO.filtros.anos.length && e.ano && e.ano !== 'Sin fecha' && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
-        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtros.periodos && ESTADO.periodoSel.length < ESTADO.filtros.periodos.length && e.periodo && e.periodo !== 'Sin fecha' && ESTADO.periodoSel.indexOf(e.periodo) < 0) return false;
         if (ESTADO_SLA.clienteSel.length > 0 && ESTADO_SLA.clienteSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.clientes && ESTADO_SLA.clienteSel.length < ESTADO.filtrosSLA.clientes.length && ESTADO_SLA.clienteSel.indexOf(e.cliente) < 0) return false;
         if (ESTADO_SLA.ciudadSel.length > 0 && ESTADO_SLA.ciudadSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.ciudades && ESTADO_SLA.ciudadSel.length < ESTADO.filtrosSLA.ciudades.length && ESTADO_SLA.ciudadSel.indexOf(e.ciudad) < 0) return false;
         if (ESTADO_SLA.estadoWmsSel.length > 0 && ESTADO_SLA.estadoWmsSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.estadosWms && ESTADO_SLA.estadoWmsSel.length < ESTADO.filtrosSLA.estadosWms.length && ESTADO_SLA.estadoWmsSel.indexOf(e.estadoWMS) < 0) return false;
-        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
+        if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertas.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
         
-        if (ESTADO.fechaDiaSel) { 
-          const partes = e.fechaMontaje.split('/'); 
-          if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false; 
-        }
-
+        return true;
+      });
+    }
+    
+    function filtrarEventosRecurrencia() {
+      return ESTADO.eventosRecurrencia.filter(e => {
+        if (ESTADO.anoRecurrenciaSel.length > 0 && ESTADO.anoRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.anos && ESTADO.anoRecurrenciaSel.length < ESTADO.filtrosRecurrencia.anos.length && ESTADO.anoRecurrenciaSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.mesRecurrenciaSel.length > 0 && ESTADO.mesRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.meses && ESTADO.mesRecurrenciaSel.length < ESTADO.filtrosRecurrencia.meses.length && ESTADO.mesRecurrenciaSel.indexOf(e.mes_anio) < 0) return false;
+        if (ESTADO.accionRecurrenciaSel.length > 0 && ESTADO.accionRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.acciones && ESTADO.accionRecurrenciaSel.length < ESTADO.filtrosRecurrencia.acciones.length && ESTADO.accionRecurrenciaSel.indexOf(e.accion) < 0) return false;
+        if (ESTADO.categoriaRecurrenciaSel.length > 0 && ESTADO.categoriaRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.categorias && ESTADO.categoriaRecurrenciaSel.length < ESTADO.filtrosRecurrencia.categorias.length && ESTADO.categoriaRecurrenciaSel.indexOf(e.categoria_maquina) < 0) return false;
         return true;
       });
     }
@@ -671,7 +738,7 @@
 
     function renderTarjetasAcciones(evs) {
       const wrap = document.getElementById('accionesSummaryWrap'); if (!wrap) return;
-      if (ESTADO.vistaPrincipal === 'pedidos') { wrap.innerHTML = ''; return; }
+      if (ESTADO.vistaPrincipal === 'pedidos' || ESTADO.vistaPrincipal === 'recurrencia') { wrap.innerHTML = ''; return; }
       const conteoAcciones = {};
       evs.forEach(e => { const acc = e.accion || 'Sin especificación'; if (!conteoAcciones[acc]) conteoAcciones[acc] = { pedidos: {}, totalItems: 0 }; if (e.pedido) conteoAcciones[acc].pedidos[e.pedido] = true; conteoAcciones[acc].totalItems++; });
       const listaAcciones = Object.keys(conteoAcciones).sort((a, b) => Object.keys(conteoAcciones[b].pedidos).length - Object.keys(conteoAcciones[a].pedidos).length);
@@ -680,26 +747,107 @@
 
     function render() {
       Object.keys(CHART_INSTANCES).forEach(k => { if (CHART_INSTANCES[k]) CHART_INSTANCES[k].destroy(); }); CHART_INSTANCES = {};
-      const esSLA = (ESTADO.vistaPrincipal === 'pedidos'), evs = esSLA ? filtrarEventosSLA() : filtrarEventos();
-      document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
-      document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
-      renderTarjetasAcciones(evs);
+      
       const grid = document.getElementById('grid');
-      if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
       let html = '';
-      if (esSLA) {
-        if (ESTADO.submoduloSLA === 'articulos') html = renderVistaAnalisisArticulos(evs);
-        else html = renderVistaAlertasSLA(evs);
+
+      if (ESTADO.vistaPrincipal === 'recurrencia') {
+        const evsRec = filtrarEventosRecurrencia();
+        document.getElementById('chipPedidos').textContent = evsRec.reduce((acc, e) => acc + e.cantidad, 0) + ' Casos en total';
+        document.getElementById('chipItems').textContent = '(' + new Set(evsRec.map(e => e.placa)).size + ' placas)';
+        
+        if (!evsRec.length) { grid.innerHTML = '<div class="vacio">No hay datos de recurrencia con los filtros aplicados.</div>'; return; }
+        html = renderVistaRecurrencia(evsRec);
+      } 
+      else if (ESTADO.vistaPrincipal === 'pedidos') {
+        const evsSLA = filtrarEventosSLA();
+        document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evsSLA) + ' Pedidos Únicos';
+        document.getElementById('chipItems').textContent = '(' + evsSLA.length + ' ítems)';
+        
+        if (!evsSLA.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
+        if (ESTADO.submoduloSLA === 'articulos') html = renderVistaAnalisisArticulos(evsSLA);
+        else html = renderVistaAlertasSLA(evsSLA);
+      } 
+      else {
+        const evs = filtrarEventos();
+        document.getElementById('chipPedidos').textContent = contarPedidosUnicos(evs) + ' Pedidos Únicos';
+        document.getElementById('chipItems').textContent = '(' + evs.length + ' ítems)';
+        renderTarjetasAcciones(evs);
+        
+        if (!evs.length) { grid.innerHTML = '<div class="vacio">No hay solicitudes que coincidan con los filtros aplicados.</div>'; return; }
+        if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
+        else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
+        else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
+        else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
+        else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
+        else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
       }
-      else if (ESTADO.moduloSel === 'general') html = renderVista360(evs);
-      else if (ESTADO.moduloSel === 'mantenimiento') html = renderMantenimiento(evs);
-      else if (ESTADO.moduloSel === 'entregas') html = renderEntregas(evs);
-      else if (ESTADO.moduloSel === 'recogidas') html = renderRecogidas(evs);
-      else if (ESTADO.moduloSel === 'accesorios') html = renderAccesorios(evs);
-      else if (ESTADO.moduloSel === 'agendador') html = renderTablaAgendador(evs);
+      
       grid.innerHTML = html;
-      if (ESTADO.moduloSel !== 'agendador') setTimeout(() => renderizarGraficosApex(evs), 30);
+      if (ESTADO.moduloSel !== 'agendador') setTimeout(() => {
+        if (ESTADO.vistaPrincipal === 'recurrencia') renderizarGraficosApexRecurrencia(filtrarEventosRecurrencia());
+        else if (ESTADO.vistaPrincipal === 'pedidos') renderizarGraficosApex(filtrarEventosSLA());
+        else renderizarGraficosApex(filtrarEventos());
+      }, 30);
     }
+
+    function renderVistaRecurrencia(evsRec) {
+      const totalCasos = evsRec.reduce((acc, e) => acc + e.cantidad, 0);
+      const totalPlacas = new Set(evsRec.map(e => e.placa)).size;
+      const totalClientes = new Set(evsRec.map(e => e.cliente)).size;
+      
+      const conteoCategorias = {};
+      evsRec.forEach(e => {
+          if (!conteoCategorias[e.categoria_maquina]) conteoCategorias[e.categoria_maquina] = 0;
+          conteoCategorias[e.categoria_maquina] += e.cantidad;
+      });
+      const topCat = Object.keys(conteoCategorias).sort((a,b) => conteoCategorias[b] - conteoCategorias[a])[0] || 'N/A';
+
+      return `<div class="col">
+        ${cardKPI('Total de Casos (Recurrencia)', totalCasos, 'casos', 'rojo', 'Eventos reportados', 'rec_total')}
+        ${cardKPI('Equipos Afectados', totalPlacas, 'placas únicas', 'neu', 'Unidades físicas', 'rec_placas')}
+        ${cardKPI('Clientes Impactados', totalClientes, 'clientes', 'amarillo', 'Base de clientes', 'rec_clientes')}
+        ${cardKPI('Categoría más Frecuente', topCat, 'categoría', 'verde', conteoCategorias[topCat] + ' casos', 'rec_cat')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Total de Casos por Mes', 'chartRecMes', 'mes_anio', '#0082c8')}
+        ${cardChartBox('Recurrencia por Equipo (Categoría)', 'chartRecCategoria', 'categoria_maquina', '#7ab833')}
+      </div>
+      <div class="col">
+        ${cardChartBox('Top 15: Recurrencia por Placa', 'chartRecPlaca', 'placa', '#ef4444')}
+        ${cardChartBox('Top 15: Recurrencia por Cliente', 'chartRecCliente', 'cliente', '#a21caf')}
+      </div>`;
+    }
+
+    function renderizarGraficosApexRecurrencia(evsRec) {
+      if (document.getElementById('chartRecMes')) renderGraficoBarraColumna('chartRecMes', agruparRecurrenciaSumatoria(evsRec, 'mes_anio', 12, true), 'mes_anio', '#0082c8');
+      if (document.getElementById('chartRecCategoria')) renderBarraHorizontalCustom('chartRecCategoria', agruparRecurrenciaSumatoria(evsRec, 'categoria_maquina', 10), 'categoria_maquina', '#7ab833', 300);
+      if (document.getElementById('chartRecPlaca')) renderBarraHorizontalCustom('chartRecPlaca', agruparRecurrenciaSumatoria(evsRec, 'placa', 15), 'placa', '#ef4444', 350);
+      if (document.getElementById('chartRecCliente')) renderBarraHorizontalCustom('chartRecCliente', agruparRecurrenciaSumatoria(evsRec, 'cliente', 15), 'cliente', '#a21caf', 350);
+    }
+    
+    function agruparRecurrenciaSumatoria(evsRec, campo, top, asc = false) {
+      const conteo = {};
+      evsRec.forEach(e => {
+        const val = e[campo] || 'Sin especificar';
+        if (!conteo[val]) conteo[val] = 0;
+        conteo[val] += e.cantidad;
+      });
+      let arr = Object.keys(conteo).map(k => ({ label: k, val: conteo[k] }));
+      if (asc) {
+          arr.sort((a,b) => a.label.localeCompare(b.label)); 
+      } else {
+          arr.sort((a,b) => b.val - a.val);
+      }
+      return arr.slice(0, top || 10);
+    }
+    
+    function renderGraficoBarraColumna(elId, datos, campoFiltro, colorHex) {
+      const container = document.getElementById(elId); if (!container) return;
+      const options = { series: [{ name: 'Casos', data: datos.map(d => d.val) }], chart: { type: 'bar', height: 280, fontFamily: "'Plus Jakarta Sans', sans-serif", toolbar: { show: false } }, plotOptions: { bar: { horizontal: false, borderRadius: 4, columnWidth: '55%' } }, dataLabels: { enabled: true, style: { fontSize: '11px' } }, stroke: { show: true, width: 2, colors: ['transparent'] }, xaxis: { categories: datos.map(d => d.label) }, fill: { opacity: 1, colors: [colorHex] } };
+      CHART_INSTANCES[elId] = new ApexCharts(container, options); CHART_INSTANCES[elId].render();
+    }
+
 
     function renderVistaAnalisisArticulos(evsSLA) {
       const totalCantSolicitada = evsSLA.reduce((acc, e) => acc + (e.totalCantSolicitada || 0), 0);
@@ -813,13 +961,29 @@
     function cambiarAgrupacionTendenciaSLA(tipo) { ESTADO.agrupacionTendenciaSLA = tipo; render(); }
 
     function ampliarCualquierGrafico(titulo, chartId, campoFiltro, colorHex) {
-      const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
       const modalCard = document.querySelector('.modal-card'); if (modalCard) modalCard.classList.add('modal-fullscreen');
       document.getElementById('modalTitulo').textContent = '📊 ' + titulo + ' (Vista Pantalla Completa - Top 15)';
       const body = document.getElementById('modalBody');
       body.innerHTML = `<div class="fullscreen-chart-wrapper"><div id="expandedCustomChartContainer" style="width: 100%; min-height: 550px;"></div></div>`;
       document.getElementById('modal').classList.add('show');
-      setTimeout(() => { if (campoFiltro) { const datosTop15 = agrupar(evs, campoFiltro, 15); renderBarraHorizontalCustom('expandedCustomChartContainer', datosTop15, campoFiltro, colorHex, 550); } else { const datosTendencia = agruparPedidosUnicosPorPeriodo(evs); renderGraficoLineaCustom('expandedCustomChartContainer', datosTendencia, colorHex, 1600, 500); } }, 60);
+      
+      setTimeout(() => { 
+        if (ESTADO.vistaPrincipal === 'recurrencia') {
+           const evsRec = filtrarEventosRecurrencia();
+           if (campoFiltro) {
+               renderBarraHorizontalCustom('expandedCustomChartContainer', agruparRecurrenciaSumatoria(evsRec, campoFiltro, 20), campoFiltro, colorHex, 550);
+           }
+        } else {
+            const evs = (ESTADO.vistaPrincipal === 'pedidos') ? filtrarEventosSLA() : filtrarEventos();
+            if (campoFiltro) { 
+              const datosTop15 = agrupar(evs, campoFiltro, 15); 
+              renderBarraHorizontalCustom('expandedCustomChartContainer', datosTop15, campoFiltro, colorHex, 550); 
+            } else { 
+              const datosTendencia = agruparPedidosUnicosPorPeriodo(evs); 
+              renderGraficoLineaCustom('expandedCustomChartContainer', datosTendencia, colorHex, 1600, 500); 
+            }
+        }
+      }, 60);
     }
 
     function ampliarGraficoPantallaCompleta() {
@@ -925,6 +1089,11 @@
     }
 
     function abrirDetalleKpi(titulo, tipo, valFiltro) {
+      if (ESTADO.vistaPrincipal === 'recurrencia') {
+        const evs = filtrarEventosRecurrencia();
+        mostrarModalConsolidadoRecurrencia(titulo, evs);
+        return;
+      }
       if (ESTADO.vistaPrincipal === 'pedidos') {
         let evs = filtrarEventosSLA();
         if (tipo === 'slaFuera') evs = evs.filter(e => e.alertaSLA === 'Vencido');
@@ -940,6 +1109,11 @@
     }
 
     function abrirDetalleBarra(titulo, campo, valor) {
+      if (ESTADO.vistaPrincipal === 'recurrencia') {
+        const evs = filtrarEventosRecurrencia().filter(e => (e[campo] || 'Sin especificar') === valor);
+        mostrarModalConsolidadoRecurrencia(titulo + ': "' + valor + '"', evs);
+        return;
+      }
       if (ESTADO.vistaPrincipal === 'pedidos') { const evs = filtrarEventosSLA().filter(e => (e[campo] || 'Sin especificar') === valor); mostrarModalConsolidadoSLA(titulo + ': "' + valor + '"', evs); return; }
       const evs = filtrarEventos().filter(e => (e[campo] || 'Sin especificar') === valor); mostrarModalConsolidado(titulo + ': "' + valor + '"', evs);
     }
@@ -986,6 +1160,40 @@
           
         </div></div>`;
       }).join('') + '</div>';
+      document.getElementById('modal').classList.add('show');
+    }
+    
+    function mostrarModalConsolidadoRecurrencia(titulo, evsRec) {
+      document.getElementById('modalTitulo').textContent = titulo + ' (' + evsRec.reduce((acc, e) => acc + e.cantidad, 0) + ' Casos)';
+      const body = document.getElementById('modalBody');
+      if (!evsRec.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
+
+      body.innerHTML = `
+        <table class="tabla-agendador">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Categoría</th>
+              <th>Cliente / Sucursal</th>
+              <th>Mes/Año</th>
+              <th>Cantidad</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${evsRec.map(e => `
+              <tr>
+                <td><b>${e.placa}</b></td>
+                <td><span class="badge-accion">${e.categoria_maquina}</span></td>
+                <td><b>${e.cliente}</b><br><span style="font-size:11px; color:var(--muted);">${e.sucursal}</span></td>
+                <td>${e.mes_anio}</td>
+                <td><span class="tag-dias ok">${e.cantidad} casos</span></td>
+                <td><span style="font-size:11.5px;">${e.observaciones || '-'}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
       document.getElementById('modal').classList.add('show');
     }
 
