@@ -187,6 +187,16 @@
     .tag-dias.crit { background: #fee2e2; color: #b91c1c; }
     .tag-dias.warn { background: #fef9c3; color: #a16207; }
 
+    /* NUEVAS CLASES PARA EL DESPLEGABLE DE ARTICULOS */
+    .btn-expand-articulos { border: 1px solid var(--line); background: #ffffff; color: var(--cl-azul-dark); font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s ease; }
+    .btn-expand-articulos:hover { background: var(--cl-azul-light); border-color: #bae6fd; color: var(--cl-azul); }
+    .articulos-lista { display: none; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 8px; }
+    .articulos-lista.show { display: block; }
+    .articulos-table { width: 100%; border-collapse: collapse; font-size: 11.5px; color: var(--ink); }
+    .articulos-table td { padding: 4px 0; border-bottom: 1px solid #e2e8f0; }
+    .articulos-table td::before { content: '📦'; margin-right: 8px; }
+    .articulos-table tr:last-child td { border-bottom: none; }
+
     .vacio { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; }
 
     #loader { position: fixed; inset: 0; background: rgba(10, 51, 86, 0.55); display: flex; align-items: center; justify-content: center; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
@@ -954,9 +964,28 @@
       const body = document.getElementById('modalBody');
       if (!eventosListSLA.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
-      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map(e => {
+      body.innerHTML = '<div class="consolidado-container">' + eventosListSLA.map((e, index) => {
         let tagClase = e.alertaSLA === 'Vencido' ? 'crit' : 'ok';
-        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div><div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;"><b>📦 Artículo / Producto:</b><br>${e.nombre_articulo}</div></div></div>`;
+        
+        let articulosArray = e.nombre_articulo.split(',').map(item => item.trim()).filter(item => item.length > 0);
+        let articulosHTML = articulosArray.map(art => `<tr><td>${art}</td></tr>`).join('');
+        let uniqueId = 'art_' + index + '_' + e.pedido.replace(/[^a-zA-Z0-9]/g, '');
+
+        return `<div class="pedido-card"><div class="pedido-head"><span class="badge-pedido"># Pedido (Salida): ${e.pedido}</span><span class="pedido-cliente">${e.cliente} (${e.ciudad})</span><span class="tag-dias ${tagClase}">${e.alertaSLA}</span></div><div class="pedido-body"><div class="item-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>📅 <b>Fecha Montaje:</b> ${formatearFechaLarga(e.fechaMontaje)}</div><div>⏳ <b>Días Transcurridos:</b> ${e.diasTranscurridos} días</div><div>📦 <b>Estado WMS:</b> ${e.estadoWMS}</div><div>🚫 <b>Flag Agotado:</b> ${e.flagAgotado}</div></div><div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 10px; background: #e0f2fe; border-radius: 10px; font-size: 11.5px; text-align: center;"><div><b>Ítems:</b><br>${e.totalItems || 1}</div><div><b>Solicitado:</b><br>${e.totalCantSolicitada || 0}</div><div><b>Alistado:</b><br>${e.totalCantAlistada || 0}</div><div><b>Despachado:</b><br>${e.totalCantDespachada || 0}</div><div><b>Entregado:</b><br>${e.totalCantEntregada || 0}</div><div><b>Volumen/Peso:</b><br>${e.totalVolumen || 0} m³ / ${e.totalPeso || 0} kg</div></div>
+          
+          <div style="margin-top: 8px; font-size: 11.5px; color: var(--muted); background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <b>📦 Artículos / Productos (${articulosArray.length})</b>
+              <button class="btn-expand-articulos" onclick="document.getElementById('${uniqueId}').classList.toggle('show')">⛶ Expandir / Ocultar</button>
+            </div>
+            <div id="${uniqueId}" class="articulos-lista">
+              <table class="articulos-table">
+                <tbody>${articulosHTML}</tbody>
+              </table>
+            </div>
+          </div>
+          
+        </div></div>`;
       }).join('') + '</div>';
       document.getElementById('modal').classList.add('show');
     }
