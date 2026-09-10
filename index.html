@@ -838,7 +838,13 @@
     
     function agruparPedidosUnicosPorPeriodo(evs) {
       const conteoPedidos = {};
-      evs.forEach(e => { const p = (e.periodo && e.periodo !== 'Sin fecha') ? e.periodo : 'Sin fecha'; if (!conteoPedidos[p]) conteoPedidos[p] = {}; if (e.pedido) conteoPedidos[p][e.pedido] = true; });
+      evs.forEach(e => { 
+        const p = (e.periodo && e.periodo !== 'Sin fecha') ? e.periodo : 'Sin fecha'; 
+        if (p !== 'Sin fecha') {
+            if (!conteoPedidos[p]) conteoPedidos[p] = {}; 
+            if (e.pedido) conteoPedidos[p][e.pedido] = true; 
+        }
+      });
       return Object.keys(conteoPedidos).sort().map(p => ({ label: formatearPeriodoTexto(p), periodoOriginal: p, val: Object.keys(conteoPedidos[p]).length }));
     }
 
@@ -849,8 +855,11 @@
         if (agrupacion === 'mes') { claveLabel = (e.periodo && e.periodo !== 'Sin fecha') ? formatearPeriodoTexto(e.periodo) : 'Sin fecha'; sortKey = e.periodo || '0000-00'; } 
         else if (agrupacion === 'semana') { if (rawFecha.includes('/')) { const p = rawFecha.split('/'); if (p.length === 3) { const f = new Date(p[2], p[1] - 1, p[0]), primerDiaAno = new Date(f.getFullYear(), 0, 1), numSemana = Math.ceil((((f - primerDiaAno) / 86400000) + primerDiaAno.getDay() + 1) / 7); claveLabel = 'Sem ' + numSemana + ' (' + p[2].slice(-2) + ')'; sortKey = p[2] + '-' + String(numSemana).padStart(2, '0'); } } else { claveLabel = e.periodo || 'Sin fecha'; sortKey = e.periodo || '0000-00'; } } 
         else if (agrupacion === 'dia') { if (rawFecha.includes('/')) { const p = rawFecha.split('/'); if (p.length === 3) { claveLabel = p[0].padStart(2, '0') + '/' + p[1].padStart(2, '0'); sortKey = p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0'); } } else { claveLabel = rawFecha || 'Sin fecha'; sortKey = rawFecha; } }
-        if (!conteo[claveLabel]) { conteo[claveLabel] = {}; ordenFechas[claveLabel] = sortKey; }
-        if (e.pedido) conteo[claveLabel][e.pedido] = true;
+        
+        if (claveLabel !== 'Sin fecha') {
+            if (!conteo[claveLabel]) { conteo[claveLabel] = {}; ordenFechas[claveLabel] = sortKey; }
+            if (e.pedido) conteo[claveLabel][e.pedido] = true;
+        }
       });
       return Object.keys(conteo).sort((a, b) => ordenFechas[a] < ordenFechas[b] ? -1 : (ordenFechas[a] > ordenFechas[b] ? 1 : 0)).map(k => ({ label: k, periodoOriginal: k, val: Object.keys(conteo[k]).length }));
     }
@@ -1008,15 +1017,22 @@
               </tr>
             </thead>
             <tbody>
-              ${articulosArray.map(art => `
+              ${articulosArray.map(art => {
+                const nombre = typeof art === 'string' ? art : (art.articulo || 'Desconocido');
+                const sol = art.solicitada || 0;
+                const ali = art.alistada || 0;
+                const des = art.despachada || 0;
+                const ent = art.entregada || 0;
+                return `
                 <tr>
-                  <td><b>${art.articulo || 'Desconocido'}</b></td>
-                  <td style="text-align:center;">${art.solicitada || 0}</td>
-                  <td style="text-align:center; ${art.alistada > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${art.alistada || 0}</td>
-                  <td style="text-align:center; ${art.despachada > 0 ? 'color: var(--cl-azul); font-weight: 800;' : ''}">${art.despachada || 0}</td>
-                  <td style="text-align:center; ${art.entregada > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${art.entregada || 0}</td>
+                  <td><b>${nombre}</b></td>
+                  <td style="text-align:center;">${sol}</td>
+                  <td style="text-align:center; ${ali > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${ali}</td>
+                  <td style="text-align:center; ${des > 0 ? 'color: var(--cl-azul); font-weight: 800;' : ''}">${des}</td>
+                  <td style="text-align:center; ${ent > 0 ? 'color: var(--cl-verde); font-weight: 800;' : ''}">${ent}</td>
                 </tr>
-              `).join('')}
+                `;
+              }).join('')}
             </tbody>
           </table>
         </div>
