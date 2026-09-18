@@ -392,7 +392,7 @@
     function normalizarFechaInput(fechaStr) {
       if (!fechaStr || fechaStr === 'Sin fecha') return null;
       if (fechaStr.includes('/')) {
-        const p = fechaStr.split(' ')[0].split('/'); // Descarta la hora si existe
+        const p = fechaStr.split(' ')[0].split('/'); 
         if (p.length === 3) return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
       }
       if (fechaStr.includes('-')) return fechaStr.split('T')[0];
@@ -760,7 +760,23 @@
         if (ESTADO.mesRecurrenciaSel.length > 0 && ESTADO.mesRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.meses && ESTADO.mesRecurrenciaSel.length < ESTADO.filtrosRecurrencia.meses.length && ESTADO.mesRecurrenciaSel.indexOf(e.mes_anio) < 0) return false;
         if (ESTADO.accionRecurrenciaSel.length > 0 && ESTADO.accionRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.acciones && ESTADO.accionRecurrenciaSel.length < ESTADO.filtrosRecurrencia.acciones.length && ESTADO.accionRecurrenciaSel.indexOf(e.accion) < 0) return false;
         if (ESTADO.categoriaRecurrenciaSel.length > 0 && ESTADO.categoriaRecurrenciaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosRecurrencia.categorias && ESTADO.categoriaRecurrenciaSel.length < ESTADO.filtrosRecurrencia.categorias.length && ESTADO.categoriaRecurrenciaSel.indexOf(e.categoria_maquina) < 0) return false;
+        
         if (ESTADO.busqueda && ESTADO.busqueda.trim() !== '') { const q = ESTADO.busqueda.trim().toLowerCase(); const txt = (e.placa + ' ' + e.categoria_maquina + ' ' + e.cliente + ' ' + e.sucursal + ' ' + e.observaciones).toLowerCase(); if (txt.indexOf(q) < 0) return false; }
+
+        if (ESTADO.anoSel.length > 0 && ESTADO.anoSel.indexOf('__NINGUNO__') < 0 && ESTADO.anoSel.indexOf(e.ano) < 0) return false;
+        if (ESTADO.periodoSel.length > 0 && ESTADO.periodoSel.indexOf('__NINGUNO__') < 0 && ESTADO.periodoSel.indexOf(e.mes_anio) < 0) return false;
+
+        const mesAnio = String(e.mes_anio || '');
+        if (mesAnio !== 'Sin fecha' && mesAnio.length >= 7) {
+            const desdeMes = ESTADO.fechaDesdeSel ? ESTADO.fechaDesdeSel.substring(0, 7) : null;
+            const hastaMes = ESTADO.fechaHastaSel ? ESTADO.fechaHastaSel.substring(0, 7) : null;
+            const exactaMes = ESTADO.fechaDiaSel ? ESTADO.fechaDiaSel.substring(0, 7) : null;
+
+            if (desdeMes && mesAnio < desdeMes) return false;
+            if (hastaMes && mesAnio > hastaMes) return false;
+            if (exactaMes && mesAnio !== exactaMes) return false;
+        }
+
         return true;
       });
     }
