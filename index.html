@@ -195,7 +195,6 @@
     #loader { position: fixed; inset: 0; background: rgba(10, 51, 86, 0.55); display: flex; align-items: center; justify-content: center; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
     #loader.show { opacity: 1; pointer-events: auto; }
     .spin { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--cl-verde); animation: sp .8s linear infinite; }
-    @keyframes sp { to { transform: rotate(360deg); } }
     @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } .main-tabs { grid-template-columns: 1fr; } }
     @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .item-row { grid-template-columns: 1fr; } }
   </style>
@@ -242,6 +241,8 @@
       <div class="field"><label>Año</label><div id="comboAno"></div></div>
       <div class="field"><label>Periodo (Mes/Año)</label><div id="comboPeriodo"></div></div>
       <div class="field"><label>Fecha exacta (Día)</label><input type="date" id="inputFechaDia" class="date-input"></div>
+      <div class="field"><label>Fecha Desde</label><input type="date" id="inputFechaDesde" class="date-input"></div>
+      <div class="field"><label>Fecha Hasta</label><input type="date" id="inputFechaHasta" class="date-input"></div>
       <div class="field filter-bq"><label>Cliente</label><div id="comboCliente"></div></div>
       <div class="field filter-bq"><label>Ciudad</label><div id="comboCiudad"></div></div>
       <div class="field filter-bq"><label>Estado</label><div id="comboEstado"></div></div>
@@ -351,7 +352,7 @@
 
   <script>
     let ESTADO = {
-      anoSel: [], periodoSel: [], fechaDiaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
+      anoSel: [], periodoSel: [], fechaDiaSel: '', fechaDesdeSel: '', fechaHastaSel: '', clienteSel: [], ciudadSel: [], estadoSel: [],
       estadoEntregaSel: [], accionSel: [], busqueda: '',
       vistaPrincipal: 'maquinaria', moduloSel: 'general', submoduloSLA: 'todos', agrupacionTendenciaSLA: 'mes',
       eventos: [], eventosSLA: [], filtros: {}, filtrosSLA: {}, actualizado: '',
@@ -387,6 +388,17 @@
     };
 
     function normTexto(s) { return s ? String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '') : ''; }
+    
+    function normalizarFechaInput(fechaStr) {
+      if (!fechaStr || fechaStr === 'Sin fecha') return null;
+      if (fechaStr.includes('/')) {
+        const p = fechaStr.split(' ')[0].split('/'); // Descarta la hora si existe
+        if (p.length === 3) return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+      }
+      if (fechaStr.includes('-')) return fechaStr.split('T')[0];
+      return null;
+    }
+
     function toggleVisibilidadPassword() { const input = document.getElementById('loginPass'); if (input) input.type = input.type === 'password' ? 'text' : 'password'; }
 
     function formatearFechaLarga(fechaStr) {
@@ -679,7 +691,17 @@
       document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) panel.classList.remove('show'); });
     }
 
-    function limpiarFiltros() { ESTADO.anoSel = []; ESTADO.periodoSel = []; ESTADO.fechaDiaSel = ''; ESTADO.clienteSel = []; ESTADO.ciudadSel = []; ESTADO.estadoSel = []; ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = ''; document.getElementById('inputFechaDia').value = ''; document.getElementById('inputBusqueda').value = ''; poblarCombos(); limpiarFiltrosSLA(); render(); }
+    function limpiarFiltros() { 
+      ESTADO.anoSel = []; ESTADO.periodoSel = []; 
+      ESTADO.fechaDiaSel = ''; ESTADO.fechaDesdeSel = ''; ESTADO.fechaHastaSel = ''; 
+      ESTADO.clienteSel = []; ESTADO.ciudadSel = []; ESTADO.estadoSel = []; 
+      ESTADO.estadoEntregaSel = []; ESTADO.accionSel = []; ESTADO.busqueda = ''; 
+      document.getElementById('inputFechaDia').value = ''; 
+      if(document.getElementById('inputFechaDesde')) document.getElementById('inputFechaDesde').value = ''; 
+      if(document.getElementById('inputFechaHasta')) document.getElementById('inputFechaHasta').value = ''; 
+      document.getElementById('inputBusqueda').value = ''; 
+      poblarCombos(); limpiarFiltrosSLA(); render(); 
+    }
     function limpiarFiltrosSLA() { ESTADO_SLA.clienteSel = []; ESTADO_SLA.ciudadSel = []; ESTADO_SLA.estadoWmsSel = []; ESTADO_SLA.alertaSel = []; ESTADO_SLA.agotadoSel = []; poblarCombosSLA(); render(); }
     function limpiarFiltrosRecurrencia() { ESTADO.anoRecurrenciaSel = []; ESTADO.mesRecurrenciaSel = []; ESTADO.accionRecurrenciaSel = []; ESTADO.categoriaRecurrenciaSel = []; poblarCombosRecurrencia(); render(); }
 
@@ -694,7 +716,12 @@
         if (ESTADO.estadoSel.length > 0 && ESTADO.filtros.estados && ESTADO.estadoSel.length < ESTADO.filtros.estados.length && ESTADO.estadoSel.indexOf(e.estado) < 0) return false;
         if (ESTADO.estadoEntregaSel.length > 0 && ESTADO.filtros.estadosEntrega && ESTADO.estadoEntregaSel.length < ESTADO.filtros.estadosEntrega.length && ESTADO.estadoEntregaSel.indexOf(e.estadoEntrega) < 0) return false;
         if (ESTADO.accionSel.length > 0 && ESTADO.filtros.acciones && ESTADO.accionSel.length < ESTADO.filtros.acciones.length && ESTADO.accionSel.indexOf(e.accion) < 0) return false;
-        if (ESTADO.fechaDiaSel) { const partes = e.fechaSolicitud.split('/'); if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false; }
+        
+        const fechaNorm = normalizarFechaInput(e.fechaSolicitud); 
+        if (ESTADO.fechaDiaSel && fechaNorm !== ESTADO.fechaDiaSel) return false; 
+        if (ESTADO.fechaDesdeSel && (!fechaNorm || fechaNorm < ESTADO.fechaDesdeSel)) return false; 
+        if (ESTADO.fechaHastaSel && (!fechaNorm || fechaNorm > ESTADO.fechaHastaSel)) return false;
+        
         return true;
       });
     }
@@ -718,10 +745,10 @@
         if (ESTADO_SLA.alertaSel.length > 0 && ESTADO_SLA.alertaSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.alertas && ESTADO_SLA.alertaSel.length < ESTADO.filtrosSLA.alertas.length && ESTADO_SLA.alertaSel.indexOf(e.alertaSLA) < 0) return false;
         if (ESTADO_SLA.agotadoSel.length > 0 && ESTADO_SLA.agotadoSel.indexOf('__NINGUNO__') < 0 && ESTADO.filtrosSLA.agotados && ESTADO_SLA.agotadoSel.length < ESTADO.filtrosSLA.agotados.length && ESTADO_SLA.agotadoSel.indexOf(e.flagAgotado) < 0) return false;
 
-        if (ESTADO.fechaDiaSel) {
-          const partes = e.fechaMontaje.split('/');
-          if (partes.length === 3 && `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}` !== ESTADO.fechaDiaSel) return false;
-        }
+        const fechaNormSLA = normalizarFechaInput(e.fechaMontaje); 
+        if (ESTADO.fechaDiaSel && fechaNormSLA !== ESTADO.fechaDiaSel) return false; 
+        if (ESTADO.fechaDesdeSel && (!fechaNormSLA || fechaNormSLA < ESTADO.fechaDesdeSel)) return false; 
+        if (ESTADO.fechaHastaSel && (!fechaNormSLA || fechaNormSLA > ESTADO.fechaHastaSel)) return false;
 
         return true;
       });
@@ -1018,7 +1045,7 @@
       let gridLines = ''; for (let i = 0; i <= 4; i++) { const yPos = padding + (i * (height - padding * 2) / 4); gridLines += `<line x1="${padding}" y1="${yPos}" x2="${width - padding}" y2="${yPos}" class="area-grid-line" />`; }
       const esLargo = datos.length > 12;
 
-      let nodesSvg = ''; datos.forEach((d, i) => { const x = getX(i), y = getY(d.val); nodesSvg += `<g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;"><circle cx="${x}" cy="${y}" r="22" fill="transparent" /><circle cx="${x}" cy="${y}" r="6" class="area-node" /><text x="${x}" y="${y - 12}" class="area-node-text" style="font-size: 13px; font-weight: 800; fill: #0a3356;">${d.val}</text><text x="${x}" y="${height - 10}" class="area-node-text" style="fill: #475569; font-size: 12px; font-weight: 700;" ${esLargo ? `transform="rotate(-35, ${x}, ${height - 10})"` : ''}>${d.label}</text></g>`; });
+      let nodesSvg = ''; datos.forEach((d, i) => { const x = getX(i), y = getY(d.val); nodesSvg += `<g class="clickable node-group" data-periodo="${d.periodoOriginal}" data-label="${d.label}" style="cursor:pointer;"><circle cx="${x}" cy="${y}" r="22" fill="transparent" /><circle cx="${x}" cy="${y}" r="6" class="area-node" /><text x="${x}" y="${y - 12}" class="area-node-text" style="font-size: 13px; font-weight: 800; fill: #0a3356;">${d.val}</text><text x="${x}" y="${height - 10}" class="area-node-text" style="fill: #475569; font-size: 12px; font-weight: 700;" ${esLargo ? `transform="rotate(-35, ${x},${height - 10})"` : ''}>${d.label}</text></g>`; });
 
       container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" class="area-svg-chart" style="width:${width}px; height:${height}px;"><defs><linearGradient id="area-gradient-cl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${colorHex}" stop-opacity="0.45" /><stop offset="100%" stop-color="${colorHex}" stop-opacity="0.0" /></linearGradient></defs>${gridLines}<polygon points="${areaPoints}" class="area-path" /><polyline points="${points}" class="line-path" />${nodesSvg}</svg>`;
       container.onclick = function(e) { const group = e.target.closest('.node-group'); if (group) abrirModalPeriodoDirecto(group.getAttribute('data-label'), group.getAttribute('data-periodo')); };
@@ -1121,36 +1148,28 @@
       const body = document.getElementById('modalBody');
       if (!evsRec.length) { body.innerHTML = '<div class="vacio">No hay registros para mostrar.</div>'; return; }
 
-      // --- 1. LÓGICA DE AGRUPACIÓN PARA EL RESUMEN ---
-      
-      // Total general y cantidad de equipos únicos
       const totalCantidad = evsRec.reduce((acc, e) => acc + (e.cantidad || 0), 0);
       const equiposUnicos = new Set(evsRec.map(e => e.placa)).size;
 
-      // Agrupar por Categoría
       const conteoCat = {};
       evsRec.forEach(e => {
         const cat = e.categoria_maquina || 'Sin categoría';
         conteoCat[cat] = (conteoCat[cat] || 0) + (e.cantidad || 0);
       });
-      // Convertimos el objeto a un texto formateado
       const resumenCategorias = Object.keys(conteoCat)
-        .sort((a, b) => conteoCat[b] - conteoCat[a]) // Ordenar de mayor a menor
+        .sort((a, b) => conteoCat[b] - conteoCat[a])
         .map(k => `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--line); padding:2px 0;"><span>${k}</span> <b>${conteoCat[k]}</b></div>`)
         .join('');
 
-      // Agrupar por Mes
       const conteoMes = {};
       evsRec.forEach(e => {
         const mes = formatearPeriodoTexto(e.mes_anio) || 'Sin fecha';
         conteoMes[mes] = (conteoMes[mes] || 0) + (e.cantidad || 0);
       });
-      // Convertimos el objeto a un texto formateado
       const resumenMeses = Object.keys(conteoMes)
         .map(k => `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--line); padding:2px 0;"><span>${k}</span> <b>${conteoMes[k]}</b></div>`)
         .join('');
 
-      // --- 2. RENDERIZADO DE LAS TARJETAS HTML ---
       const htmlResumen = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
           <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
@@ -1171,7 +1190,6 @@
         </div>
       `;
 
-      // --- 3. INYECCIÓN DEL CÓDIGO AL MODAL ---
       body.innerHTML = htmlResumen + `
         <div class="tabla-programacion-wrap">
           <table class="tabla-agendador">
@@ -1274,7 +1292,14 @@
       alert('¡Pedido #' + ped + ' asignado a ' + tec + ' para la fecha ' + fechaProg + '!'); cerrarModal(); render();
     }
 
-    document.addEventListener('DOMContentLoaded', () => { document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); }); document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); }); document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); }); if (!verificarSesionGuardada()) { loader(false); } });
+    document.addEventListener('DOMContentLoaded', () => { 
+      document.getElementById('inputBusqueda').addEventListener('input', (e) => { ESTADO.busqueda = e.target.value; render(); }); 
+      document.getElementById('inputFechaDia').addEventListener('change', (e) => { ESTADO.fechaDiaSel = e.target.value; render(); }); 
+      document.getElementById('inputFechaDesde')?.addEventListener('change', (e) => { ESTADO.fechaDesdeSel = e.target.value; render(); }); 
+      document.getElementById('inputFechaHasta')?.addEventListener('change', (e) => { ESTADO.fechaHastaSel = e.target.value; render(); });
+      document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') cerrarModal(); }); 
+      if (!verificarSesionGuardada()) { loader(false); } 
+    });
   </script>
 </body>
 </html>
